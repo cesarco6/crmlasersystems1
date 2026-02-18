@@ -1,0 +1,14 @@
+# Framework y Servidor
+Django>=5.0,<5.1
+gunicorn>=21.2.0
+
+# Base de Datos y Caché 
+psycopg[binary]>=3.1.18
+redis>=5.0.1
+django-redis>=5.4.0
+
+# Procesamiento del Módulo de Ingesta (M1)
+pandas>=2.2.0        # Para leer y procesar el Excel de Leads
+openpyxl>=3.1.2      # Motor para archivos .xlsx
+python-dotenv>=1.0.1 # Gestión de variables de entorno [cite: 10]
+Pillow>=10.2.0       # Procesamiento de imágenes para perfiles [cite: 11]
