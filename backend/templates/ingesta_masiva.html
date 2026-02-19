@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ingesta Masiva - CRM Laser Systems{% endblock %}
+
+{% block content %}
+<section class="module" id="module-area-trabajo">
+    <div class="module-header">
+        <h2>📊 Área de Trabajo</h2>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3>Luckysheet - Hoja de Cálculo</h3>
+            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                <button class="btn-small" onclick="loadTemplate('ventas')">📊 Plantilla Ventas</button>
+                <button class="btn-small" onclick="loadTemplate('prospectos')">🎯 Plantilla Prospectos</button>
+                <button class="btn-small" onclick="exportToCSV()">💾 Exportar CSV</button>
+                <button class="btn-small" onclick="addNewRow()">➕ Agregar Fila</button>
+                <button class="btn-small" onclick="clearSpreadsheet()">🗑️ Limpiar</button>
+            </div>
+        </div>
+
+        <!-- Simplified Luckysheet container with clean white background -->
+        <div class="luckysheet-container">
+            <div class="crm-module">
+                <div id="luckysheet"
+                    style="margin:0px;padding:0px;position:absolute;width:100%;height:100%;left: 0px;top: 0px;"></div>
+            </div>
+        </div>
+
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    $(function () {
+        // Configuration for Luckysheet
+        var options = {
+            container: 'luckysheet', // luckysheet is the container id
+            lang: 'es', // Language
+            showinfobar: false,
+            showsheetbar: false,
+            showstatisticBar: false,
+            allowEdit: true,
+            enableAddRow: true,
+            enableAddBackTop: false,
+            // Add more configuration as needed
+        }
+        luckysheet.create(options);
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Ensure the container has height for Luckysheet */
+    .luckysheet-container {
+        position: relative;
+        width: 100%;
+        height: 600px;
+        /* Adjust height as needed */
+    }
+
+    .crm-module {
+        width: 100%;
+        height: 100%;
+    }
+</style>
+{% endblock %}

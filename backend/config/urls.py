@@ -16,7 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from leads.views import DashboardAgenteView, IngestaMasivaView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('dashboard/agente/', DashboardAgenteView.as_view(), name='dashboard_agente'),
+    path('ingesta-masiva/', IngestaMasivaView.as_view(), name='ingesta_masiva'),
 ]
