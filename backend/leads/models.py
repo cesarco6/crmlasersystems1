@@ -54,18 +54,3 @@ class FiscalProfile(models.Model):
     ciudad = models.CharField(max_length=100)
     estado = models.CharField(max_length=100)
     cp = models.CharField(max_length=5)
-
-class LeadDispute(models.Model):
-    lead = models.ForeignKey(CoreLead, on_delete=models.CASCADE, related_name='conflictos')
-    claimant_user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Quien reclama")
-    tipo_conflicto = models.CharField(max_length=30, choices=[
-        ('DUPLICADO_IMPORT', 'Duplicado en Importación'),
-        ('RECLAMO_MANUAL', 'Reclamo Manual de Propiedad')
-    ])
-    status = models.CharField(max_length=20, choices=[
-        ('PENDIENTE', 'Pendiente'),
-        ('RESUELTO', 'Resuelto'),
-        ('RECHAZADO', 'Rechazado')
-    ], default='PENDIENTE')
-    notas_resolucion = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
