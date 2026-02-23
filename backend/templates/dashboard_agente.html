@@ -2,6 +2,28 @@
 {% load static %}
 
 {% block title %}Dashboard Agente - CRM Laser Systems{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modals.css' %}">
+<style>
+    /* Forzamos el diseño de 2 columnas desde la plantilla para evitar caché */
+    .form-row {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 15px;
+        width: 100%;
+    }
+    .form-group {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .form-group label {
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: var(--text-secondary, #a1a5b7);
+    }
+</style>
+{% endblock %}
 
 {% block content %}
 <!-- Módulo Mis Ventas -->
@@ -104,66 +126,103 @@
     <div class="card">
         <div class="card-header">
             <h3>Mis Oportunidades Activas</h3>
-            <button class="btn-primary">Nueva Oportunidad</button>
+            <button onclick="document.getElementById('modal-alta').style.display='block'" class="btn-primary">Nueva
+                Oportunidad</button>
         </div>
         <div class="table-container">
             <table class="data-table">
                 <thead>
                     <tr>
                         <th>Cliente</th>
+                        <th>Fecha Inicial</th>
                         <th>Etapa</th>
-                        <th>Valor Estimado</th>
-                        <th>Probabilidad</th>
-                        <th>Próxima Acción</th>
+                        <th>Producto</th>
+                        <th>Cal.</th>
+                        <th>Ubicación</th>
                         <th>Acción</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {% for lead in leads %}
                     <tr>
-                        <td>Metalúrgica Industrial</td>
-                        <td><span class="badge badge-warning">Negociación</span></td>
-                        <td>$85,000</td>
-                        <td>75%</td>
-                        <td>Presentar propuesta final</td>
-                        <td><button class="btn-small">Gestionar</button></td>
+                        <td>{{ lead.nombre }}</td>
+                        <td>{{ lead.created_at|date:"d/m/Y" }}</td>
+                        <td><span class="badge badge-primary">{{ lead.estatus }}</span></td>
+                        <td>{{ lead.producto_interes }}</td>
+                        <td>{{ lead.calificacion }}</td>
+                        <td>{{ lead.ubicacion.ciudad }}</td>
+                        <td><a href="{% url 'ficha_trabajo' lead.id %}" class="btn-small"
+                                style="text-decoration: none; display: inline-block;">Gestionar</a></td>
                     </tr>
+                    {% empty %}
                     <tr>
-                        <td>AutoPartes del Norte</td>
-                        <td><span class="badge badge-success">Cotización</span></td>
-                        <td>$120,000</td>
-                        <td>60%</td>
-                        <td>Seguimiento telefónico</td>
-                        <td><button class="btn-small">Gestionar</button></td>
+                        <td colspan="7" style="text-align: center;">No hay oportunidades activas.</td>
                     </tr>
-                    <tr>
-                        <td>TecnoPack Solutions</td>
-                        <td><span class="badge badge-warning">Negociación</span></td>
-                        <td>$65,000</td>
-                        <td>80%</td>
-                        <td>Cerrar contrato</td>
-                        <td><button class="btn-small">Gestionar</button></td>
-                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
+        </div>
+    </div>
+    <div id="modal-alta" class="modal-overlay">
+        <div class="modal-box">
+            <div class="card-header">
+                <h3>👤 Alta Rápida</h3>
+                <span onclick="document.getElementById('modal-alta').style.display='none'"
+                    class="modal-close-btn">&times;</span>
+            </div>
+            <div class="card-body">
+                <form id="form-alta-rapida" onsubmit="guardarLeadManual(event)">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nombre del Médico *</label>
+                            <input type="text" id="alta-nombre" required minlength="3" maxlength="100"
+                                pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\.]+" title="Solo se permiten letras, espacios y puntos"
+                                class="modal-input" placeholder="Ej. Dr. Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label>Teléfono Primario *</label>
+                            <input type="tel" id="alta-telefono" required pattern="[0-9]{10,15}"
+                                title="Ingresa entre 10 y 15 números seguidos" class="modal-input"
+                                placeholder="Ej. 4421234567">
+                        </div>                        
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>📱 Celular (WhatsApp)</label>
+                            <input type="text" id="alta-celular" class="modal-input" placeholder="Ej. 4421112233">
+                        </div>                        
+                        <div class="form-group">
+                            <label>📧 Correo Electrónico</label>
+                            <input type="email" id="alta-email" class="modal-input" placeholder="doctor@clinica.com">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Especialidad</label>
+                            <input type="text" id="alta-especialidad" maxlength="50" class="modal-input"
+                                placeholder="Ej. Pediatría">
+                        </div>
+                        <div class="form-group">
+                            <label>Ubicación</label>
+                            <input type="text" id="alta-ubicacion" maxlength="100" class="modal-input"
+                                placeholder="Ej. Querétaro">
+                        </div>
+                    </div>
+
+                    <div style="text-align: right; margin-top: 20px;">
+                        <button type="submit" class="btn-primary">Guardar Prospecto</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </section>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-    // Initialize charts or other dynamic elements here if needed
-    // Note: The HTML above uses CSS-based charts (funnel-chart, bar-chart divs).
-    // If Chart.js was intended for these, the structure would have canvas elements.
-    // Following the template structure, these are currently CSS-based.
-    // If the valid agente.html had canvas elements, I would use them.
-    // Based on the provided view of agente.html, it uses div classes like 'funnel-chart' and 'bar-chart'.
-    // However, the task asked to include Chart.js initialization.
-    // The "Desempeño Mensual" looks like it could be a chart.
-    // But in the HTML provided (lines 160-182), it's a CSS bar chart.
-    // I will stick to what the HTML provides to ensure visual fidelity.
-    // The prompt says "reintroduce el código HTML de los contenedores de los gráficos (canvas) y las tarjetas".
-    // I don't see <canvas> in the provided lines 89-232, only divs.
-    // I will rely on the CSS from styles.css to render them.
-</script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/modals.js' %}"></script>
 {% endblock %}

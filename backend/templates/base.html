@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,12 +16,30 @@
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet/dist/css/luckysheet.css' />
     <link rel='stylesheet' href='https://cdn.jsdelivr.net/npm/luckysheet/dist/assets/iconfont/iconfont.css' />
 
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+
     {% block extra_css %}{% endblock %}
 </head>
-<body>
 
-    {% block content %}
-    {% endblock %}
+<body>
+    <!-- Menú Lateral -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h3>CRM Laser Systems</h3>
+        </div>
+        <ul class="sidebar-nav">
+            <li><a href="{% url 'dashboard_agente' %}">Dashboard</a></li>
+            <li><a href="{% url 'ingesta_masiva' %}">Ingesta Masiva</a></li>
+            <li><a href="{% url 'alta_individual' %}">Alta de Lead</a></li>
+        </ul>
+    </aside>
+
+    <!-- Contenido Principal -->
+    <div class="main-content">
+        {% block content %}
+        {% endblock %}
+    </div>
 
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
@@ -34,8 +53,9 @@
     <!-- Luckysheet JS -->
     <script src="https://cdn.jsdelivr.net/npm/luckysheet/dist/plugins/js/plugin.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luckysheet/dist/luckysheet.umd.js"></script>
-    
+
     <!-- Custom Scripts -->
     {% block extra_js %}{% endblock %}
 </body>
+
 </html>

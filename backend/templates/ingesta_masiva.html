@@ -4,7 +4,8 @@
 {% block title %}Ingesta Masiva - CRM Laser Systems{% endblock %}
 
 {% block content %}
-<section class="module" id="module-area-trabajo">
+<section class="module" id="module-area-trabajo"
+    style="display: block !important; opacity: 1 !important; visibility: visible !important;">
     <div class="module-header">
         <h2>📊 Área de Trabajo</h2>
     </div>
@@ -13,19 +14,20 @@
         <div class="card-header">
             <h3>Luckysheet - Hoja de Cálculo</h3>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                <button class="btn-small" onclick="loadTemplate('ventas')">📊 Plantilla Ventas</button>
-                <button class="btn-small" onclick="loadTemplate('prospectos')">🎯 Plantilla Prospectos</button>
+                <!-- <button class="btn-small" onclick="loadTemplate('ventas')">📊 Plantilla Ventas</button> 
+                <button class="btn-small" onclick="loadTemplate('prospectos')">🎯 Plantilla Prospectos</button> -->
                 <button class="btn-small" onclick="exportToCSV()">💾 Exportar CSV</button>
                 <button class="btn-small" onclick="addNewRow()">➕ Agregar Fila</button>
                 <button class="btn-small" onclick="clearSpreadsheet()">🗑️ Limpiar</button>
+                <button id="btn-guardar-leads" class="btn-small" onclick="procesarIngesta()">Guardar Leads</button>
             </div>
         </div>
 
         <!-- Simplified Luckysheet container with clean white background -->
         <div class="luckysheet-container">
             <div class="crm-module">
-                <div id="luckysheet"
-                    style="margin:0px;padding:0px;position:absolute;width:100%;height:100%;left: 0px;top: 0px;"></div>
+                <div id="luckysheet">
+                </div>
             </div>
         </div>
 
@@ -34,38 +36,146 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     $(function () {
+        // Inicialización de datos con encabezados para Ingesta Masiva
+        var initialData = [{
+            "name": "Ingesta",
+            "color": "",
+            "id": "1",
+            "status": 1,
+            "order": 0,
+            "row": 1000,
+            "column": 20,
+            "data": [
+                [
+                    { "v": "Nombre", "m": "Nombre", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 },
+                    { "v": "Teléfono Principal", "m": "Teléfono Principal", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 },
+                    { "v": "Celular", "m": "Celular", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 },
+                    { "v": "Especialidad", "m": "Especialidad", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 },
+                    { "v": "Producto", "m": "Producto de Interés", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 },
+                    { "v": "Email", "m": "Email", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 },
+                    { "v": "Ubicación", "m": "Ubicación", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 },
+                    { "v": "Dirección Completa", "m": "Dirección Completa", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 },
+                    { "v": "Notas Variadas", "m": "Notas Variadas", "ct": { "fa": "General", "t": "g" }, "bg": "#2c3e50", "bl": 1, "fc": "#ffffff", "fs": 12 }
+                ]
+            ],
+            "config": { "columnlen": { "0": 150, "1": 150, "2": 150, "3": 180, "4": 200, "5": 150, "6": 250, "7": 250 } },
+            "index": "1",
+            "frozen": [{
+                "type": "row"
+            }]
+        }];
+
         // Configuration for Luckysheet
         var options = {
             container: 'luckysheet', // luckysheet is the container id
             lang: 'es', // Language
             showinfobar: false,
-            showsheetbar: false,
-            showstatisticBar: false,
+            showsheetbar: true,
+            showstatisticBar: true,
             allowEdit: true,
             enableAddRow: true,
             enableAddBackTop: false,
+            data: initialData
             // Add more configuration as needed
         }
         luckysheet.create(options);
     });
 </script>
-{% endblock %}
 
-{% block extra_css %}
-<style>
-    /* Ensure the container has height for Luckysheet */
-    .luckysheet-container {
-        position: relative;
-        width: 100%;
-        height: 600px;
-        /* Adjust height as needed */
+<script>
+    // Función para obtener el CSRF de las cookies de Django
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
     }
 
-    .crm-module {
-        width: 100%;
-        height: 100%;
+    async function procesarIngesta() {
+        luckysheet.exitEditMode();
+        let datosHoja = luckysheet.getSheetData();
+        let leadsLimpios = [];
+
+        for (let i = 1; i < datosHoja.length; i++) {
+            let fila = datosHoja[i];
+            if (fila && fila[0] && fila[0].v != null && fila[0].v !== '' && fila[1] && fila[1].v != null && fila[1].v !== '') {
+                let lead = {
+                    "nombre": fila[0].v,
+                    "telefono": fila[1].v,
+                    "celular": fila[2] && fila[2].v != null ? fila[2].v : "",
+                    "especialidad": fila[3] && fila[3].v != null ? fila[3].v : "",
+                    "producto": fila[4] && fila[4].v != null ? fila[4].v : "",
+                    "email": fila[5] && fila[5].v != null ? fila[5].v : "",
+                    "ubicacion": fila[6] && fila[6].v != null ? fila[6].v : "",
+                    "direccion_completa": fila[7] && fila[7].v != null ? fila[7].v : "",
+                    "notas": fila[8] && fila[8].v != null ? fila[8].v : ""
+                };
+                leadsLimpios.push(lead);
+            }
+        }
+
+        console.log("Datos a enviar:", leadsLimpios);
+
+        // Agregar alert para UI interactiva, aunque se controla por la respuesta del backend
+        const csrftoken = getCookie('csrftoken');
+
+        try {
+            const response = await fetch('/api/ingesta/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken
+                },
+                body: JSON.stringify(leadsLimpios)
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success') {
+                let rep = data.reporte;
+                let totalGuardados = rep.A.length;
+                let htmlMensaje = `
+                    <div style="text-align: left; font-size: 0.9em;">
+                        <p><b>✅ Nuevos Registrados (Caso A):</b> ${totalGuardados}</p>
+                        <p><b>⚠️ Duplicados Activos (Caso B):</b> ${rep.B.length}</p>
+                        <p><b>💼 Clientes Históricos (Caso C):</b> ${rep.C.length}</p>
+                        <p><b>🔄 Para Revisión Manual (Caso D):</b> ${rep.D.length}</p>
+                    </div>
+                    <p style="font-size: 0.8em; margin-top: 10px; color: gray;">
+                        *Los registros válidos fueron guardados. Los duplicados se ignoraron para mantener la integridad de la base de datos.
+                    </p>
+                `;
+
+                Swal.fire({
+                    title: '¡Procesamiento Completado!',
+                    html: htmlMensaje,
+                    icon: totalGuardados > 0 ? 'success' : 'info',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#3085d6'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Limpiar la pantalla recargando de manera limpia
+                        window.location.reload();
+                    }
+                });
+            } else {
+                Swal.fire('Error', data.error || 'Hubo un problema procesando la ingesta.', 'error');
+            }
+        } catch (error) {
+            console.error("Error de conexión:", error);
+            Swal.fire('Error', 'Error de conexión al guardar los leads.', 'error');
+        }
     }
-</style>
+</script>
 {% endblock %}
