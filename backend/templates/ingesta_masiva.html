@@ -6,18 +6,30 @@
 {% block content %}
 <section class="module" id="module-area-trabajo"
     style="display: block !important; opacity: 1 !important; visibility: visible !important;">
-    <div class="module-header">
-        <h2>📊 Área de Trabajo</h2>
+    <div class="module-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3>� Carga Rápida de Prospectos (Fase 1)</h>
+            <p>Escribe en la tabla o sube tu archivo Excel/CSV curado.</p>
+        </div>
+       <!-- <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="file" id="archivo-excel" accept=".xlsx, .xls, .csv" style="display: none;" onchange="procesarArchivoDirecto()">
+            <button class="btn-secondary" onclick="document.getElementById('archivo-excel').click()">📂 Subir Excel/CSV</button>
+            
+            <button class="btn-primary" onclick="guardarFilasBD()">💾 Guardar Seleccionados</button>
+        </div> -->
     </div>
 
     <div class="card">
         <div class="card-header">
-            <h3>Luckysheet - Hoja de Cálculo</h3>
+            <h3>Hoja de Cálculo</h3>
             <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                 <!-- <button class="btn-small" onclick="loadTemplate('ventas')">📊 Plantilla Ventas</button> 
-                <button class="btn-small" onclick="loadTemplate('prospectos')">🎯 Plantilla Prospectos</button> -->
+                <button class="btn-small" onclick="loadTemplate('prospectos')">🎯 Plantilla Prospectos</button> -
                 <button class="btn-small" onclick="exportToCSV()">💾 Exportar CSV</button>
                 <button class="btn-small" onclick="addNewRow()">➕ Agregar Fila</button>
+                <button class="btn-small" onclick="guardarFilasBD()">💾 Guardar Seleccionados</button> -->
+                <input type="file" id="archivo-excel" accept=".xlsx, .xls, .csv" style="display: none;" onchange="procesarArchivoDirecto()">
+                <button class="btn-small" onclick="document.getElementById('archivo-excel').click()">📂 Subir Excel/CSV</button>                
                 <button class="btn-small" onclick="clearSpreadsheet()">🗑️ Limpiar</button>
                 <button id="btn-guardar-leads" class="btn-small" onclick="procesarIngesta()">Guardar Leads</button>
             </div>
@@ -37,6 +49,7 @@
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
     $(function () {
         // Inicialización de datos con encabezados para Ingesta Masiva
@@ -86,6 +99,70 @@
 </script>
 
 <script>
+    function procesarArchivoDirecto() {
+        const input = document.getElementById('archivo-excel');
+        if (input.files.length === 0) return;
+
+        const reader = new FileReader();
+        
+        // Opcional: Cambiar el texto del botón para dar feedback
+        const btnSubir = document.querySelector(`button[onclick="document.getElementById('archivo-excel').click()"]`);
+        const textoOriginal = btnSubir.innerText;
+        btnSubir.innerText = "⏳ Procesando...";
+        btnSubir.disabled = true;
+
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, {type: 'array'});
+            const primeraHoja = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[primeraHoja];
+            const jsonFinal = XLSX.utils.sheet_to_json(worksheet);
+            
+            if (jsonFinal.length === 0) {
+                alert("El archivo está vacío o no se pudo leer.");
+                btnSubir.innerText = textoOriginal;
+                btnSubir.disabled = false;
+                return;
+            }
+
+            // Enviar directo al backend
+            fetch("{% url 'api_ingesta_masiva' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify(jsonFinal)
+            })
+            .then(response => response.json())
+            .then(result => {
+                btnSubir.innerText = textoOriginal;
+                btnSubir.disabled = false;
+                input.value = ""; // Limpiar el input
+
+                if (result.status === 'success') {
+                    let mensaje = `✅ Archivo procesado con éxito.\n\n`;
+                    mensaje += `Nuevos (A): ${result.reporte.A.length}\n`;
+                    mensaje += `Duplicados (B): ${result.reporte.B.length}\n`;
+                    mensaje += `Intentos Cliente (C): ${result.reporte.C.length}\n`;
+                    mensaje += `Revisión Manual (D): ${result.reporte.D.length}`;
+                    alert(mensaje);
+                } else {
+                    alert("❌ Error: " + result.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("❌ Ocurrió un error de red al procesar el archivo.");
+                btnSubir.innerText = textoOriginal;
+                btnSubir.disabled = false;
+                input.value = "";
+            });
+        };
+
+        reader.readAsArrayBuffer(input.files[0]);
+    }
+
     // Función para obtener el CSRF de las cookies de Django
     function getCookie(name) {
         let cookieValue = null;

@@ -34,6 +34,8 @@ class CoreLead(models.Model):
     estatus = FSMField(default='PROSPECTO', protected=True)
     calificacion = models.IntegerField(default=0)
     plan = models.CharField(max_length=50, default='SEGUIMIENTO')
+    # LO ÚNICO NUEVO QUE VAMOS A AGREGAR ES ESTO:
+    next_action_date = models.DateField(null=True, blank=True, verbose_name="Fecha de Próximo Contacto")
     # Usamos el método default para que cada lead nuevo tenga la estructura limpia
     notas_variadas = models.JSONField(default=default_notas_variadas)
 

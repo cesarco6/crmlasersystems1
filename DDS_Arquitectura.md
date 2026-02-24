@@ -408,6 +408,12 @@ EN_ESPERA \--\> SEGUIMIENTO : Trigger Automático (Fecha)
 
 SEGUIMIENTO \--\> LEAD_TRATADO : Gestión
 
+LEAD_TRATADO \--\> EN_ESPERA : "Pausar / Agendar"
+Regla de Gestión de Tiempo (Agendar/Pausar):
+	Al establecer una `next_action_date` en un LEAD, el sistema evalúa automáticamente el plazo:
+	* Corto Plazo (<= 30 días): El `plan` permanece en SEGUIMIENTO. El lead sigue considerándose "caliente" y activo en el embudo diario.
+	* Largo Plazo (> 30 días): El `plan` transiciona automáticamente a EN_ESPERA. El lead sale del radar inmediato para limpiar el dashboard.
+
 }
 
 }

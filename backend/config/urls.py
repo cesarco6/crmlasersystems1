@@ -19,7 +19,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 
 # 1. Agregamos "procesar_alta_manual" a la lista de importaciones
-from leads.views import DashboardAgenteView, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual
+from leads.views import DashboardAgenteView, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -32,5 +32,6 @@ urlpatterns = [
     
     path('alta/', AltaIndividualView.as_view(), name='alta_individual'),
     path('trabajo/<uuid:pk>/', FichaTrabajoView.as_view(), name='ficha_trabajo'),
+    path('api/lead/<uuid:pk>/actualizar/', actualizar_lead_fsm, name='api_actualizar_lead'),
     path('', RedirectView.as_view(pattern_name='dashboard_agente'), name='root'),
 ]

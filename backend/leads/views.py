@@ -57,6 +57,7 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         return context
 
 import json
+from datetime import datetime
 from django.utils import timezone
 from datetime import timedelta
 from django.http import JsonResponse
@@ -65,6 +66,14 @@ from users.models import CatUbicacion
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
+
+import unicodedata
+
+def normalizar_texto(texto):
+    if not texto: return ""
+    texto = str(texto).strip().lower()
+    # Eliminar acentos
+    return ''.join(c for c in unicodedata.normalize('NFD', texto) if unicodedata.category(c) != 'Mn')
 
 @require_POST
 def procesar_ingesta_masiva(request):
@@ -77,6 +86,10 @@ def procesar_ingesta_masiva(request):
         default_user = User.objects.filter(is_superuser=True).first()
 
         reporte = {'A': [], 'B': [], 'C': [], 'D': []}
+
+        # Cargar catálogo de ciudades normalizado en memoria para búsquedas ultrarrápidas
+        ubicaciones_db = CatUbicacion.objects.all()
+        mapa_ciudades = {normalizar_texto(u.ciudad): u for u in ubicaciones_db}
 
         for lead_data in data:
             if not isinstance(lead_data, dict):
@@ -93,12 +106,23 @@ def procesar_ingesta_masiva(request):
 
             especialidad = str(lead_data.get('especialidad', 'General')).strip()
             producto_interes = str(lead_data.get('producto', 'No especificado')).strip()
-            valor_ubicacion = str(lead_data.get('ubicacion', 'Desconocida')).strip()
             
-            ubicacion_obj, created = CatUbicacion.objects.get_or_create(
-                ciudad=valor_ubicacion, 
-                defaults={'estado': valor_ubicacion, 'is_active': True}
-            )
+            # --- VALIDACIÓN ESTRICTA DE CIUDAD ---
+            ciudad_excel = lead_data.get('ubicacion', '')
+            ciudad_norm = normalizar_texto(ciudad_excel)
+            
+            if not ciudad_norm:
+                reporte["D"].append({"fila": lead_data, "motivo": "El campo de ubicación/ciudad viene vacío."})
+                continue
+                
+            ubicacion_obj = mapa_ciudades.get(ciudad_norm)
+            
+            if not ubicacion_obj:
+                reporte["D"].append({
+                    "fila": lead_data, 
+                    "motivo": f"Ciudad no reconocida: '{ciudad_excel}'. Escríbela correctamente o solicita al Admin que la agregue al catálogo."
+                })
+                continue # Saltamos este registro (no se inyecta, va a Caso D)
 
             val_direccion = str(lead_data.get('direccion_completa', '')).strip()
             val_celular = str(lead_data.get('celular', '')).strip()
@@ -241,23 +265,34 @@ def actualizar_lead_fsm(request, pk):
     
     try:
         data = json.loads(request.body)
-        accion = data.get('accion') # Puede ser: 'GUARDAR', 'VALIDAR', 'DESCARTAR'
+        accion = data.get('accion') 
         lead = get_object_or_404(CoreLead, id=pk)
         
-        # 1. ACTUALIZAR DATOS BASE (Siempre se actualizan, sin importar el botón)
-        lead.nombre = data.get('nombre', lead.nombre)
-        lead.phone_primary = data.get('telefono', lead.phone_primary)
+        # --- REGLA: DESECHAR (ELIMINAR) ---
+        if accion == 'DESECHAR':
+            if lead.estatus == 'PROSPECTO':
+                lead.delete() 
+                return JsonResponse({"status": "deleted", "mensaje": "Prospecto desechado y eliminado de la base de datos."})
+            else:
+                return JsonResponse({"error": "Solo puedes desechar prospectos en Fase 1."}, status=400)
+
+        # 1. ACTUALIZAR DATOS BASE (Candado de Integridad DDS)
+        # Datos de Enriquecimiento (Siempre editables)
         lead.celular = data.get('celular', lead.celular)
         lead.email = data.get('email', lead.email)
         lead.direccion_completa = data.get('direccion', lead.direccion_completa)
-        lead.especialidad = data.get('especialidad', lead.especialidad)
-        lead.producto_interes = data.get('producto', lead.producto_interes)
         
-        # 2. LA MÁQUINA DE ESTADOS (El Ritual)
+        # Datos de Identidad (Solo editables en Fase 1)
+        if lead.estatus == 'PROSPECTO':
+            lead.nombre = data.get('nombre', lead.nombre)
+            lead.phone_primary = data.get('telefono', lead.phone_primary)
+            lead.especialidad = data.get('especialidad', lead.especialidad)
+            lead.producto_interes = data.get('producto', lead.producto_interes)
+        
+        # 2. LA MÁQUINA DE ESTADOS
         if accion == 'VALIDAR':
             if lead.estatus == 'PROSPECTO':
-                lead.validar_identidad() # Ejecuta tu regla FSM de models.py
-                # Opcional: Agregar nota de sistema automática
+                lead.validar_identidad()
                 lead.notas_variadas.setdefault("notas", []).append({
                     "tipo": "sistema",
                     "contenido": "Identidad Validada: Avanzó a LEAD.",
@@ -265,9 +300,61 @@ def actualizar_lead_fsm(request, pk):
                 })
 
         elif accion == 'DESCARTAR':
-            # Tu modelo FSM exige un motivo para descartar
-            motivo = data.get('motivo', 'Descartado en Fase 1 sin motivo específico')
+            motivo = data.get('motivo', 'Sin motivo especificado')
             lead.archivar_sin_exito(motivo, request.user.id)
+            
+        elif accion == 'CALIFICAR':
+            texto_calificacion = data.get('calificacion')
+            
+            # EL TRADUCTOR: Mapeamos los textos a números (int4)
+            mapa = {'Alta': 3, 'Media': 2, 'Baja': 1}
+            
+            if texto_calificacion in mapa:
+                lead.calificacion = mapa[texto_calificacion] # Guarda el número en la DB
+                lead.notas_variadas.setdefault("notas", []).append({
+                    "tipo": "sistema",
+                    "contenido": f"Lead calificado como: {texto_calificacion}", # Muestra el texto al vendedor
+                    "fecha": timezone.now().isoformat()
+                })
+            else:
+                return JsonResponse({"error": "Calificación inválida."}, status=400)
+
+        elif accion == 'AGENDAR':
+            fecha_contacto_str = data.get('fecha_contacto')
+            if not fecha_contacto_str:
+                return JsonResponse({"error": "La fecha es obligatoria."}, status=400)
+            
+            # Convertir a objeto date y calcular diferencia
+            fecha_contacto = datetime.strptime(fecha_contacto_str, '%Y-%m-%d').date()
+            hoy = timezone.now().date()
+            dias_diferencia = (fecha_contacto - hoy).days
+            
+            lead.next_action_date = fecha_contacto
+            
+            # REGLA DDS: Gatillo Inteligente de 30 días
+            if dias_diferencia <= 30:
+                lead.plan = 'SEGUIMIENTO'
+                mensaje_nota = f"🗓️ Acción a corto plazo: {fecha_contacto_str} (Continúa en Seguimiento)"
+            else:
+                lead.plan = 'EN_ESPERA'
+                mensaje_nota = f"⏸️ Pausado a largo plazo: {fecha_contacto_str} (Pasa a En Espera)"
+            
+            lead.notas_variadas.setdefault("notas", []).append({
+                "tipo": "sistema",
+                "contenido": mensaje_nota,
+                "fecha": timezone.now().isoformat()
+            })
+            
+        elif accion == 'AGREGAR_NOTA':
+            nueva_nota = data.get('nota')
+            if not nueva_nota:
+                return JsonResponse({"error": "La nota no puede estar vacía."}, status=400)
+            
+            lead.notas_variadas.setdefault("notas", []).append({
+                "tipo": "contacto", # 'contacto' es manual del vendedor, 'sistema' es de la FSM
+                "contenido": nueva_nota.strip(),
+                "fecha": timezone.now().isoformat()
+            })
             
         # 3. GUARDADO FINAL
         lead.save()
@@ -279,5 +366,4 @@ def actualizar_lead_fsm(request, pk):
         })
         
     except Exception as e:
-        # Si la FSM bloquea algo, Django lanzará una excepción aquí y la mandamos a la pantalla
         return JsonResponse({"error": str(e)}, status=400)
