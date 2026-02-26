@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Ingesta Histórica | Dirección{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold" style="color: var(--text-primary, #181c32);">📥 Ingesta Histórica de Prospectos</h2>
+            <p style="color: var(--text-secondary, #a1a5b7);">Sube un archivo Excel para cargar prospectos con historial y asignarlos automáticamente a sus territorios.</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-5 text-center">
+                    <div class="mb-4">
+                        <i class="fs-1">📄</i>
+                    </div>
+                    <h5 class="fw-bold mb-3">Selecciona tu archivo de ingesta histórica</h5>
+                    
+                    <input type="file" id="archivo-historico" accept=".xlsx, .xls, .csv" class="form-control mb-3 w-50 mx-auto">
+                    
+                    <button id="btn-subir" class="btn btn-primary fw-bold px-4 py-2" onclick="leerArchivoHistorico()">
+                        🚀 Seleccionar y Procesar Archivo
+                    </button>
+
+                    <div id="zona-reporte" class="mt-4 text-start d-none">
+                        <div id="mensaje-estado" class="alert alert-info" role="alert">
+                            Esperando archivo...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+    const csrfToken = '{{ csrf_token }}';
+
+    function leerArchivoHistorico() {
+        const input = document.getElementById('archivo-historico');
+        if (input.files.length === 0) return;
+
+        const btnSubir = document.getElementById('btn-subir');
+        const zonaReporte = document.getElementById('zona-reporte');
+        const mensajeEstado = document.getElementById('mensaje-estado');
+        
+        btnSubir.innerText = "⏳ Procesando archivo...";
+        btnSubir.disabled = true;
+        zonaReporte.classList.remove('d-none');
+        mensajeEstado.className = "alert alert-warning";
+        mensajeEstado.innerText = "Parseando Excel y asignando territorios. Por favor, no cierres esta ventana...";
+
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                
+                // Forzamos minúsculas en las cabeceras para evitar errores
+                const jsonFinal = XLSX.utils.sheet_to_json(worksheet, {
+                    raw: false,
+                    defval: "" // Evita nulos
+                });
+                
+                // Normalizar claves (encabezados a minúsculas y sin espacios)
+                const datosNormalizados = jsonFinal.map(fila => {
+                    const nuevaFila = {};
+                    for (let key in fila) {
+                        const nuevaKey = key.trim().toLowerCase().replace(/ /g, '_');
+                        nuevaFila[nuevaKey] = fila[key];
+                    }
+                    return nuevaFila;
+                });
+
+                if (datosNormalizados.length === 0) throw new Error("El archivo está vacío.");
+
+                // Enviar al Backend
+                fetch("{% url 'api_ingesta_historica' %}", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken
+                    },
+                    body: JSON.stringify({ datos: datosNormalizados })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        const rep = data.reporte;
+                        mensajeEstado.className = "alert alert-success";
+                        mensajeEstado.innerHTML = `
+                            <strong>✅ Ingesta Completada Exitosamente</strong><br>
+                            - Filas procesadas: ${rep.procesados}<br>
+                            - Prospectos Nuevos: ${rep.creados}<br>
+                            - Prospectos Actualizados: ${rep.actualizados}<br>
+                            - Errores/Ignorados: ${rep.errores.length}
+                        `;
+                    } else {
+                        throw new Error(data.message);
+                    }
+                })
+                .catch(error => {
+                    mensajeEstado.className = "alert alert-danger";
+                    mensajeEstado.innerText = "❌ Error en el servidor: " + error.message;
+                })
+                .finally(() => {
+                    btnSubir.innerText = "🚀 Subir Otro Archivo";
+                    btnSubir.disabled = false;
+                    input.value = ""; // Limpiar input
+                });
+
+            } catch (error) {
+                mensajeEstado.className = "alert alert-danger";
+                mensajeEstado.innerText = "❌ Error al leer el archivo: " + error.message;
+                btnSubir.innerText = "🚀 Seleccionar y Procesar Archivo";
+                btnSubir.disabled = false;
+            }
+        };
+
+        reader.readAsArrayBuffer(input.files[0]);
+    }
+</script>
+{% endblock %}

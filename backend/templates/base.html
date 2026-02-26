@@ -28,15 +28,36 @@
         <div class="sidebar-header">
             <h3>CRM Laser Systems</h3>
         </div>
-        <ul class="sidebar-nav">
-            <li><a href="{% url 'dashboard_agente' %}">Dashboard</a></li>
-            <li><a href="{% url 'ingesta_masiva' %}">Ingesta Masiva</a></li>
-            <!--<li><a href="{% url 'alta_individual' %}">Alta de Lead</a></li>-->
+        <ul class="sidebar-nav" style="padding-left: 0; list-style: none;">
+            {% if user.is_superuser %}
+                <li class="menu-title text-uppercase text-muted fw-bold mb-2 mt-3" style="font-size: 0.75rem; padding: 0 20px;">Piso de Dirección</li>                
+                <li><a href="{% url 'director_dashboard' %}">📊 Dashboard Panorámico</a></li>
+                <li><a href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li>
+                <li><a href="{% url 'director_ingesta' %}">📥 Ingesta Histórica</a></li>
+            {% else %}
+                <li class="menu-title text-uppercase text-muted fw-bold mb-2 mt-3" style="font-size: 0.75rem; padding: 0 20px;">Operación Ventas</li>
+                <li><a href="{% url 'dashboard_agente' %}">🎯 Mi Dashboard</a></li>
+                <li><a href="{% url 'ingesta_masiva' %}">📥 Carga de Prospectos</a></li>
+            {% endif %}
         </ul>
     </aside>
 
     <!-- Contenido Principal -->
     <div class="main-content">
+        <div style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 20px;">
+            <div style="display: flex; align-items: center; gap: 15px; margin-left: auto;">
+                {% if user.is_authenticated %}
+                    <span style="color: var(--text-secondary, #a1a5b7); font-size: 0.95rem;">
+                        👤 Hola, <strong style="color: var(--text-primary, #ffffff);">{{ user.username|title }}</strong>
+                        {% if user.is_superuser %}<span style="font-size: 0.75rem; background: #50cd89; color: black; padding: 2px 5px; border-radius: 3px; margin-left: 5px;">Admin</span>{% endif %}
+                    </span>
+                    <a href="{% url 'logout' %}" style="text-decoration: none; background: rgba(241, 65, 108, 0.1); color: #f1416c; border: 1px solid #f1416c; padding: 6px 15px; border-radius: 5px; font-size: 0.85rem; font-weight: bold; transition: all 0.3s ease;" onmouseover="this.style.background='#f1416c'; this.style.color='#ffffff';" onmouseout="this.style.background='rgba(241, 65, 108, 0.1)'; this.style.color='#f1416c';">
+                        🚪 Salir
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+
         {% block content %}
         {% endblock %}
     </div>

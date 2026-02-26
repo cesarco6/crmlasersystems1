@@ -2,7 +2,9 @@ from django.views.generic import TemplateView
 from django.views.generic import DetailView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.shortcuts import get_object_or_404
+from django.shortcuts import render
 from users.permissions import role_required
 from .mixins import LeadOwnershipMixin
 from .models import CoreLead
@@ -23,6 +25,10 @@ class IngestaMasivaView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
 @method_decorator(role_required(['VENDEDOR', 'DIRECTOR', 'ADMIN']), name='dispatch')
 class AltaIndividualView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
     template_name = 'alta_individual.html'
+
+@method_decorator(role_required(['DIRECTOR', 'ADMIN']), name='dispatch')
+class IngestaHistoricaView(LoginRequiredMixin, TemplateView):
+    template_name = 'director_ingesta.html'
 
 
 # 2. FICHA DE TRABAJO (Blindada contra el auto-formateador de VS Code)
@@ -62,6 +68,7 @@ from django.utils import timezone
 from datetime import timedelta
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from django.contrib.auth.decorators import login_required
 from users.models import CatUbicacion
 from django.contrib.auth import get_user_model
 
@@ -75,6 +82,7 @@ def normalizar_texto(texto):
     # Eliminar acentos
     return ''.join(c for c in unicodedata.normalize('NFD', texto) if unicodedata.category(c) != 'Mn')
 
+@login_required
 @require_POST
 def procesar_ingesta_masiva(request):
     if not request.user.is_authenticated:
@@ -204,6 +212,7 @@ def procesar_ingesta_masiva(request):
         return JsonResponse({"error": str(e)}, status=500)
 
 
+@login_required
 @require_POST
 def procesar_alta_manual(request):
     if not request.user.is_authenticated:
@@ -258,6 +267,7 @@ def procesar_alta_manual(request):
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
 
+@login_required
 @require_POST
 def actualizar_lead_fsm(request, pk):
     if not request.user.is_authenticated:
@@ -367,3 +377,237 @@ def actualizar_lead_fsm(request, pk):
         
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+
+def es_director(user):
+    return user.is_superuser
+
+@login_required
+@user_passes_test(es_director)
+@require_POST
+def api_ingesta_historica(request):
+    try:
+        data = json.loads(request.body)
+        filas = data.get('datos', [])
+        
+        reporte = {"procesados": 0, "creados": 0, "actualizados": 0, "errores": []}
+        
+        # Cargar catálogo de ciudades para asignación ultrarrápida
+        mapa_ciudades = {normalizar_texto(u.ciudad): u for u in CatUbicacion.objects.all()}
+        
+        for index, fila in enumerate(filas):
+            telefono = str(fila.get('telefono', '')).strip()
+            if not telefono:
+                reporte["errores"].append(f"Fila {index + 1}: Sin teléfono. Ignorada.")
+                continue
+            
+            # 1. Asignación Inteligente de Territorio
+            ciudad_excel = fila.get('ubicacion', '')
+            ubicacion_obj = mapa_ciudades.get(normalizar_texto(ciudad_excel))
+            
+            vendedor_asignado = request.user # Por defecto se lo queda el Director
+            
+            if ubicacion_obj:
+                # Obtener dueños del territorio a través de AsignacionTerritorio -> UserProfile -> User
+                # CatUbicacion tiene un related_name inverso por defecto asignacionterritorio_set
+                asignaciones = ubicacion_obj.asignacionterritorio_set.select_related('user_profile__user').all()
+                if asignaciones.exists():
+                    vendedor_asignado = asignaciones.first().user_profile.user
+
+            # 2. Empaquetar datos históricos (los inyectamos en notas por seguridad)
+            vendedor_viejo = fila.get('vendedor_historico', 'Desconocido')
+            fecha_vieja = fila.get('fecha_historica', 'Sin fecha')
+            notas_originales = fila.get('notas', '')
+            
+            nota_historica_compilada = f"[CARGA HISTÓRICA] Vendedor Orig: {vendedor_viejo} | Fecha Orig: {fecha_vieja} | Notas: {notas_originales}"
+
+            # 3. Preparar el diccionario de guardado
+            # Usamos 'Histórico' como estatus por defecto para que no contamine la Fase 1
+            estatus_excel = fila.get('estatus', 'Histórico') 
+
+            # Asegurar formato de notas_variadas
+            notas_historicas = {
+                "notas": [],
+                "columnas_excel_historicas": dict(fila)
+            }
+            if nota_historica_compilada:
+                notas_historicas["notas"].append({
+                    "tipo": "sistema",
+                    "contenido": nota_historica_compilada,
+                    "fecha": timezone.now().isoformat()
+                })
+
+            defaults = {
+                'nombre': fila.get('nombre', '')[:100],
+                'email': fila.get('email', ''),
+                'especialidad': fila.get('especialidad', '')[:50],
+                'ubicacion_id': ubicacion_obj.id if ubicacion_obj else None,
+                'direccion_completa': fila.get('direccion_completa', '')[:255],
+                'producto_interes': fila.get('producto', '')[:50],
+                'notas_variadas': notas_historicas,
+                'estatus': estatus_excel, 
+                'owner': vendedor_asignado, # El sistema hace la magia aquí
+            }
+
+            # 4. Inyección a la Base de Datos (Update or Create)
+            obj, created = CoreLead.objects.update_or_create(
+                phone_primary=telefono[:15],
+                defaults=defaults
+            )
+            
+            if created:
+                reporte["creados"] += 1
+            else:
+                reporte["actualizados"] += 1
+                
+            reporte["procesados"] += 1
+            
+        return JsonResponse({'status': 'success', 'reporte': reporte})
+        
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+from django.db.models import Count, Q
+
+@login_required
+@user_passes_test(es_director, login_url='dashboard_agente')
+def director_dashboard_view(request):
+    # --- 1. CAPTURAR FILTROS DE LA URL ---
+    filtro_estado = request.GET.get('estado', '')
+    filtro_especialidad = request.GET.get('especialidad', '')
+    filtro_producto = request.GET.get('producto', '')
+    filtro_vendedor = request.GET.get('vendedor', '')
+
+    # --- 2. APLICAR FILTROS A LA CONSULTA BASE ---
+    qs = CoreLead.objects.all()
+    
+    if filtro_estado:
+        qs = qs.filter(ubicacion__estado__iexact=filtro_estado)
+    if filtro_especialidad:
+        qs = qs.filter(especialidad__iexact=filtro_especialidad)
+    if filtro_producto:
+        qs = qs.filter(producto_interes__iexact=filtro_producto)
+    if filtro_vendedor:
+        # En CoreLead la fk es owner
+        qs = qs.filter(owner__username__iexact=filtro_vendedor)
+
+    # --- 3. EXTRAER OPCIONES ÚNICAS PARA LOS DROPDOWNS ---
+    # Obtenemos los valores únicos de toda la BD (sin filtrar) para llenar los combos
+    lista_estados = CatUbicacion.objects.exclude(estado='').values_list('estado', flat=True).distinct().order_by('estado')
+    lista_especialidades = CoreLead.objects.exclude(especialidad='').values_list('especialidad', flat=True).distinct().order_by('especialidad')
+    lista_productos = CoreLead.objects.exclude(producto_interes='').values_list('producto_interes', flat=True).distinct().order_by('producto_interes')
+    
+    # Lista de vendedores (usuarios que no son superusers y están activos)
+    lista_vendedores = User.objects.filter(is_superuser=False, is_active=True).values_list('username', flat=True).order_by('username')
+
+    # --- 4. KPIs GLOBALES (Usando el qs filtrado) ---
+    total_leads = qs.count()
+    total_historicos = qs.filter(estatus='Histórico').count()
+    total_vendedores_metric = lista_vendedores.count()
+
+    # === KPIs SEMANALES ESTRICTOS (Últimos 7 días) ===
+    hace_7_dias = timezone.now() - timedelta(days=7)
+
+    # 1. BASE: Todo lo que tuvo movimiento de trabajo esta semana
+    base_semana = qs.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
+
+    # KPI 1: Volumen de trabajo (Promedio de leads tocados por ejecutivo en la semana)
+    total_trabajados_semana = base_semana.count()
+    vendedores_activos = total_vendedores_metric
+    volumen_promedio = round(total_trabajados_semana / vendedores_activos, 1) if vendedores_activos > 0 else 0
+
+    # KPI 2: Tasa de calidad (Número de Leads descartados)
+    # Regla: plan = 'descartado'
+    tasa_calidad = base_semana.filter(plan__iexact='descartado').count()
+
+    # KPI 3: Tasa de prospección (Posibilidad de venta)
+    # Regla: calificacion en ['media', 'alta'] -> mapeado a [2, 3] en DB
+    tasa_prospeccion = base_semana.filter(calificacion__in=[2, 3]).count()
+
+    # KPI 4: Índice de Venta (Ventas realizadas)
+    # Regla: estatus = 'cliente'
+    indice_venta = base_semana.filter(estatus__iexact='cliente').count()
+
+    # --- 6. DATOS PARA GRÁFICAS MULTIDIMENSIONALES ---
+    
+    # Función auxiliar para extraer listas de Chart.js
+    def procesar_agrupacion(query_result, campo_label):
+        labels = []
+        rechazos, seguimientos, calificados, ventas = [], [], [], []
+        for fila in query_result:
+            # Manejo de nulos o vacíos
+            etiqueta = fila[campo_label]
+            if not etiqueta: etiqueta = 'Desconocido / Sin Asignar'
+            
+            labels.append(str(etiqueta))
+            rechazos.append(fila['total_rechazos'])
+            seguimientos.append(fila['total_seguimientos'])
+            calificados.append(fila['total_calificados'])
+            ventas.append(fila['total_ventas'])
+        return labels, rechazos, seguimientos, calificados, ventas
+
+    # Condiciones de negocio exactas
+    q_rechazo = Q(plan__iexact='descartado')
+    q_seguimiento = Q(plan__iexact='seguimiento')
+    q_calificado = Q(calificacion__in=[2, 3])
+    q_venta = Q(estatus__iexact='cliente')
+
+    # 1. Agrupación por Vendedor
+    stats_vendedor = qs.values('owner__username').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('owner__username')
+    v_labels, v_rech, v_seg, v_cal, v_ven = procesar_agrupacion(stats_vendedor, 'owner__username')
+
+    # 2. Agrupación por Ubicación (Estado)
+    stats_ubicacion = qs.values('ubicacion__estado').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('ubicacion__estado')
+    u_labels, u_rech, u_seg, u_cal, u_ven = procesar_agrupacion(stats_ubicacion, 'ubicacion__estado')
+
+    # 3. Agrupación por Especialidad Médica
+    stats_especialidad = qs.values('especialidad').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('especialidad')
+    e_labels, e_rech, e_seg, e_cal, e_ven = procesar_agrupacion(stats_especialidad, 'especialidad')
+
+    # --- 7. CONTEXTO ---
+    context = {
+        # Listas para pintar los selects
+        'estados': lista_estados,
+        'especialidades': lista_especialidades,
+        'productos': lista_productos,
+        'vendedores': lista_vendedores,
+        
+        # Valores seleccionados actualmente para dejarlos marcados
+        'filtro_estado': filtro_estado,
+        'filtro_especialidad': filtro_especialidad,
+        'filtro_producto': filtro_producto,
+        'filtro_vendedor': filtro_vendedor,
+
+        # Métricas Globales
+        'total_leads': total_leads,
+        'total_historicos': total_historicos,
+        'total_vendedores': total_vendedores_metric,
+        
+        # Métricas Semanales
+        'volumen_promedio': volumen_promedio,
+        'tasa_calidad': tasa_calidad,
+        'tasa_prospeccion': tasa_prospeccion,
+        'indice_venta': indice_venta,
+
+        # Gráficas JSON
+        'chart_v_labels': json.dumps(v_labels), 'chart_v_rech': json.dumps(v_rech), 'chart_v_seg': json.dumps(v_seg), 'chart_v_cal': json.dumps(v_cal), 'chart_v_ven': json.dumps(v_ven),
+        'chart_u_labels': json.dumps(u_labels), 'chart_u_rech': json.dumps(u_rech), 'chart_u_seg': json.dumps(u_seg), 'chart_u_cal': json.dumps(u_cal), 'chart_u_ven': json.dumps(u_ven),
+        'chart_e_labels': json.dumps(e_labels), 'chart_e_rech': json.dumps(e_rech), 'chart_e_seg': json.dumps(e_seg), 'chart_e_cal': json.dumps(e_cal), 'chart_e_ven': json.dumps(e_ven),
+    }
+    
+    return render(request, 'director_dashboard.html', context)
