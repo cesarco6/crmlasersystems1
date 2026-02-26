@@ -14,4 +14,4 @@ django-redis>=5.4.0  # Integración de Redis con el sistema de caché de Django.
 # Utilidades
 python-dotenv>=1.0.1  # Permite leer variables de entorno desde un archivo .env local.
 Pillow>=10.2.0  # Librería de procesamiento de imágenes (útil para avatares en UserProfile).
-django-fsm==2.8.1
+django-fsm==3.0.1
