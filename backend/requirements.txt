@@ -1,14 +1,17 @@
-# Framework y Servidor
-Django>=5.0,<5.1
-gunicorn>=21.2.0
+# Framework Web
+Django>=5.0,<5.1  # El núcleo de nuestra aplicación. Versión 5 para aprovechar las últimas características.
 
-# Base de Datos y Caché 
-psycopg[binary]>=3.1.18
-redis>=5.0.1
-django-redis>=5.4.0
+# Servidor de Aplicaciones (WSGI)
+gunicorn>=21.2.0  # Servidor HTTP para producción. Maneja las peticiones antes de pasarlas a Django.
 
-# Procesamiento del Módulo de Ingesta (M1)
-pandas>=2.2.0        # Para leer y procesar el Excel de Leads
-openpyxl>=3.1.2      # Motor para archivos .xlsx
-python-dotenv>=1.0.1 # Gestión de variables de entorno [cite: 10]
-Pillow>=10.2.0       # Procesamiento de imágenes para perfiles [cite: 11]
+# Base de Datos
+psycopg2-binary>=2.9.9  # Adaptador de base de datos PostgreSQL para Python.
+
+# Caché y Colas de Tareas
+redis>=5.0.1  # Cliente de Redis para Python. Usado para caché y sesiones.
+django-redis>=5.4.0  # Integración de Redis con el sistema de caché de Django.
+
+# Utilidades
+python-dotenv>=1.0.1  # Permite leer variables de entorno desde un archivo .env local.
+Pillow>=10.2.0  # Librería de procesamiento de imágenes (útil para avatares en UserProfile).
+django-fsm==3.0.1
