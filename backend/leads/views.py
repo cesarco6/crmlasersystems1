@@ -10,8 +10,8 @@ from users.permissions import role_required
 from django.db.models import Q
 from django.utils import timezone
 from .mixins import LeadOwnershipMixin
-from .models import CoreLead
-from .models import Notificacion
+from .models import CoreLead, Notificacion
+from users.models import CatUbicacion, CatEspecialidad, CatProducto
 
 @method_decorator(role_required(['VENDEDOR']), name='dispatch')
 class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
@@ -78,8 +78,10 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['filtro_actual'] = filtro_rapido
         
         context['total_activos'] = CoreLead.objects.filter(owner=self.request.user).exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
-        
-        return context
+        # --- LÍNEAS NUEVAS PARA EL MODAL DE ALTA RÁPIDA ---
+        context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+        context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+      
         # 3. ENVIAR RESULTADOS AL HTML
         context['leads'] = qs.order_by('-updated_at') # Los movidos recientemente van arriba
         context['busqueda_actual'] = busqueda
@@ -112,21 +114,12 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         lead_id = self.kwargs.get('pk') or self.kwargs.get('id')
         lead = get_object_or_404(CoreLead, id=lead_id)
-        '''
-        print("\n" + "="*50)
-        print("🔍 RASTREO: DATOS CRUDOS DESDE POSTGRES")
-        print("="*50)
-        print(f"ID:              {lead.id}")
-        print(f"Nombre:          {repr(lead.nombre)}")
-        print(f"Especialidad:    {repr(lead.especialidad)}")
-        print(f"Ubicación:       {repr(lead.ubicacion.ciudad if lead.ubicacion else None)}")
-        print(f"Producto Int.:   {repr(lead.producto_interes)}")
-        print(f"Celular:         {repr(lead.celular)}")
-        print("="*50 + "\n")
-        '''
         
         # Mandamos el objeto completo
         context['lead'] = lead
+        # --- NUEVAS LÍNEAS PARA LOS DROPDOWNS ---
+        context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+        context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
         # Variables súper cortas para que el HTML no se rompa al guardar
         context['celular_seguro'] = lead.celular if lead.celular else "No registrado"
         context['especialidad_segura'] = lead.especialidad if lead.especialidad else "No especificada"
@@ -152,6 +145,40 @@ def normalizar_texto(texto):
     texto = str(texto).strip().lower()
     # Eliminar acentos
     return ''.join(c for c in unicodedata.normalize('NFD', texto) if unicodedata.category(c) != 'Mn')
+
+def obtener_catalogos_limpios(texto_especialidad, texto_producto):
+    """
+    Recibe textos libres y devuelve las instancias de los catálogos relacionales.
+    """
+    especialidad_obj = None
+    producto_obj = None
+
+    # 1. Procesar Producto (Estricto - Bóveda de 14 productos)
+    texto_prod_norm = normalizar_texto(texto_producto)
+    if texto_prod_norm:
+        # Buscamos coincidencia exacta o en alias
+        producto_obj = CatProducto.objects.filter(
+            Q(nombre__iexact=texto_producto) | 
+            Q(alias__icontains=texto_prod_norm)
+        ).first()
+        
+        # Si no lo encuentra, asignamos el "Por Definir"
+        if not producto_obj:
+            producto_obj, _ = CatProducto.objects.get_or_create(nombre='Por Definir / Otro')
+
+    # 2. Procesar Especialidad (Dinámico y Estético)
+    texto_esp_limpio = str(texto_especialidad).strip()
+    if not texto_esp_limpio:
+        texto_esp_limpio = "General"
+        
+    # Buscamos si ya existe ignorando mayúsculas/minúsculas
+    especialidad_obj = CatEspecialidad.objects.filter(nombre__iexact=texto_esp_limpio).first()
+    
+    # Si no existe, lo creamos respetando su formato bonito original
+    if not especialidad_obj:
+        especialidad_obj = CatEspecialidad.objects.create(nombre=texto_esp_limpio)
+
+    return especialidad_obj, producto_obj
 
 @login_required
 @require_POST
@@ -220,6 +247,8 @@ def procesar_ingesta_masiva(request):
                     "fecha": timezone.now().isoformat()
                 })
 
+            esp_obj, prod_obj = obtener_catalogos_limpios(especialidad, producto_interes)
+
             # Lógica de Arbitraje de 4 Casos
             lead_existente = CoreLead.objects.filter(phone_primary=telefono[:15]).first()
             
@@ -234,9 +263,11 @@ def procesar_ingesta_masiva(request):
                     email=val_email,
                     direccion_completa=val_direccion[:255],
                     nombre=nombre_raw[:100],
-                    especialidad=especialidad[:50],
-                    producto_interes=producto_interes[:50],
-                    notas_variadas=notas_json
+                    #especialidad=especialidad[:50],
+                    #producto_interes=producto_interes[:50],                    
+                    especialidad_cat=esp_obj,   # <-- NUEVO
+                    producto_cat=prod_obj,      # <-- NUEVO
+                    notas_variadas=notas_json,
                 )
                 reporte['A'].append(telefono[:15])
 
@@ -251,8 +282,10 @@ def procesar_ingesta_masiva(request):
                     email=val_email,
                     direccion_completa=val_direccion[:255],
                     nombre=nombre_raw[:100],
-                    especialidad=especialidad[:50],
-                    producto_interes=producto_interes[:50],
+                    #especialidad=especialidad[:50],
+                    #producto_interes=producto_interes[:50],
+                    especialidad_cat=esp_obj,   # <-- NUEVO
+                    producto_cat=prod_obj,      # <-- NUEVO
                     notas_variadas=notas_json
                 )
                 reporte['A'].append(f"{telefono[:15]} (Nueva Persona)")
@@ -317,13 +350,15 @@ def procesar_alta_manual(request):
         nuevo_lead = CoreLead.objects.create(
             owner=request.user,
             ubicacion_id=ubicacion_obj.id,
+            especialidad_cat_id=especialidad_obj.id,
+            producto_cat_id=producto_obj.id,
             estatus='PROSPECTO',
             phone_primary=telefono[:15],
             celular=celular[:15],
             email=email,
             nombre=nombre[:100],
-            especialidad=especialidad[:50],
-            producto_interes='No especificado', # Se llenará después
+            #especialidad=especialidad[:50],
+            #producto_interes='No especificado', # Se llenará después
             notas_variadas={"notas": [], "columnas_excel_historicas": {}}
         )
 
@@ -367,8 +402,39 @@ def actualizar_lead_fsm(request, pk):
         if lead.estatus == 'PROSPECTO':
             lead.nombre = data.get('nombre', lead.nombre)
             lead.phone_primary = data.get('telefono', lead.phone_primary)
-            lead.especialidad = data.get('especialidad', lead.especialidad)
-            lead.producto_interes = data.get('producto', lead.producto_interes)
+            # --- USAMOS LA ADUANA PARA GUARDAR LOS SELECTS DEL VENDEDOR ---
+            texto_esp = data.get('especialidad', lead.especialidad_cat.nombre if lead.especialidad_cat else 'General')
+            texto_prod = data.get('producto', lead.producto_cat.nombre if lead.producto_cat else 'Por Definir / Otro')
+            
+            esp_obj, prod_obj = obtener_catalogos_limpios(texto_esp, texto_prod)
+            
+            lead.especialidad_cat = esp_obj
+            lead.producto_cat = prod_obj
+            
+            # Borramos el guardado en los campos viejos de texto libre
+            #lead.especialidad = data.get('especialidad', lead.especialidad)
+            #lead.producto_interes = data.get('producto', lead.producto_interes)
+
+            # --- NUEVO: ACTUALIZAR CATÁLOGOS ---
+            # 1. Procesamos la Especialidad
+            nueva_esp_str = data.get('especialidad', '').strip()
+            if nueva_esp_str:
+                # Buscamos o creamos el objeto de especialidad
+                esp_obj, created = CatEspecialidad.objects.get_or_create(
+                    nombre=nueva_esp_str,
+                    defaults={'is_active': True}
+                )
+                lead.especialidad_cat = esp_obj
+            
+            # 2. Procesamos el Producto
+            nuevo_prod_str = data.get('producto', '').strip()
+            if nuevo_prod_str:
+                # Buscamos o creamos el objeto de producto
+                prod_obj, created = CatProducto.objects.get_or_create(
+                    nombre=nuevo_prod_str,
+                    defaults={'is_active': True}
+                )
+                lead.producto_cat = prod_obj
         
         # 2. LA MÁQUINA DE ESTADOS
         if accion == 'VALIDAR':
@@ -507,14 +573,16 @@ def api_ingesta_historica(request):
                     "contenido": nota_historica_compilada,
                     "fecha": timezone.now().isoformat()
                 })
+            
+            especialidad_obj, producto_obj = obtener_catalogos_limpios(fila.get('especialidad', ''), fila.get('producto', ''))
 
             defaults = {
                 'nombre': fila.get('nombre', '')[:100],
                 'email': fila.get('email', ''),
-                'especialidad': fila.get('especialidad', '')[:50],
+                'especialidad': especialidad_obj,
                 'ubicacion_id': ubicacion_obj.id if ubicacion_obj else None,
                 'direccion_completa': fila.get('direccion_completa', '')[:255],
-                'producto_interes': fila.get('producto', '')[:50],
+                'producto_interes': producto_obj,
                 'notas_variadas': notas_historicas,
                 'estatus': estatus_excel, 
                 'owner': vendedor_asignado, # El sistema hace 
@@ -548,6 +616,232 @@ def director_dashboard_view(request):
     filtro_especialidad = request.GET.get('especialidad', '')
     filtro_producto = request.GET.get('producto', '')
     filtro_vendedor = request.GET.get('vendedor', '')
+
+    # --- 2. APLICAR FILTROS A LA CONSULTA BASE ---
+    qs = CoreLead.objects.all()
+    
+    if filtro_estado:
+        qs = qs.filter(ubicacion__estado__iexact=filtro_estado)
+    if filtro_especialidad:
+        qs = qs.filter(especialidad_cat__nombre__iexact=filtro_especialidad)
+    if filtro_producto:
+        qs = qs.filter(producto_cat__nombre__iexact=filtro_producto)
+    if filtro_vendedor:
+        qs = qs.filter(owner__username__iexact=filtro_vendedor)
+
+    # --- 3. EXTRAER OPCIONES ÚNICAS PARA LOS DROPDOWNS ---
+    lista_estados = CatUbicacion.objects.exclude(estado='').values_list('estado', flat=True).distinct().order_by('estado')
+    lista_especialidades = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+    lista_productos = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+    
+    lista_vendedores = User.objects.filter(is_superuser=False, is_active=True).values_list('username', flat=True).order_by('username')
+
+    # --- 4. KPIs GLOBALES ---
+    total_leads = qs.count()
+    total_historicos = qs.filter(estatus='Histórico').count()
+    total_vendedores_metric = lista_vendedores.count()
+
+    hace_7_dias = timezone.now() - timedelta(days=7)
+    base_semana = qs.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
+
+    total_trabajados_semana = base_semana.count()
+    vendedores_activos = total_vendedores_metric
+    volumen_promedio = round(total_trabajados_semana / vendedores_activos, 1) if vendedores_activos > 0 else 0
+
+    tasa_calidad = base_semana.filter(plan__iexact='descartado').count()
+    tasa_prospeccion = base_semana.filter(calificacion__in=[2, 3]).count()
+    indice_venta = base_semana.filter(estatus__iexact='cliente').count()
+
+    # --- 6. DATOS PARA GRÁFICAS MULTIDIMENSIONALES ---
+    def procesar_agrupacion(query_result, campo_label):
+        labels, rechazos, seguimientos, calificados, ventas = [], [], [], [], []
+        for fila in query_result:
+            etiqueta = fila[campo_label]
+            if not etiqueta: etiqueta = 'Desconocido / Sin Asignar'
+            
+            labels.append(str(etiqueta))
+            rechazos.append(fila['total_rechazos'])
+            seguimientos.append(fila['total_seguimientos'])
+            calificados.append(fila['total_calificados'])
+            ventas.append(fila['total_ventas'])
+        return labels, rechazos, seguimientos, calificados, ventas
+
+    q_rechazo = Q(plan__iexact='descartado')
+    q_seguimiento = Q(plan__iexact='seguimiento')
+    q_calificado = Q(calificacion__in=[2, 3])
+    q_venta = Q(estatus__iexact='cliente')
+
+    stats_vendedor = qs.values('owner__username').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('owner__username')
+    v_labels, v_rech, v_seg, v_cal, v_ven = procesar_agrupacion(stats_vendedor, 'owner__username')
+
+    stats_ubicacion = qs.values('ubicacion__estado').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('ubicacion__estado')
+    u_labels, u_rech, u_seg, u_cal, u_ven = procesar_agrupacion(stats_ubicacion, 'ubicacion__estado')
+
+    stats_especialidad = qs.values('especialidad_cat__nombre').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('especialidad_cat__nombre')
+    e_labels, e_rech, e_seg, e_cal, e_ven = procesar_agrupacion(stats_especialidad, 'especialidad_cat__nombre')
+
+    # --- 7. CONTEXTO ---
+    context = {
+        'estados': lista_estados,
+        'especialidades': lista_especialidades,
+        'productos': lista_productos,
+        'vendedores': lista_vendedores, # <--- ¡AQUÍ ESTÁ LA LÍNEA QUE FALTABA!
+        'filtro_estado': filtro_estado,
+        'filtro_especialidad': filtro_especialidad,
+        'filtro_producto': filtro_producto,
+        'filtro_vendedor': filtro_vendedor,
+        'total_leads': total_leads,
+        'total_historicos': total_historicos,
+        'total_vendedores': total_vendedores_metric,
+        'volumen_promedio': volumen_promedio,
+        'tasa_calidad': tasa_calidad,
+        'tasa_prospeccion': tasa_prospeccion,
+        'indice_venta': indice_venta,
+        'chart_v_labels': json.dumps(v_labels), 'chart_v_rech': json.dumps(v_rech), 'chart_v_seg': json.dumps(v_seg), 'chart_v_cal': json.dumps(v_cal), 'chart_v_ven': json.dumps(v_ven),
+        'chart_u_labels': json.dumps(u_labels), 'chart_u_rech': json.dumps(u_rech), 'chart_u_seg': json.dumps(u_seg), 'chart_u_cal': json.dumps(u_cal), 'chart_u_ven': json.dumps(u_ven),
+        'chart_e_labels': json.dumps(e_labels), 'chart_e_rech': json.dumps(e_rech), 'chart_e_seg': json.dumps(e_seg), 'chart_e_cal': json.dumps(e_cal), 'chart_e_ven': json.dumps(e_ven),
+    }
+    
+    return render(request, 'director_dashboard.html', context)
+    # --- 1. CAPTURAR FILTROS DE LA URL ---
+    filtro_estado = request.GET.get('estado', '')
+    filtro_especialidad = request.GET.get('especialidad', '')
+    filtro_producto = request.GET.get('producto', '')
+    filtro_vendedor = request.GET.get('vendedor', '')
+
+    # --- 2. APLICAR FILTROS A LA CONSULTA BASE ---
+    qs = CoreLead.objects.all()
+    
+    if filtro_estado:
+        qs = qs.filter(ubicacion__estado__iexact=filtro_estado)
+    if filtro_especialidad:
+        # Ahora filtramos por el nombre del catálogo relacional
+        qs = qs.filter(especialidad_cat__nombre__iexact=filtro_especialidad)
+    if filtro_producto:
+        # Ahora filtramos por el nombre del catálogo relacional
+        qs = qs.filter(producto_cat__nombre__iexact=filtro_producto)
+    if filtro_vendedor:
+        qs = qs.filter(owner__username__iexact=filtro_vendedor)
+
+    # --- 3. EXTRAER OPCIONES ÚNICAS PARA LOS DROPDOWNS ---
+    # Ahora las listas se alimentan de los catálogos oficiales, garantizando cero duplicados
+    lista_estados = CatUbicacion.objects.exclude(estado='').values_list('estado', flat=True).distinct().order_by('estado')
+    lista_especialidades = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+    lista_productos = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+    
+    lista_vendedores = User.objects.filter(is_superuser=False, is_active=True).values_list('username', flat=True).order_by('username')
+
+    # --- 4. KPIs GLOBALES (Usando el qs filtrado) ---
+    total_leads = qs.count()
+    total_historicos = qs.filter(estatus='Histórico').count()
+    total_vendedores_metric = lista_vendedores.count()
+
+    # === KPIs SEMANALES ESTRICTOS (Últimos 7 días) ===
+    hace_7_dias = timezone.now() - timedelta(days=7)
+    base_semana = qs.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
+
+    total_trabajados_semana = base_semana.count()
+    vendedores_activos = total_vendedores_metric
+    volumen_promedio = round(total_trabajados_semana / vendedores_activos, 1) if vendedores_activos > 0 else 0
+
+    tasa_calidad = base_semana.filter(plan__iexact='descartado').count()
+    tasa_prospeccion = base_semana.filter(calificacion__in=[2, 3]).count()
+    indice_venta = base_semana.filter(estatus__iexact='cliente').count()
+
+    # --- 6. DATOS PARA GRÁFICAS MULTIDIMENSIONALES ---
+    def procesar_agrupacion(query_result, campo_label):
+        labels, rechazos, seguimientos, calificados, ventas = [], [], [], [], []
+        for fila in query_result:
+            etiqueta = fila[campo_label]
+            if not etiqueta: etiqueta = 'Desconocido / Sin Asignar'
+            
+            labels.append(str(etiqueta))
+            rechazos.append(fila['total_rechazos'])
+            seguimientos.append(fila['total_seguimientos'])
+            calificados.append(fila['total_calificados'])
+            ventas.append(fila['total_ventas'])
+        return labels, rechazos, seguimientos, calificados, ventas
+
+    q_rechazo = Q(plan__iexact='descartado')
+    q_seguimiento = Q(plan__iexact='seguimiento')
+    q_calificado = Q(calificacion__in=[2, 3])
+    q_venta = Q(estatus__iexact='cliente')
+
+    # 1. Agrupación por Vendedor
+    stats_vendedor = qs.values('owner__username').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('owner__username')
+    v_labels, v_rech, v_seg, v_cal, v_ven = procesar_agrupacion(stats_vendedor, 'owner__username')
+
+    # 2. Agrupación por Ubicación (Estado)
+    stats_ubicacion = qs.values('ubicacion__estado').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('ubicacion__estado')
+    u_labels, u_rech, u_seg, u_cal, u_ven = procesar_agrupacion(stats_ubicacion, 'ubicacion__estado')
+
+    # 3. Agrupación por Especialidad Médica (AQUÍ ESTÁ LA MAGIA)
+    stats_especialidad = qs.values('especialidad_cat__nombre').annotate(
+        total_rechazos=Count('id', filter=q_rechazo),
+        total_seguimientos=Count('id', filter=q_seguimiento),
+        total_calificados=Count('id', filter=q_calificado),
+        total_ventas=Count('id', filter=q_venta)
+    ).order_by('especialidad_cat__nombre')
+    e_labels, e_rech, e_seg, e_cal, e_ven = procesar_agrupacion(stats_especialidad, 'especialidad_cat__nombre')
+
+    # --- 7. CONTEXTO ---
+    context = {
+        'estados': lista_estados,
+        'especialidades': lista_especialidades,
+        'productos': lista_productos,
+        'filtro_estado': filtro_estado,
+        'filtro_especialidad': filtro_especialidad,
+        'filtro_producto': filtro_producto,
+        'filtro_vendedor': filtro_vendedor,
+        'total_leads': total_leads,
+        'total_historicos': total_historicos,
+        'total_vendedores': total_vendedores_metric,
+        'volumen_promedio': volumen_promedio,
+        'tasa_calidad': tasa_calidad,
+        'tasa_prospeccion': tasa_prospeccion,
+        'indice_venta': indice_venta,
+        'chart_v_labels': json.dumps(v_labels), 'chart_v_rech': json.dumps(v_rech), 'chart_v_seg': json.dumps(v_seg), 'chart_v_cal': json.dumps(v_cal), 'chart_v_ven': json.dumps(v_ven),
+        'chart_u_labels': json.dumps(u_labels), 'chart_u_rech': json.dumps(u_rech), 'chart_u_seg': json.dumps(u_seg), 'chart_u_cal': json.dumps(u_cal), 'chart_u_ven': json.dumps(u_ven),
+        'chart_e_labels': json.dumps(e_labels), 'chart_e_rech': json.dumps(e_rech), 'chart_e_seg': json.dumps(e_seg), 'chart_e_cal': json.dumps(e_cal), 'chart_e_ven': json.dumps(e_ven),
+    }
+    
+    return render(request, 'director_dashboard.html', context)
+    # --- 1. CAPTURAR FILTROS DE LA URL ---
+    filtro_estado = request.GET.get('estado', '')
+    filtro_especialidad = request.GET.get('especialidad', '')
+    filtro_producto = request.GET.get('producto', '')
+    filtro_vendedor = request.GET.get('vendedor', '')
+    
+    lista_vendedores = User.objects.filter(is_superuser=False, is_active=True).values_list('username', flat=True).order_by('username')
+    # RAYOS X:
+    print("\n--- VENDEDORES ENCONTRADOS ---")
+    print(lista_vendedores)
+    print("------------------------------\n")    
 
     # --- 2. APLICAR FILTROS A LA CONSULTA BASE ---
     qs = CoreLead.objects.all()

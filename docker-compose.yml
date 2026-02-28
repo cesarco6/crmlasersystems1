@@ -16,7 +16,7 @@ services:
       - redis
   qcluster:
     build: .
-    command: python manage.py qcluster
+    command: python backend/manage.py qcluster
     volumes:
       - .:/app
     env_file:

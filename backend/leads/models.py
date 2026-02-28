@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-from users.models import CatUbicacion
+from users.models import CatUbicacion, CatEspecialidad, CatProducto
 from django_fsm import FSMField, transition
 from django.utils import timezone
 from django.conf import settings
@@ -28,6 +28,9 @@ class CoreLead(models.Model):
     nombre = models.CharField(max_length=100)
     especialidad = models.CharField(max_length=50)
     producto_interes = models.CharField(max_length=50)
+    # --- NUEVOS CAMPOS RELACIONALES (Catálogos Limpios) ---
+    especialidad_cat = models.ForeignKey(CatEspecialidad, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
+    producto_cat = models.ForeignKey(CatProducto, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
     
     # Operación
     email = models.EmailField(blank=True, null=True)

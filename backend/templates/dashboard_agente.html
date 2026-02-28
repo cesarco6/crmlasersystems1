@@ -195,7 +195,12 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-muted">Especialidad</label>
-                            <input type="text" id="alta-especialidad" maxlength="50" class="form-control" placeholder="Ej. Pediatría">
+                            <input type="text" id="alta-especialidad" list="lista-esp-alta" maxlength="50" class="form-control" placeholder="Ej. Pediatría">
+                            <datalist id="lista-esp-alta">
+                                {% for esp in especialidades_list %}
+                                    <option value="{{ esp }}">
+                                {% endfor %}
+                            </datalist>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-muted">Ubicación</label>

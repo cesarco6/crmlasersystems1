@@ -140,13 +140,12 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        
                         <div class="col-12 mt-3 text-end" id="btn-submit-container">
                             <a href="{% url 'director_dashboard' %}" class="btn btn-sm btn-light border me-2">Limpiar Filtros</a>
                             <button type="submit" class="btn btn-sm btn-primary">Aplicar Filtros</button>
                         </div>
                     </form>
-
+                        
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
                             // --- 1. Restaurar posición de scroll (si existe) ---

@@ -25,6 +25,33 @@ class CatUbicacion(models.Model):
     def __str__(self):
         return f"{self.ciudad}, {self.estado}"
 
+class CatEspecialidad(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    # El campo alias nos salvará la vida en las ingestas masivas
+    alias = models.TextField(blank=True, null=True, help_text="Sinónimos separados por coma. Ej: vet, veterinaria, animales")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Especialidad'
+        verbose_name_plural = 'Catálogo de Especialidades'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
+class CatProducto(models.Model):
+    nombre = models.CharField(max_length=100, unique=True)
+    alias = models.TextField(blank=True, null=True, help_text="Sinónimos separados por coma. Ej: laser mini sport, laser ir sport")
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Producto'
+        verbose_name_plural = 'Catálogo de Productos'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
 class AsignacionTerritorio(models.Model):
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
     ubicacion = models.ForeignKey(CatUbicacion, on_delete=models.CASCADE)
