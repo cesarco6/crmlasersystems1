@@ -3,11 +3,15 @@ from django.views.generic import DetailView
 from django.utils.decorators import method_decorator
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.shortcuts import render
+from django.core.paginator import Paginator
 from users.permissions import role_required
+from django.db.models import Q
+from django.utils import timezone
 from .mixins import LeadOwnershipMixin
 from .models import CoreLead
+from .models import Notificacion
 
 @method_decorator(role_required(['VENDEDOR']), name='dispatch')
 class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
@@ -15,7 +19,75 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['leads'] = CoreLead.objects.all().order_by('-id')[:10]
+        
+        # 1. CAPTURAR LO QUE EL VENDEDOR QUIERE VER
+        busqueda = self.request.GET.get('q', '').strip()
+        filtro_rapido = self.request.GET.get('filtro', 'activos') # 'activos' por defecto
+        
+        hoy = timezone.now().date()
+
+        # 2. BASE DE SEGURIDAD: Solo los leads de ESTE vendedor
+        qs = CoreLead.objects.filter(owner=self.request.user)
+
+        # ---------------------------------------------------------
+        # ESCENARIO A: EL FRANCOTIRADOR (Buscando un registro específico)
+        # ---------------------------------------------------------
+        if busqueda:
+            # Si hay búsqueda, rompemos las reglas y buscamos en TODA su cartera histórica
+            qs = qs.filter(
+                Q(nombre__icontains=busqueda) |
+                Q(phone_primary__icontains=busqueda) |
+                Q(celular__icontains=busqueda) |
+                Q(email__icontains=busqueda)
+            )
+            
+        # ---------------------------------------------------------
+        # ESCENARIO B: LA RED DE ARRASTRE (Filtrando grupos diarios)
+        # ---------------------------------------------------------
+        else:
+            # Regla INBOX ZERO: Ocultar los que ya terminaron su ciclo
+            qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
+            
+            # Regla HIBERNACIÓN: Si está "En Espera" para una fecha futura, lo ocultamos hoy
+            # (Asumiendo que usas next_action_date, si usas otro campo, lo cambiamos)
+            qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
+
+            # Aplicar el botón que el vendedor haya presionado
+            if filtro_rapido == 'hoy':
+                qs = qs.filter(next_action_date=hoy)
+            elif filtro_rapido == 'frescos':
+                qs = qs.filter(estatus='PROSPECTO')
+            elif filtro_rapido == 'urgentes':
+                # Ejemplo: leads en SEGUIMIENTO que su fecha de acción ya se pasó
+                qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
+        
+        # Ordenamos la consulta final
+        qs = qs.order_by('-updated_at')
+
+        # Dividimos en bloques de 10 registros por página
+        paginador = Paginator(qs, 10) 
+        numero_pagina = self.request.GET.get('page')
+        pagina_obj = paginador.get_page(numero_pagina)
+
+        # 3. ENVIAR RESULTADOS AL HTML
+        # OJO: Ahora mandamos la página actual, no toda la base de datos
+        context['leads'] = pagina_obj 
+        context['page_obj'] = pagina_obj # Lo mandamos también con este nombre por convención de Django
+        
+        context['busqueda_actual'] = busqueda
+        context['filtro_actual'] = filtro_rapido
+        
+        context['total_activos'] = CoreLead.objects.filter(owner=self.request.user).exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
+        
+        return context
+        # 3. ENVIAR RESULTADOS AL HTML
+        context['leads'] = qs.order_by('-updated_at') # Los movidos recientemente van arriba
+        context['busqueda_actual'] = busqueda
+        context['filtro_actual'] = filtro_rapido
+        
+        # KPIs rápidos para la parte superior del Dashboard (Contadores)
+        context['total_activos'] = CoreLead.objects.filter(owner=self.request.user).exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
+        
         return context
 
 @method_decorator(role_required(['VENDEDOR', 'DIRECTOR', 'ADMIN']), name='dispatch')
@@ -64,7 +136,6 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
 
 import json
 from datetime import datetime
-from django.utils import timezone
 from datetime import timedelta
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -446,7 +517,7 @@ def api_ingesta_historica(request):
                 'producto_interes': fila.get('producto', '')[:50],
                 'notas_variadas': notas_historicas,
                 'estatus': estatus_excel, 
-                'owner': vendedor_asignado, # El sistema hace la magia aquí
+                'owner': vendedor_asignado, # El sistema hace 
             }
 
             # 4. Inyección a la Base de Datos (Update or Create)
@@ -611,3 +682,19 @@ def director_dashboard_view(request):
     }
     
     return render(request, 'director_dashboard.html', context)
+
+def marcar_alerta_leida(request, alerta_id):
+    # Buscamos la alerta asegurándonos de que pertenezca a este usuario
+    alerta = get_object_or_404(Notificacion, id=alerta_id, usuario=request.user)
+    
+    # La apagamos
+    alerta.leida = True
+    alerta.save()
+    
+    # Si la alerta está ligada a un prospecto, llevamos al vendedor a ese perfil
+    if alerta.lead:
+        # OJO: Cambia 'detalle_lead' por el nombre real de tu URL para ver un lead
+        return redirect('detalle_lead', pk=alerta.lead.id) 
+    
+    # Si es una alerta general, lo regresamos al dashboard
+    return redirect('dashboard_agente')

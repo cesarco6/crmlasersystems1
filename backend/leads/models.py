@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 from users.models import CatUbicacion
 from django_fsm import FSMField, transition
 from django.utils import timezone
+from django.conf import settings
 
 def default_notas_variadas():
     """Define la estructura base del JSONB según el esquema del usuario."""
@@ -111,3 +112,35 @@ class FiscalProfile(models.Model):
     ciudad = models.CharField(max_length=100)
     estado = models.CharField(max_length=100)
     cp = models.CharField(max_length=5)
+
+
+class Notificacion(models.Model):
+    TIPO_CHOICES = [
+        ('estancamiento', 'Lead Estancado (> 30 días)'),
+        ('reactivacion', 'Reactivación Programada'),
+        ('no_cierre', 'Revisión de No Cierre'),
+        ('fidelizacion', 'Seguimiento Post-Venta'),
+        ('general', 'Aviso General'),
+    ]
+
+    # ¿A quién le aparece la alerta en su pantalla? (Vendedor o Director)
+    usuario = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='notificaciones')
+    
+    # ¿Sobre qué Lead es la alerta? (Permite que al darle clic, lo lleve al perfil del cliente)
+    lead = models.ForeignKey('CoreLead', on_delete=models.CASCADE, null=True, blank=True, related_name='notificaciones')
+    
+    mensaje = models.CharField(max_length=255)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES)
+    
+    # El interruptor del Badge Rojo: False = Alerta encendida, True = Alerta apagada/atendida
+    leida = models.BooleanField(default=False)
+    
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_creacion'] # Las más nuevas aparecen primero
+        verbose_name = 'Notificación'
+        verbose_name_plural = 'Notificaciones'
+
+    def __str__(self):
+        return f"{self.tipo} para {self.usuario} - Leída: {self.leida}"

@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'leads',
+    'django_q',
 ]
 
 MIDDLEWARE = [
@@ -66,6 +67,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'leads.context_processors.contador_alertas',
             ],
         },
     },
@@ -142,3 +144,17 @@ STATICFILES_DIRS = [BASE_DIR / 'static']
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
+
+# --- CONFIGURACIÓN DE DJANGO Q (TAREAS EN SEGUNDO PLANO) ---
+Q_CLUSTER = {
+    'name': 'crm_laser_cluster',
+    'workers': 4,
+    'recycle': 500,
+    'timeout': 60,
+    'compress': True,
+    'save_limit': 250,
+    'queue_limit': 500,
+    'cpu_affinity': 1,
+    'label': 'Django Q',
+    'redis': os.environ.get('REDIS_URL', 'redis://127.0.0.1:6379/1')
+}

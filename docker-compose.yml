@@ -14,6 +14,16 @@ services:
     depends_on:
       - db
       - redis
+  qcluster:
+    build: .
+    command: python manage.py qcluster
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
 
   # Servicio 2: Base de Datos PostgreSQL 16 (DDS v2.0)
   db:

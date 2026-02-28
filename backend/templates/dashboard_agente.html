@@ -2,223 +2,214 @@
 {% load static %}
 
 {% block title %}Dashboard Agente - CRM Laser Systems{% endblock %}
+
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/modals.css' %}">
-<style>
-    /* Forzamos el diseño de 2 columnas desde la plantilla para evitar caché */
-    .form-row {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 15px;
-        width: 100%;
-    }
-    .form-group {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-    }
-    .form-group label {
-        margin-bottom: 5px;
-        font-weight: 600;
-        color: var(--text-secondary, #a1a5b7);
-    }
-</style>
 {% endblock %}
 
 {% block content %}
-<!-- Módulo Mis Ventas -->
-<section class="module active" id="module-mis-ventas">
-    <!--<div class="module-header">
-        <h2>💰 Mis Ventas</h2>
-        <p>Panel personal de ventas y desempeño</p>
+<section class="container-fluid px-4 py-3">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark mb-0">🎯 Mi Dashboard</h2>
+            <p class="text-muted small">Panel operativo de ventas</p>
+        </div>
+        <button onclick="document.getElementById('modal-alta').style.display='block'" class="btn btn-primary shadow-sm fw-bold">
+            + Nueva Oportunidad
+        </button>
     </div>
 
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-icon">💵</div>
-            <div class="stat-info">
-                <div class="stat-value">$350K</div>
-                <div class="stat-label">Ventas del Mes</div>
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm bg-primary text-white">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase mb-1" style="font-size: 0.8rem; opacity: 0.8;">Cartera Activa</h6>
+                        <h2 class="mb-0 fw-bold">{{ total_activos }}</h2>
+                    </div>
+                    <i class="bi bi-briefcase fs-1 opacity-50"></i>
+                </div>
             </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">📈</div>
-            <div class="stat-info">
-                <div class="stat-value">+22%</div>
-                <div class="stat-label">vs. Mes Anterior</div>
-            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-icon">🎯</div>
-            <div class="stat-info">
-                <div class="stat-value">87%</div>
-                <div class="stat-label">Meta Mensual</div>
+
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+            
+            <div class="btn-group shadow-sm" role="group" aria-label="Filtros rápidos">
+                <a href="?filtro=activos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                   class="btn {% if filtro_actual == 'activos' or not filtro_actual %}btn-dark{% else %}btn-outline-dark{% endif %}">
+                   📋 Todos
+                </a>
+                <a href="?filtro=frescos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                   class="btn {% if filtro_actual == 'frescos' %}btn-info text-white{% else %}btn-outline-info{% endif %}">
+                   🔵 Nuevos
+                </a>
+                <a href="?filtro=hoy{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                   class="btn {% if filtro_actual == 'hoy' %}btn-warning text-dark{% else %}btn-outline-warning{% endif %}">
+                   🟡 Para Hoy
+                </a>
+                <a href="?filtro=urgentes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                   class="btn {% if filtro_actual == 'urgentes' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+                   🔴 Urgentes
+                </a>
             </div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">🏆</div>
-            <div class="stat-info">
-                <div class="stat-value">12</div>
-                <div class="stat-label">Cierres del Mes</div>
-            </div>
+
+            <form method="GET" class="d-flex w-25 min-w-300px">
+                {% if filtro_actual %}
+                    <input type="hidden" name="filtro" value="{{ filtro_actual }}">
+                {% endif %}
+                <div class="input-group shadow-sm">
+                    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                    <input type="text" name="q" class="form-control border-start-0 ps-0" 
+                           placeholder="Buscar nombre, tel, correo..." value="{{ busqueda_actual|default:'' }}">
+                    <button type="submit" class="btn btn-secondary">Buscar</button>
+                    {% if busqueda_actual %}
+                        <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}" class="btn btn-light border" title="Limpiar búsqueda">✖</a>
+                    {% endif %}
+                </div>
+            </form>
         </div>
     </div>
 
-    <div class="chart-grid">
-        <div class="card">
-            <div class="card-header">
-                <h3>Mi Embudo de Ventas</h3>
-            </div>
-            <div class="funnel-chart">
-                <div class="funnel-stage" style="width: 100%;">
-                    <span class="funnel-label">Mis Prospectos</span>
-                    <span class="funnel-value">45</span>
-                </div>
-                <div class="funnel-stage" style="width: 75%;">
-                    <span class="funnel-label">Contactados</span>
-                    <span class="funnel-value">34</span>
-                </div>
-                <div class="funnel-stage" style="width: 60%;">
-                    <span class="funnel-label">Cotizaciones</span>
-                    <span class="funnel-value">27</span>
-                </div>
-                <div class="funnel-stage" style="width: 40%;">
-                    <span class="funnel-label">Negociación</span>
-                    <span class="funnel-value">18</span>
-                </div>
-                <div class="funnel-stage" style="width: 25%;">
-                    <span class="funnel-label">Cerrados</span>
-                    <span class="funnel-value">12</span>
-                </div>
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Cliente</th>
+                            <th>Última Acción</th>
+                            <th>Etapa</th>
+                            <th>Producto</th>
+                            <th>Cal.</th>
+                            <th>Ciudad</th>
+                            <th class="text-end pe-4">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lead in leads %}
+                        <tr>
+                            <td class="ps-4 fw-bold text-dark">{{ lead.nombre }}
+                                <br><small class="text-muted fw-normal">{{ lead.phone_primary }}</small>
+                            </td>
+                            <td>{{ lead.updated_at|date:"d M Y" }}</td>
+                            <td>
+                                <span class="badge rounded-pill 
+                                    {% if lead.estatus == 'PROSPECTO' %}bg-info
+                                    {% elif lead.estatus == 'LEAD' %}bg-primary
+                                    {% elif lead.estatus == 'OPORTUNIDAD' %}bg-warning text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ lead.estatus }}
+                                </span>
+                            </td>
+                            <td>{{ lead.producto_interes }}</td>
+                            <td>
+                                {% if lead.calificacion == 3 %}🔥 Alta
+                                {% elif lead.calificacion == 2 %}⭐ Media
+                                {% elif lead.calificacion == 1 %}🧊 Baja
+                                {% else %}-{% endif %}
+                            </td>
+                            <td>{{ lead.ubicacion.ciudad|default:"-" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-light border shadow-sm text-primary fw-bold">
+                                    Gestionar <i class="bi bi-arrow-right ms-1"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                {% if busqueda_actual %}
+                                    No se encontraron resultados para "<strong>{{ busqueda_actual }}</strong>"
+                                {% else %}
+                                    ¡Bandeja limpia! No hay leads en esta categoría.
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
+        
+        <div class="card-footer bg-white py-3 border-0">
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Navegación de leads">
+                <ul class="pagination justify-content-center mb-0 mt-2">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}">Anterior</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link shadow-sm">Anterior</span></li>
+                    {% endif %}
 
-        <div class="card">
-            <div class="card-header">
-                <h3>Desempeño Mensual</h3>
-            </div>
-            <div class="bar-chart">
-                <div class="bar-item">
-                    <div class="bar-label">Enero</div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: 75%;"></div>
-                        <span class="bar-value">$285K</span>
-                    </div>
-                </div>
-                <div class="bar-item">
-                    <div class="bar-label">Febrero</div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: 82%;"></div>
-                        <span class="bar-value">$312K</span>
-                    </div>
-                </div>
-                <div class="bar-item">
-                    <div class="bar-label">Marzo</div>
-                    <div class="bar-container">
-                        <div class="bar-fill" style="width: 92%;"></div>
-                        <span class="bar-value">$350K</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
--->
-    <div class="card">
-        <div class="card-header">
-            <h3>Mis Oportunidades Activas</h3>
-            <button onclick="document.getElementById('modal-alta').style.display='block'" class="btn-primary">Nueva
-                Oportunidad</button>
-        </div>
-        <div class="table-container">
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Fecha Inicial</th>
-                        <th>Etapa</th>
-                        <th>Producto</th>
-                        <th>Cal.</th>
-                        <th>Ubicación</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for lead in leads %}
-                    <tr>
-                        <td>{{ lead.nombre }}</td>
-                        <td>{{ lead.created_at|date:"d/m/Y" }}</td>
-                        <td><span class="badge badge-primary">{{ lead.estatus }}</span></td>
-                        <td>{{ lead.producto_interes }}</td>
-                        <td>{{ lead.calificacion }}</td>
-                        <td>{{ lead.ubicacion.ciudad }}</td>
-                        <td><a href="{% url 'ficha_trabajo' lead.id %}" class="btn-small"
-                                style="text-decoration: none; display: inline-block;">Gestionar</a></td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="7" style="text-align: center;">No hay oportunidades activas.</td>
-                    </tr>
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}">{{ num }}</a></li>
+                        {% endif %}
                     {% endfor %}
-                </tbody>
-            </table>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}">Siguiente</a></li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link shadow-sm">Siguiente</span></li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
         </div>
     </div>
+
     <div id="modal-alta" class="modal-overlay">
         <div class="modal-box">
-            <div class="card-header">
-                <h3>👤 Alta Rápida</h3>
-                <span onclick="document.getElementById('modal-alta').style.display='none'"
-                    class="modal-close-btn">&times;</span>
+            <div class="card-header border-bottom mb-3 pb-2 d-flex justify-content-between">
+                <h3 class="m-0">👤 Alta Rápida</h3>
+                <span onclick="document.getElementById('modal-alta').style.display='none'" class="modal-close-btn" style="cursor: pointer; font-size: 1.5rem;">&times;</span>
             </div>
             <div class="card-body">
                 <form id="form-alta-rapida" onsubmit="guardarLeadManual(event)">
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Nombre del Médico *</label>
-                            <input type="text" id="alta-nombre" required minlength="3" maxlength="100"
-                                pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\.]+" title="Solo se permiten letras, espacios y puntos"
-                                class="modal-input" placeholder="Ej. Dr. Juan Pérez">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">Nombre del Médico *</label>
+                            <input type="text" id="alta-nombre" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\.]+" class="form-control" placeholder="Ej. Dr. Juan Pérez">
                         </div>
-                        <div class="form-group">
-                            <label>Teléfono Primario *</label>
-                            <input type="tel" id="alta-telefono" required pattern="[0-9]{10,15}"
-                                title="Ingresa entre 10 y 15 números seguidos" class="modal-input"
-                                placeholder="Ej. 4421234567">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">Teléfono Primario *</label>
+                            <input type="tel" id="alta-telefono" required pattern="[0-9]{10,15}" class="form-control" placeholder="Ej. 4421234567">
                         </div>                        
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>📱 Celular (WhatsApp)</label>
-                            <input type="text" id="alta-celular" class="modal-input" placeholder="Ej. 4421112233">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">📱 Celular (WhatsApp)</label>
+                            <input type="text" id="alta-celular" class="form-control" placeholder="Ej. 4421112233">
                         </div>                        
-                        <div class="form-group">
-                            <label>📧 Correo Electrónico</label>
-                            <input type="email" id="alta-email" class="modal-input" placeholder="doctor@clinica.com">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">📧 Correo Electrónico</label>
+                            <input type="email" id="alta-email" class="form-control" placeholder="doctor@clinica.com">
                         </div>
                     </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label>Especialidad</label>
-                            <input type="text" id="alta-especialidad" maxlength="50" class="modal-input"
-                                placeholder="Ej. Pediatría">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">Especialidad</label>
+                            <input type="text" id="alta-especialidad" maxlength="50" class="form-control" placeholder="Ej. Pediatría">
                         </div>
-                        <div class="form-group">
-                            <label>Ubicación</label>
-                            <input type="text" id="alta-ubicacion" maxlength="100" class="modal-input"
-                                placeholder="Ej. Querétaro">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-muted">Ubicación</label>
+                            <input type="text" id="alta-ubicacion" maxlength="100" class="form-control" placeholder="Ej. Querétaro">
                         </div>
                     </div>
-
-                    <div style="text-align: right; margin-top: 20px;">
-                        <button type="submit" class="btn-primary">Guardar Prospecto</button>
+                    <div class="text-end mt-4">
+                        <button type="submit" class="btn btn-primary fw-bold px-4">Guardar Prospecto</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
 </section>
 {% endblock %}
 

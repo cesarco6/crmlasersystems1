@@ -17,6 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.views.generic import RedirectView
+from leads import views as leads_views
 
 # 1. Agregamos "procesar_alta_manual" a la lista de importaciones
 from leads.views import DashboardAgenteView, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, api_ingesta_historica, IngestaHistoricaView, director_dashboard_view
@@ -34,6 +35,9 @@ urlpatterns = [
     path('director/dashboard/', director_dashboard_view, name='director_dashboard'),
     path('director/territorios/', panel_territorios, name='director_territorios'),
     path('api/director/territorios/<int:vendedor_id>/', api_territorios_vendedor, name='api_territorios_vendedor'),
+
+    # Ruta para marcar alertas como leídas
+    path('alertas/<int:alerta_id>/leida/', leads_views.marcar_alerta_leida, name='marcar_alerta_leida'),
     
     # 2. La nueva ruta que escuchará a nuestro Modal
     path('api/alta-manual/', procesar_alta_manual, name='api_alta_manual'),
