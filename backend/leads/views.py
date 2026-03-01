@@ -1,3 +1,4 @@
+# leads/views.py
 from django.views.generic import TemplateView
 from django.views.generic import DetailView
 from django.utils.decorators import method_decorator
@@ -119,11 +120,12 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['lead'] = lead
         # --- NUEVAS LÍNEAS PARA LOS DROPDOWNS ---
         context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
-        context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+        context['productos_list'] = CatProducto.objects.filter(is_active=True).order_by('nombre')
         # Variables súper cortas para que el HTML no se rompa al guardar
         context['celular_seguro'] = lead.celular if lead.celular else "No registrado"
-        context['especialidad_segura'] = lead.especialidad if lead.especialidad else "No especificada"
-        context['producto_seguro'] = lead.producto_interes if lead.producto_interes else "No especificado"
+        # Priorizamos el catálogo relacional (DDS Fase 2)
+        context['especialidad_segura'] = lead.especialidad_cat.nombre if lead.especialidad_cat else (lead.especialidad if lead.especialidad else "No especificada")
+        context['producto_seguro'] = lead.producto_cat.nombre if lead.producto_cat else (lead.producto_interes if lead.producto_interes else "No especificado")
         
         return context
 
@@ -502,7 +504,46 @@ def actualizar_lead_fsm(request, pk):
                 "contenido": nueva_nota.strip(),
                 "fecha": timezone.now().isoformat()
             })
+
+        elif accion == 'AGREGAR_NOTA':
+            nueva_nota = data.get('nota')
+            if not nueva_nota:
+                return JsonResponse({"error": "La nota no puede estar vacía."}, status=400)
             
+            lead.notas_variadas.setdefault("notas", []).append({
+                "tipo": "contacto",
+                "contenido": nueva_nota.strip(),
+                "fecha": timezone.now().isoformat()
+            })
+            
+        elif accion == 'CERRAR_VENTA':
+            # 1. Transición oficial en la Máquina de Estados
+            lead.estatus = 'CLIENTE'
+            
+            # 2. Dejar la miga de pan histórica obligatoria
+            # from django.utils import timezone
+            timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+            
+            if not isinstance(lead.notas_variadas, dict):
+                lead.notas_variadas = {"notas": []}
+            if "notas" not in lead.notas_variadas:
+                lead.notas_variadas["notas"] = []
+                
+            lead.notas_variadas["notas"].append({
+                "fecha": timestamp,
+                "tipo": "sistema",
+                "contenido": "🏆 ¡VENTA CERRADA! El prospecto ha cruzado la meta y se ha convertido oficialmente en CLIENTE."
+            })
+
+        # 3. GUARDADO FINAL
+        lead.save()
+        
+        return JsonResponse({
+            "status": "success", 
+            "mensaje": f"Operación {accion} realizada con éxito.",
+            "nuevo_estatus": lead.estatus
+        })
+
         # 3. GUARDADO FINAL
         lead.save()
         
@@ -800,7 +841,7 @@ def director_dashboard_view(request):
     ).order_by('ubicacion__estado')
     u_labels, u_rech, u_seg, u_cal, u_ven = procesar_agrupacion(stats_ubicacion, 'ubicacion__estado')
 
-    # 3. Agrupación por Especialidad Médica (AQUÍ ESTÁ LA MAGIA)
+    # 3. Agrupación por Especialidad Médica 
     stats_especialidad = qs.values('especialidad_cat__nombre').annotate(
         total_rechazos=Count('id', filter=q_rechazo),
         total_seguimientos=Count('id', filter=q_seguimiento),
@@ -838,11 +879,7 @@ def director_dashboard_view(request):
     filtro_vendedor = request.GET.get('vendedor', '')
     
     lista_vendedores = User.objects.filter(is_superuser=False, is_active=True).values_list('username', flat=True).order_by('username')
-    # RAYOS X:
-    print("\n--- VENDEDORES ENCONTRADOS ---")
-    print(lista_vendedores)
-    print("------------------------------\n")    
-
+   
     # --- 2. APLICAR FILTROS A LA CONSULTA BASE ---
     qs = CoreLead.objects.all()
     
@@ -992,3 +1029,82 @@ def marcar_alerta_leida(request, alerta_id):
     
     # Si es una alerta general, lo regresamos al dashboard
     return redirect('dashboard_agente')
+
+@login_required
+@require_POST
+def registrar_venta_extra(request):
+    """
+    Registra una compra transaccional solo si el lead ya es CLIENTE.
+    Pensado para ventas de tipo Accesorio, Servicio o Evento.
+    """
+    try:
+        data = json.loads(request.body)
+        lead_id = data.get('lead_id')
+        producto_id = data.get('producto_id')
+        monto = data.get('monto')
+        notas = data.get('notas', '')
+        estatus = data.get('estatus', 'PENDIENTE') # Nuevo estatus
+
+        if not lead_id or not producto_id:
+            return JsonResponse({"error": "Faltan datos obligatorios (lead_id, producto_id)."}, status=400)
+        
+        lead = get_object_or_404(CoreLead, id=lead_id)
+        
+        # 1. Candado de Fidelización (Visión 360°): 
+        # Cero impacto al FSM, venta reservada a CLIENTES ya consolidados en el embudo.
+        if lead.estatus != 'CLIENTE':
+            return JsonResponse({"error": "Solo puedes registrar ventas transaccionales a prospectos con estatus de CLIENTE."}, status=400)
+
+        producto = get_object_or_404(CatProducto, id=producto_id)
+
+        # --- CANDADO ANTI-SPAM (Código de antiG) ---
+        from .models import VentaTransaccional
+        
+        if VentaTransaccional.objects.filter(lead=lead, producto=producto, estatus__in=['PENDIENTE', 'EN_GESTION']).exists():
+            return JsonResponse({"error": "Ya existe una oportunidad activa (Pendiente o En Gestión) para este producto."}, status=400)
+        # ------------------------------------------
+
+        # 2. Guardado de Independencia Transaccional
+        nueva_venta = VentaTransaccional.objects.create(
+            lead=lead,
+            producto=producto,
+            vendedor=request.user,
+            estatus=estatus, 
+            monto=monto if monto else None,
+            notas=notas
+        )
+
+        # --- NUEVO: Inyectar la miga de pan en el historial del Lead ---
+        # ... (aquí sigue el resto de tu código normal que guarda las notas) ...
+        # --- NUEVO: Inyectar la miga de pan en el historial del Lead ---
+        # from django.utils import timezone
+        
+        timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+        
+        nueva_nota = {
+            "fecha": timestamp,
+            "tipo": "sistema",  # Lo marcamos como sistema para que resalte
+            "contenido": f"🎯 Oportunidad 360° creada: {producto.nombre} (Estatus: {estatus}).\n📝 Notas: {notas}"
+        }
+
+        # Asegurarnos de que el diccionario de notas exista
+        if not isinstance(lead.notas_variadas, dict):
+            lead.notas_variadas = {"notas": []}
+        if "notas" not in lead.notas_variadas:
+            lead.notas_variadas["notas"] = []
+            
+        # Guardar la nota y actualizar el lead
+        lead.notas_variadas["notas"].append(nueva_nota)
+        lead.save(update_fields=['notas_variadas'])
+        # ----------------------------------------------------------------
+
+        return JsonResponse({
+            "status": "success",
+            "mensaje": "Venta transaccional registrada exitosamente.",
+            "venta_id": str(nueva_venta.id)
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "JSON Inválido enviado en la petición."}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

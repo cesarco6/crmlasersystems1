@@ -40,7 +40,20 @@ class CatEspecialidad(models.Model):
         return self.nombre
 
 class CatProducto(models.Model):
+    FAMILIA_CHOICES = [
+        ('EQUIPO', 'Equipo Principal (Core Business)'),
+        ('ACCESORIO', 'Accesorio / Consumible (Cross-selling)'),
+        ('SERVICIO', 'Servicio Técnico / Mantenimiento'),
+        ('EVENTO', 'Evento / Capacitación'),
+    ]
+    
     nombre = models.CharField(max_length=100, unique=True)
+    familia = models.CharField(
+        max_length=20, 
+        choices=FAMILIA_CHOICES, 
+        default='EQUIPO',
+        help_text="Permite separar el modelo de negocio principal (FSM) de las ventas complementarias."
+    )
     alias = models.TextField(blank=True, null=True, help_text="Sinónimos separados por coma. Ej: laser mini sport, laser ir sport")
     is_active = models.BooleanField(default=True)
 
@@ -50,7 +63,8 @@ class CatProducto(models.Model):
         ordering = ['nombre']
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} ({self.get_familia_display()})"
+
 
 class AsignacionTerritorio(models.Model):
     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)

@@ -4,6 +4,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from users.models import CatUbicacion, CatEspecialidad, CatProducto
+from users.models import UserProfile
 from django_fsm import FSMField, transition
 from django.utils import timezone
 from django.conf import settings
@@ -147,3 +148,31 @@ class Notificacion(models.Model):
 
     def __str__(self):
         return f"{self.tipo} para {self.usuario} - Leída: {self.leida}"
+
+class VentaTransaccional(models.Model):
+    """
+    Tabla satélite para registrar ventas complementarias (Cross-selling) 
+    sin afectar la máquina de estados de prospección principal (FSM).
+    Aplica para: ACCESORIO, SERVICIO, EVENTO.
+    """
+    ESTATUS_CHOICES = [
+        ('PENDIENTE', '🟡 Pendiente (Por contactar)'),
+        ('EN_GESTION', '🔵 En Gestión (Contactado / Negociando)'),
+        ('CONCRETADO', '🟢 Concretado (Ganado / Pagado)'),
+        ('DESCARTADO', '🔴 Descartado (Perdido / No le interesa)'),
+    ]
+    lead = models.ForeignKey(CoreLead, on_delete=models.CASCADE, related_name='compras_extra')
+    producto = models.ForeignKey(CatProducto, on_delete=models.PROTECT, related_name='ventas_transaccionales')
+    vendedor = models.ForeignKey(User, on_delete=models.PROTECT, related_name='ventas_extra')
+    
+    fecha_venta = models.DateTimeField(auto_now_add=True)
+    monto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    notas = models.TextField(blank=True, null=True)
+    estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='PENDIENTE')
+    class Meta:
+        ordering = ['-fecha_venta']
+        verbose_name = 'Venta Transaccional'
+        verbose_name_plural = 'Ventas Transaccionales'
+
+    def __str__(self):
+        return f"{self.producto.nombre} vendido a {self.lead.nombre}"
