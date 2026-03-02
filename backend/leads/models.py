@@ -176,3 +176,44 @@ class VentaTransaccional(models.Model):
 
     def __str__(self):
         return f"{self.producto.nombre} vendido a {self.lead.nombre}"
+
+class Evento(models.Model):
+    ESTATUS_CHOICES = [
+        ('ACTIVO', 'Activo'),
+        ('FINALIZADO', 'Finalizado'),
+        ('CANCELADO', 'Cancelado'),
+    ]
+    TIPO_CHOICES = [
+        ('EXPO', 'Expo / Congreso'),
+        ('TALLER', 'Taller / Capacitación')
+    ]
+    LINEA_CHOICES = [
+        ('SPORT', 'Línea Sport'),
+        ('PET', 'Línea Pet'),
+        ('DENTAL', 'Línea Dental'),
+        ('PODOLOGICO', 'Línea Podológica'),
+        ('BEAUTY', 'Línea Beauty'),
+        ('TODAS', 'Todas las Líneas')
+    ]
+    
+    nombre = models.CharField(max_length=200)
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='EXPO')
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    lugar = models.CharField(max_length=255)
+    estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='ACTIVO')
+    
+    linea_producto = models.CharField(max_length=20, choices=LINEA_CHOICES, default='TODAS')
+    estados_objetivo = models.JSONField(default=list, help_text="Lista de nombres de estados")
+    
+    vendedores_asignados = models.ManyToManyField(User, related_name='eventos_asignados', blank=True)
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha_inicio']
+        verbose_name = 'Evento / Campaña'
+        verbose_name_plural = 'Eventos y Campañas'
+
+    def __str__(self):
+        return f"{self.nombre} ({self.estatus})"

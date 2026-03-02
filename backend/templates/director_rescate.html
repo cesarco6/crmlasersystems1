@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+{% block title %}Bandeja de Rescate | Dirección{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold text-body">🛟 Bandeja de Rescate</h2>
+            <p class="text-body-secondary">Listado de leads perdidos o pausados para posible reasignación o descarte.</p>
+        </div>
+    </div>
+
+    <!-- Tabla Principal -->
+    <div class="card shadow-sm border-0 mb-5">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Dueño Actual</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lead in leads %}
+                        <tr>
+                            <td class="fw-bold">{{ lead.nombre }}</td>
+                            <td>{{ lead.owner.username|title }}</td>
+                            <td>
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <!-- Botón Ver Detalles (Abre Modal) -->
+                                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalLead{{ lead.id }}">
+                                        👁️ Ver Detalles
+                                    </button>
+                                    
+                                    <!-- Combo de Reasignación -->
+                                    <select class="form-select form-select-sm" id="vendedor_select_{{ lead.id }}" style="width: auto; max-width: 180px;">
+                                        <option value="">Seleccionar Vendedor...</option>
+                                        {% for vendedor in vendedores %}
+                                            <option value="{{ vendedor.id }}">{{ vendedor.username|title }}</option>
+                                        {% endfor %}
+                                    </select>
+                                    <button class="btn btn-sm btn-primary" onclick="reasignarLead('{{ lead.id }}')">
+                                        🔀 Reasignar
+                                    </button>
+
+                                    <!-- Botón Descartar (Archivo Muerto) -->
+                                    <button class="btn btn-sm btn-danger ms-auto" onclick="desecharLead('{{ lead.id }}')">
+                                        🗑️ Desechar
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">
+                                No hay leads en la bandeja de rescate actualmente.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Iteración para los Modales de Detalles -->
+    {% for lead in leads %}
+    <div class="modal fade" id="modalLead{{ lead.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content" style="background-color: #151521; color: #ffffff; border: 1px solid #3a3a4e; border-radius: 8px;">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">
+                        {{ lead.nombre }} 
+                        <span class="badge bg-secondary ms-2" style="background-color: #3a3a4e !important;">{{ lead.estatus }}</span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body pt-1">
+                    <p class="small mb-4" style="color: #a1a5b7;">Registrado el: {{ lead.created_at|date:'d M Y' }}</p>
+
+                    <h6 class="fw-bold mb-3" style="color: #4facfe;">📍 Datos de Contacto e Interés</h6>
+                    <div class="row g-3 mb-4 p-3 rounded" style="background-color: #1e1e2d; border: 1px solid #2b2b40;">
+                        <div class="col-md-6">
+                            <ul class="list-unstyled mb-0 text-sm">
+                                <li class="mb-1"><strong style="color: #a1a5b7;">Teléfono:</strong> {{ lead.phone_primary|default:"No registrado" }}</li>
+                                <li class="mb-1"><strong style="color: #a1a5b7;">Celular:</strong> {{ lead.celular|default:"No registrado" }}</li>
+                                <li><strong style="color: #a1a5b7;">Email:</strong> {{ lead.email|default:"No registrado" }}</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-unstyled mb-0 text-sm">
+                                <li class="mb-1"><strong style="color: #a1a5b7;">Especialidad:</strong> {{ lead.especialidad_cat.nombre|default:lead.especialidad|default:"General" }}</li>
+                                <li><strong style="color: #a1a5b7;">Producto:</strong> {{ lead.producto_cat.nombre|default:lead.producto_interes|default:"Por Definir" }}</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h6 class="fw-bold mb-3" style="color: #4facfe;">📝 Historial de Notas y Seguimiento</h6>
+                    <div class="p-3 rounded" style="max-height: 300px; overflow-y: auto; background-color: #1e1e2d; border: 1px solid #2b2b40;">
+                        {% if lead.notas_variadas.notas %}
+                            {% for nota in lead.notas_variadas.notas %}
+                            <div class="mb-3 pb-2" style="border-bottom: 1px solid #2b2b40;">
+                                <span class="badge {% if nota.tipo == 'sistema' %}bg-warning text-dark{% else %}bg-info text-dark{% endif %} mb-1">
+                                    {{ nota.tipo|title }}
+                                </span>
+                                <small class="ms-2" style="color: #a1a5b7;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</small>
+                                <p class="mb-0 mt-1 small" style="white-space: pre-line; color: #e4e6ef;">{{ nota.contenido }}</p>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <p class="small mb-0" style="color: #a1a5b7;">No hay notas registradas para este prospecto.</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color: #3a3a4e; border: none; color: white;">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+<!-- Scripts API (Fetch) -->
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    const csrftoken = getCookie('csrftoken');
+
+    function reasignarLead(leadId) {
+        const select = document.getElementById('vendedor_select_' + leadId);
+        const vendedorId = select.value;
+
+        if (!vendedorId) {
+            alert('Por favor, selecciona un vendedor.');
+            return;
+        }
+
+        if(!confirm('¿Reasignar este prospecto al vendedor seleccionado?')) return;
+
+        fetch("{% url 'api_reasignar_lead' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                'lead_id': leadId,
+                'nuevo_vendedor_id': vendedorId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('¡Reasignado exitosamente!');
+                location.reload(); 
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error en la conexión.');
+        });
+    }
+
+    function desecharLead(leadId) {
+        if(!confirm('¿Deseas mandar este lead al archivo muerto (se ocultará permanentemente de la gestión comercial)?')) return;
+
+        fetch("{% url 'api_desechar_lead' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify({
+                'lead_id': leadId
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Enviado a archivo muerto.');
+                location.reload(); 
+            } else {
+                alert('Error: ' + data.error);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('Error en la conexión.');
+        });
+    }
+</script>
+{% endblock %}

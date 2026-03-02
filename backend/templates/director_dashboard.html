@@ -218,6 +218,79 @@
             </div>
         </div>
     </div>
+    <div class="row mt-4 mb-4">
+        <div class="col-md-6 mx-auto">
+            <div class="card shadow-sm border-0 h-100 bg-body">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 text-center">
+                    <h6 class="card-title fw-bold text-body text-uppercase">🎯 Embudo de Conversión Global</h6>
+                </div>
+                <div class="card-body p-4 d-flex justify-content-center">
+                    <div style="width: 320px; height: 320px;">
+                        <canvas id="chartEmbudo"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- FORECAST MENSUAL (TABLA) -->
+    <div class="row mt-4 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 h-100 bg-body">
+                <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
+                    <h6 class="card-title fw-bold text-body text-uppercase">📅 Forecast Mensual (Cierres Proyectados)</h6>
+                </div>
+                <div class="card-body p-4">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Lead</th>
+                                    <th>Vendedor</th>
+                                    <th>Especialidad</th>
+                                    <th>Producto</th>
+                                    <th>Calificación</th>
+                                    <th>Cierre Previsto</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lead in forecast_leads %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex flex-column">
+                                            <span class="fw-bold">{{ lead.nombre }}</span>
+                                            <span class="text-muted small">{{ lead.telefono|default:lead.celular|default:"Sin teléfono" }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ lead.owner.username|title }}</td>
+                                    <td>{{ lead.especialidad_cat.nombre|default:"General" }}</td>
+                                    <td>{{ lead.producto_cat.nombre|default:"Por Definir" }}</td>
+                                    <td>
+                                        {% if lead.calificacion == 3 %}
+                                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">🔥 Alta</span>
+                                        {% elif lead.calificacion == 2 %}
+                                            <span class="badge bg-warning bg-opacity-10 text-warning border border-warning">🌤️ Media</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">⚪ Baja</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="text-warning fw-bold">{{ lead.next_action_date|date:"d M Y" }}</span>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        No hay prospectos calificados para cerrar este mes.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <script>
@@ -260,6 +333,29 @@
         crearGraficaAgrupada('chartVendedor', '{{ chart_v_labels|safe }}', '{{ chart_v_rech|safe }}', '{{ chart_v_seg|safe }}', '{{ chart_v_cal|safe }}', '{{ chart_v_ven|safe }}');
         crearGraficaAgrupada('chartUbicacion', '{{ chart_u_labels|safe }}', '{{ chart_u_rech|safe }}', '{{ chart_u_seg|safe }}', '{{ chart_u_cal|safe }}', '{{ chart_u_ven|safe }}');
         crearGraficaAgrupada('chartEspecialidad', '{{ chart_e_labels|safe }}', '{{ chart_e_rech|safe }}', '{{ chart_e_seg|safe }}', '{{ chart_e_cal|safe }}', '{{ chart_e_ven|safe }}');
+
+        // Gráfica de Dona (Embudo)
+        const ctxEmbudo = document.getElementById('chartEmbudo').getContext('2d');
+        new Chart(ctxEmbudo, {
+            type: 'doughnut',
+            data: {
+                labels: ['1. Prospectos (Brutos)', '2. Leads (En proceso)', '3. Calificados (Alta/Media)', '4. Clientes (Cierres)'],
+                datasets: [{
+                    data: JSON.parse("{{ dona_data }}"),
+                    backgroundColor: ['#a1a5b7', '#009ef7', '#ffc700', '#50cd89'],
+                    borderWidth: 0,
+                    hoverOffset: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: document.body.classList.contains('dark-mode') ? '#a1a5b7' : '#3f4254' } }
+                }
+            }
+        });
+        
     });
 </script>
 {% endblock %}

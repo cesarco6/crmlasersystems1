@@ -61,6 +61,37 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
             elif filtro_rapido == 'urgentes':
                 # Ejemplo: leads en SEGUIMIENTO que su fecha de acción ya se pasó
                 qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
+            elif filtro_rapido == 'campanas':
+                from .models import Evento
+                eventos_activos = Evento.objects.filter(
+                    estatus='ACTIVO',
+                    vendedores_asignados=self.request.user
+                )
+
+                lineas_objetivo = []
+                estados_obj = set()
+                for ev in eventos_activos:
+                    if ev.linea_producto and ev.linea_producto not in lineas_objetivo:
+                        lineas_objetivo.append(ev.linea_producto)
+                    if ev.estados_objetivo:
+                        estados_obj.update(ev.estados_objetivo)
+                
+                estados_obj = list(estados_obj)
+
+                if not eventos_activos.exists():
+                    qs = qs.none()
+                else:
+                    q_campanas = Q()
+                    if estados_obj:
+                        q_campanas &= Q(ubicacion__estado__in=estados_obj)
+
+                    if lineas_objetivo and 'TODAS' not in lineas_objetivo:
+                        q_lineas = Q()
+                        for linea in lineas_objetivo:
+                            q_lineas |= Q(producto_cat__nombre__icontains=linea)
+                        q_campanas &= q_lineas
+
+                    qs = qs.filter(q_campanas)
         
         # Ordenamos la consulta final
         qs = qs.order_by('-updated_at')
@@ -82,7 +113,8 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         # --- LÍNEAS NUEVAS PARA EL MODAL DE ALTA RÁPIDA ---
         context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
         context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
-      
+        context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
+        
         # 3. ENVIAR RESULTADOS AL HTML
         context['leads'] = qs.order_by('-updated_at') # Los movidos recientemente van arriba
         context['busqueda_actual'] = busqueda
@@ -149,11 +181,17 @@ def normalizar_texto(texto):
     return ''.join(c for c in unicodedata.normalize('NFD', texto) if unicodedata.category(c) != 'Mn')
 
 def obtener_catalogos_limpios(texto_especialidad, texto_producto):
-    """
-    Recibe textos libres y devuelve las instancias de los catálogos relacionales.
-    """
-    especialidad_obj = None
-    producto_obj = None
+    """Versión Estricta DDS 2.0: Solo lee, NUNCA crea."""
+    producto_obj = CatProducto.objects.filter(nombre__iexact=str(texto_producto).strip()).first()
+    if not producto_obj:
+        producto_obj = CatProducto.objects.filter(nombre__icontains='Por Definir').first()
+
+    especialidad_obj = CatEspecialidad.objects.filter(nombre__iexact=str(texto_especialidad).strip()).first()
+    if not especialidad_obj:
+        especialidad_obj = CatEspecialidad.objects.filter(nombre__icontains='General').first()
+
+    return especialidad_obj, producto_obj
+    
 
     # 1. Procesar Producto (Estricto - Bóveda de 14 productos)
     texto_prod_norm = normalizar_texto(texto_producto)
@@ -417,26 +455,18 @@ def actualizar_lead_fsm(request, pk):
             #lead.especialidad = data.get('especialidad', lead.especialidad)
             #lead.producto_interes = data.get('producto', lead.producto_interes)
 
-            # --- NUEVO: ACTUALIZAR CATÁLOGOS ---
-            # 1. Procesamos la Especialidad
+            # --- NUEVO: ACTUALIZAR CATÁLOGOS (CANDADO ESTRICTO) ---
             nueva_esp_str = data.get('especialidad', '').strip()
             if nueva_esp_str:
-                # Buscamos o creamos el objeto de especialidad
-                esp_obj, created = CatEspecialidad.objects.get_or_create(
-                    nombre=nueva_esp_str,
-                    defaults={'is_active': True}
-                )
-                lead.especialidad_cat = esp_obj
+                esp_obj = CatEspecialidad.objects.filter(nombre__iexact=nueva_esp_str).first()
+                if esp_obj: lead.especialidad_cat = esp_obj
+                else: return JsonResponse({"error": f"La especialidad '{nueva_esp_str}' no existe."}, status=400)
             
-            # 2. Procesamos el Producto
             nuevo_prod_str = data.get('producto', '').strip()
             if nuevo_prod_str:
-                # Buscamos o creamos el objeto de producto
-                prod_obj, created = CatProducto.objects.get_or_create(
-                    nombre=nuevo_prod_str,
-                    defaults={'is_active': True}
-                )
-                lead.producto_cat = prod_obj
+                prod_obj = CatProducto.objects.filter(nombre__iexact=nuevo_prod_str).first()
+                if prod_obj: lead.producto_cat = prod_obj
+                else: return JsonResponse({"error": f"El producto '{nuevo_prod_str}' no existe."}, status=400)
         
         # 2. LA MÁQUINA DE ESTADOS
         if accion == 'VALIDAR':
@@ -736,12 +766,42 @@ def director_dashboard_view(request):
     ).order_by('especialidad_cat__nombre')
     e_labels, e_rech, e_seg, e_cal, e_ven = procesar_agrupacion(stats_especialidad, 'especialidad_cat__nombre')
 
-    # --- 7. CONTEXTO ---
+    # --- 7. FORECAST MENSUAL ---
+    import datetime
+    
+    hoy = timezone.now().date()
+    inicio_mes = hoy.replace(day=1)
+    
+    if inicio_mes.month == 12:
+        fin_mes = inicio_mes.replace(year=inicio_mes.year + 1, month=1, day=1) - datetime.timedelta(days=1)
+    else:
+        fin_mes = inicio_mes.replace(month=inicio_mes.month + 1, day=1) - datetime.timedelta(days=1)
+
+    forecast_leads = qs.filter(
+        calificacion__in=[2, 3],
+        next_action_date__gte=inicio_mes,
+        next_action_date__lte=fin_mes
+    ).exclude(
+        estatus__in=['CLIENTE', 'Histórico']
+    ).exclude(
+        plan='DESCARTADO'
+    ).select_related('owner', 'especialidad_cat', 'producto_cat').order_by('next_action_date')
+
+    # --- EMBUDO DE CONVERSIÓN (DONA) ---
+    dona_prospectos = qs.filter(estatus='PROSPECTO').count()
+    dona_leads_frios = qs.filter(estatus='LEAD').exclude(calificacion__in=[2, 3]).count()
+    dona_calificados = qs.filter(estatus='LEAD', calificacion__in=[2, 3]).count()
+    dona_clientes = qs.filter(estatus='CLIENTE').count()
+    
+    dona_data = [dona_prospectos, dona_leads_frios, dona_calificados, dona_clientes]
+
+    # --- 8. CONTEXTO ---
     context = {
+        'forecast_leads': forecast_leads,
         'estados': lista_estados,
         'especialidades': lista_especialidades,
         'productos': lista_productos,
-        'vendedores': lista_vendedores, # <--- ¡AQUÍ ESTÁ LA LÍNEA QUE FALTABA!
+        'vendedores': lista_vendedores, 
         'filtro_estado': filtro_estado,
         'filtro_especialidad': filtro_especialidad,
         'filtro_producto': filtro_producto,
@@ -753,6 +813,7 @@ def director_dashboard_view(request):
         'tasa_calidad': tasa_calidad,
         'tasa_prospeccion': tasa_prospeccion,
         'indice_venta': indice_venta,
+        'dona_data': dona_data,
         'chart_v_labels': json.dumps(v_labels), 'chart_v_rech': json.dumps(v_rech), 'chart_v_seg': json.dumps(v_seg), 'chart_v_cal': json.dumps(v_cal), 'chart_v_ven': json.dumps(v_ven),
         'chart_u_labels': json.dumps(u_labels), 'chart_u_rech': json.dumps(u_rech), 'chart_u_seg': json.dumps(u_seg), 'chart_u_cal': json.dumps(u_cal), 'chart_u_ven': json.dumps(u_ven),
         'chart_e_labels': json.dumps(e_labels), 'chart_e_rech': json.dumps(e_rech), 'chart_e_seg': json.dumps(e_seg), 'chart_e_cal': json.dumps(e_cal), 'chart_e_ven': json.dumps(e_ven),
@@ -1108,3 +1169,198 @@ def registrar_venta_extra(request):
         return JsonResponse({"error": "JSON Inválido enviado en la petición."}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+@login_required
+def bandeja_rescate_view(request):
+    if not request.user.is_superuser:
+        return render(request, '403.html')
+    
+    leads = CoreLead.objects.filter(
+        Q(estatus='EN_ESPERA') | Q(plan__iexact='descartado')
+    ).select_related('owner', 'especialidad_cat', 'producto_cat')
+    
+    vendedores = User.objects.filter(is_active=True, is_superuser=False)
+    
+    context = {
+        'leads': leads,
+        'vendedores': vendedores
+    }
+    return render(request, 'director_rescate.html', context)
+
+@login_required
+@require_POST
+def api_reasignar_lead(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+        
+    try:
+        data = json.loads(request.body)
+        lead_id = data.get('lead_id')
+        nuevo_vendedor_id = data.get('nuevo_vendedor_id')
+        
+        lead = CoreLead.objects.get(id=lead_id)
+        nuevo_vendedor = User.objects.get(id=nuevo_vendedor_id)
+        
+        lead.owner = nuevo_vendedor
+        lead.estatus = 'LEAD'
+        lead.plan = 'SEGUIMIENTO'
+        lead.save()
+        
+        return JsonResponse({'success': True, 'message': 'Reasignado con éxito'})
+        
+    except CoreLead.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Lead no encontrado'}, status=404)
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Vendedor no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def api_desechar_lead(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+        
+    try:
+        data = json.loads(request.body)
+        lead_id = data.get('lead_id')
+        
+        lead = CoreLead.objects.get(id=lead_id)
+        
+        lead.plan = 'ARCHIVO_MUERTO'
+        lead.save()
+        
+        return JsonResponse({'success': True, 'message': 'Lead desechado al archivo muerto'})
+        
+    except CoreLead.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Lead no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+def director_busqueda_view(request):
+    if not request.user.is_superuser:
+        return render(request, '403.html')
+        
+    q = request.GET.get('q', '').strip()
+    leads = None
+    
+    if q:
+        leads = CoreLead.objects.filter(
+            Q(nombre__icontains=q) |
+            Q(phone_primary__icontains=q) |
+            Q(celular__icontains=q) |
+            Q(email__icontains=q)
+        ).select_related('owner', 'especialidad_cat', 'producto_cat')
+    
+    context = {
+        'leads': leads,
+        'q': q
+    }
+    
+    return render(request, 'director_busqueda.html', context)
+
+from django.core.paginator import Paginator
+
+@login_required
+def director_directorio_view(request):
+    if not request.user.is_superuser:
+        return render(request, '403.html')
+        
+    q = request.GET.get('q', '').strip()
+    vendedor_id = request.GET.get('vendedor_id', '')
+    estatus = request.GET.get('estatus', '')
+    calificacion = request.GET.get('calificacion', '')
+    
+    leads = CoreLead.objects.all().select_related('owner', 'especialidad_cat', 'producto_cat')
+    
+    if q:
+        leads = leads.filter(
+            Q(nombre__icontains=q) |
+            Q(phone_primary__icontains=q)
+        )
+    if vendedor_id:
+        leads = leads.filter(owner_id=vendedor_id)
+    if estatus:
+        leads = leads.filter(estatus=estatus)
+    if calificacion:
+        leads = leads.filter(calificacion=int(calificacion))
+        
+    leads = leads.order_by('-created_at')
+    
+    paginator = Paginator(leads, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    vendedores = User.objects.filter(is_active=True, is_superuser=False)
+    estatus_unicos = CoreLead.objects.values_list('estatus', flat=True).distinct().order_by('estatus')
+    
+    context = {
+        'page_obj': page_obj,
+        'q': q,
+        'vendedor_id': vendedor_id,
+        'estatus_filtro': estatus,
+        'calificacion': calificacion,
+        'vendedores': vendedores,
+        'estatus_unicos': estatus_unicos,
+    }
+    
+    return render(request, 'director_directorio.html', context)
+
+from .models import Evento
+
+@login_required
+def director_eventos_view(request):
+    if not request.user.is_superuser:
+        return render(request, '403.html')
+        
+    eventos = Evento.objects.prefetch_related('vendedores_asignados').order_by('-fecha_inicio')
+    vendedores = User.objects.filter(is_active=True, is_superuser=False).order_by('username')
+    estados_list = CatUbicacion.objects.exclude(estado='').values_list('estado', flat=True).distinct().order_by('estado')
+    
+    context = {
+        'eventos': eventos,
+        'vendedores': vendedores,
+        'estados_list': estados_list,
+    }
+    return render(request, 'director_eventos.html', context)
+
+@login_required
+@require_POST
+def api_crear_evento(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+        
+    try:
+        data = json.loads(request.body)
+        
+        nombre = data.get('nombre')
+        tipo = data.get('tipo', 'EXPO')
+        fecha_inicio = data.get('fecha_inicio')
+        fecha_fin = data.get('fecha_fin')
+        lugar = data.get('lugar')
+        linea_producto = data.get('linea_producto', 'TODAS')
+        estados_objetivo = data.get('estados_objetivo', [])
+        
+        if not all([nombre, fecha_inicio, fecha_fin, lugar]):
+             return JsonResponse({'success': False, 'error': 'Revisa los campos obligatorios.'}, status=400)
+             
+        vendedores_ids = data.get('vendedores_ids', [])
+        
+        nuevo_evento = Evento.objects.create(
+            nombre=nombre,
+            tipo=tipo,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin,
+            lugar=lugar,
+            linea_producto=linea_producto,
+            estados_objetivo=estados_objetivo
+        )
+        
+        if vendedores_ids:
+            nuevo_evento.vendedores_asignados.set(vendedores_ids)
+            
+        return JsonResponse({'success': True, 'message': 'Evento creado correctamente.'})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)

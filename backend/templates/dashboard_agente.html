@@ -54,6 +54,10 @@
                    class="btn {% if filtro_actual == 'urgentes' %}btn-danger{% else %}btn-outline-danger{% endif %}">
                    🔴 Urgentes
                 </a>
+                <a href="?filtro=campanas{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                   class="btn {% if filtro_actual == 'campanas' %}btn-success text-white{% else %}btn-outline-success{% endif %}">
+                   🎟️ Campañas
+                </a>
             </div>
 
             <form method="GET" class="d-flex w-25 min-w-300px">
@@ -178,7 +182,7 @@
                             <input type="text" id="alta-nombre" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\.]+" class="form-control" placeholder="Ej. Dr. Juan Pérez">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-muted">Teléfono Primario *</label>
+                            <label class="form-label fw-bold text-muted">Teléfono *</label>
                             <input type="tel" id="alta-telefono" required pattern="[0-9]{10,15}" class="form-control" placeholder="Ej. 4421234567">
                         </div>                        
                     </div>
@@ -194,17 +198,22 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-muted">Especialidad</label>
-                            <input type="text" id="alta-especialidad" list="lista-esp-alta" maxlength="50" class="form-control" placeholder="Ej. Pediatría">
-                            <datalist id="lista-esp-alta">
+                            <label class="form-label fw-bold text-muted">Especialidad *</label>
+                            <select id="alta-especialidad" class="form-select" required>
+                                <option value="">-- Selecciona Especialidad --</option>
                                 {% for esp in especialidades_list %}
-                                    <option value="{{ esp }}">
+                                    <option value="{{ esp }}">{{ esp }}</option>
                                 {% endfor %}
-                            </datalist>
+                            </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-muted">Ubicación</label>
-                            <input type="text" id="alta-ubicacion" maxlength="100" class="form-control" placeholder="Ej. Querétaro">
+                            <label class="form-label fw-bold text-muted">Ubicación (Ciudad) *</label>
+                            <select id="alta-ubicacion" class="form-select" required>
+                                <option value="">-- Selecciona Ciudad --</option>
+                                {% for ubi in ubicaciones_list %}
+                                    <option value="{{ ubi }}">{{ ubi }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                     </div>
                     <div class="text-end mt-4">

@@ -33,8 +33,11 @@
             {% if user.is_superuser %}
                 <li class="menu-title text-uppercase text-muted fw-bold mb-2 mt-3" style="font-size: 0.75rem; padding: 0 20px;">Piso de Dirección</li>                
                 <li><a href="{% url 'director_dashboard' %}">📊 Dashboard Panorámico</a></li>
+                <li><a href="{% url 'director_directorio' %}">🎯 Directorio Maestro</a></li>
                 <li><a href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li>
                 <li><a href="{% url 'director_ingesta' %}">📥 Ingesta Histórica</a></li>
+                <li><a href="{% url 'director_rescate' %}">🛟 Bandeja de Rescate</a></li>
+                <li><a href="{% url 'director_eventos' %}">📅 Campañas y Eventos</a></li>
             {% else %}
                 <li class="menu-title text-uppercase text-muted fw-bold mb-2 mt-3" style="font-size: 0.75rem; padding: 0 20px;">Operación Ventas</li>
                 <li><a href="{% url 'dashboard_agente' %}">🎯 Mi Dashboard</a></li>
@@ -48,6 +51,18 @@
         <div style="display: flex; align-items: center; justify-content: flex-end; margin-bottom: 20px;">
             <div style="display: flex; align-items: center; gap: 15px; margin-left: auto;">
                 {% if user.is_authenticated %}
+                    
+                    <!-- BUSCADOR OMNIPOTENTE (Solo visible para Director) -->
+                    {% if user.is_superuser %}
+                    <form action="{% url 'director_busqueda' %}" method="GET" class="d-flex me-3" style="width: 300px;">
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-light" id="search-addon" style="border-radius: 20px 0 0 20px;">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" name="q" class="form-control bg-dark text-light border-secondary shadow-none" placeholder="Buscar lead, teléfono..." aria-label="Buscador global" style="border-radius: 0 20px 20px 0;">
+                        </div>
+                    </form>
+                    {% endif %}
                     
                     <div class="dropdown">
                         <a class="nav-link position-relative text-dark" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 5px 10px;">

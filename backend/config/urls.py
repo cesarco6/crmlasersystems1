@@ -36,8 +36,18 @@ urlpatterns = [
     path('director/territorios/', panel_territorios, name='director_territorios'),
     path('api/director/territorios/<int:vendedor_id>/', api_territorios_vendedor, name='api_territorios_vendedor'),
 
-    # Ruta para marcar alertas como leídas
-    path('alertas/<int:alerta_id>/leida/', leads_views.marcar_alerta_leida, name='marcar_alerta_leida'),
+    # Buscador Global Omnipotente - Director
+    path('director/buscar/', leads_views.director_busqueda_view, name='director_busqueda'),
+    path('director/directorio/', leads_views.director_directorio_view, name='director_directorio'),
+    
+    # Eventos y Campañas - Director
+    path('director/eventos/', leads_views.director_eventos_view, name='director_eventos'),
+    path('api/eventos/crear/', leads_views.api_crear_evento, name='api_crear_evento'),
+    
+    # Vistas de Dirección - Bandeja de Rescate
+    path('director/rescate/', leads_views.bandeja_rescate_view, name='director_rescate'),
+    path('api/reasignar-lead/', leads_views.api_reasignar_lead, name='api_reasignar_lead'),
+    path('api/desechar-lead/', leads_views.api_desechar_lead, name='api_desechar_lead'),
     
     # 2. La nueva ruta que escuchará a nuestro Modal
     path('api/alta-manual/', procesar_alta_manual, name='api_alta_manual'),

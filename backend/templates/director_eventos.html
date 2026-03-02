@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% block title %}Eventos y Campañas | Dirección{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-body">📅 Gestión de Eventos y Campañas</h2>
+            <p class="text-body-secondary">Administra los próximos eventos presenciales, su duración y fuerza de ventas asignada.</p>
+        </div>
+        <div class="col-md-4 text-end">
+            <button class="btn btn-primary fw-bold px-4" data-bs-toggle="modal" data-bs-target="#modalCrearEvento">
+                ➕ Nuevo Evento
+            </button>
+        </div>
+    </div>
+
+    <!-- Tabla de Eventos -->
+    <div class="card shadow-sm border-0 mb-5" style="background-color: #1e1e2d; border: 1px solid #2b2b40;">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-dark align-middle mb-0" style="background-color: transparent;">
+                    <thead style="border-bottom: 2px solid #2b2b40;">
+                        <tr>
+                            <th class="text-muted text-uppercase" style="background-color: #151521;">Evento</th>
+                            <th class="text-muted text-uppercase" style="background-color: #151521;">Tipo de Evento</th>
+                            <th class="text-muted text-uppercase" style="background-color: #151521;">Ubicación</th>
+                            <th class="text-muted text-uppercase" style="background-color: #151521;">Fechas</th>
+                            <th class="text-muted text-uppercase" style="background-color: #151521;">Vendedores Asignados</th>
+                            <th class="text-muted text-uppercase" style="background-color: #151521;">Estatus</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for evento in eventos %}
+                        <tr style="border-bottom: 1px solid #2b2b40;">
+                            <td class="fw-bold" style="color: #4facfe;">{{ evento.nombre }}</td>
+                            <td>
+                                {% if evento.tipo == 'EXPO' %}
+                                    <span class="badge" style="background-color: rgba(13, 110, 253, 0.2); color: #0d6efd; border: 1px solid #0d6efd;"><i class="bi bi-building me-1"></i> EXPO</span>
+                                {% else %}
+                                    <span class="badge" style="background-color: rgba(111, 66, 193, 0.2); color: #e83e8c; border: 1px solid #e83e8c;"><i class="bi bi-people me-1"></i> TALLER</span>
+                                {% endif %}
+                            </td>
+                            <td style="color: #a1a5b7;">{{ evento.lugar }}</td>
+                            <td>
+                                <span style="color: #e4e6ef; font-size: 0.9rem;">
+                                    <i class="bi bi-calendar4-week text-muted me-1"></i>
+                                    {{ evento.fecha_inicio|date:"d M" }} al {{ evento.fecha_fin|date:"d M, Y" }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for v in evento.vendedores_asignados.all %}
+                                        <span class="badge" style="background-color: #3a3a4e; color: #e4e6ef;">{{ v.username|title }}</span>
+                                    {% empty %}
+                                        <span class="text-muted small">Sin asignar</span>
+                                    {% endfor %}
+                                </div>
+                            </td>
+                            <td>
+                                {% if evento.estatus == 'ACTIVO' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success">ACTIVO</span>
+                                {% elif evento.estatus == 'FINALIZADO' %}
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">FINALIZADO</span>
+                                {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">CANCELADO</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-muted">
+                                No tienes eventos registrados. ¡Crea el primero ahora!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Crear Nuevo Evento -->
+<div class="modal fade" id="modalCrearEvento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content" style="background-color: #151521; color: #ffffff; border: 1px solid #3a3a4e; border-radius: 8px;">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Crear Nuevo Evento / Campaña</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form id="formNuevoEvento">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label" style="color: #a1a5b7;">Nombre del Evento *</label>
+                            <input type="text" id="ev_nombre" class="form-control bg-dark text-light border-secondary shadow-none" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" style="color: #a1a5b7;">Tipo de Evento *</label>
+                            <select id="ev_tipo" class="form-select bg-dark text-light border-secondary shadow-none" required>
+                                <option value="EXPO" selected>Expo / Congreso</option>
+                                <option value="TALLER">Taller / Capacitación</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label" style="color: #a1a5b7;">Fecha de Inicio *</label>
+                            <input type="date" id="ev_fecha_inicio" class="form-control bg-dark text-light border-secondary shadow-none" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label" style="color: #a1a5b7;">Fecha de Fin *</label>
+                            <input type="date" id="ev_fecha_fin" class="form-control bg-dark text-light border-secondary shadow-none" required>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label" style="color: #a1a5b7;">Lugar o Sede (Ej: WTC CDMX) *</label>
+                            <input type="text" id="ev_lugar" class="form-control bg-dark text-light border-secondary shadow-none" required>
+                        </div>
+
+                        <!-- Nuevos Selects de Línea y Estados -->
+                        <div class="col-md-6 mt-3">
+                            <label class="form-label" style="color: #a1a5b7;">Línea de Negocio *</label>
+                            <select id="ev_linea" class="form-select bg-dark text-light border-secondary shadow-none">
+                                <option value="SPORT">Línea Sport</option>
+                                <option value="PET">Línea Pet</option>
+                                <option value="DENTAL">Línea Dental</option>
+                                <option value="PODOLOGICO">Línea Podológica</option>
+                                <option value="BEAUTY">Línea Beauty</option>
+                                <option value="TODAS" selected>Todas las Líneas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <label class="form-label" style="color: #a1a5b7;">Estados Objetivo</label>
+                            <p class="small text-muted mb-1">Presiona Ctrl o Cmd para múltiples opciones.</p>
+                            <select id="ev_estados" class="form-select bg-dark text-light border-secondary shadow-none" multiple size="4">
+                                {% for estado in estados_list %}
+                                    <option value="{{ estado }}">{{ estado }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-12 mt-4">
+                            <label class="form-label" style="color: #a1a5b7;">Vendedores Asignados</label>
+                            <p class="small text-muted mb-1">Presiona Ctrl (Windows) o Cmd (Mac) para seleccionar varios.</p>
+                            <select id="ev_vendedores" class="form-select bg-dark text-light border-secondary shadow-none" multiple size="5" style="border-radius: 5px;">
+                                {% for v in vendedores %}
+                                    <option value="{{ v.id }}">{{ v.username|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-4">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background-color: #3a3a4e; border: none; color: white;">Cancelar</button>
+                <button type="button" class="btn btn-primary fw-bold px-4" onclick="guardarEvento()">💾 Guardar Evento</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function guardarEvento() {
+        const nombre = document.getElementById('ev_nombre').value.trim();
+        const tipo = document.getElementById('ev_tipo').value;
+        const fecha_inicio = document.getElementById('ev_fecha_inicio').value;
+        const fecha_fin = document.getElementById('ev_fecha_fin').value;
+        const lugar = document.getElementById('ev_lugar').value.trim();
+        
+        // --- Nuevas capturas ---
+        const linea_producto = document.getElementById('ev_linea').value;
+        const estSelect = document.getElementById('ev_estados');
+        const estados_objetivo = Array.from(estSelect.selectedOptions).map(opt => opt.value);
+        // -----------------------
+        
+        // Obtener arrays del select múltiple (ahora solo de vendedores)
+        const vendSelect = document.getElementById('ev_vendedores');
+        const vendedores_ids = Array.from(vendSelect.selectedOptions).map(opt => parseInt(opt.value));
+        
+        if (!nombre || !fecha_inicio || !fecha_fin || !lugar) {
+            alert("Por favor, completa los campos obligatorios del evento.");
+            return;
+        }
+
+        if (fecha_inicio > fecha_fin) {
+            alert("La fecha de inicio no puede ser mayor a la fecha de fin.");
+            return;
+        }
+
+        const data = {
+            nombre: nombre,
+            tipo: tipo,
+            fecha_inicio: fecha_inicio,
+            fecha_fin: fecha_fin,
+            lugar: lugar,
+            linea_producto: linea_producto,
+            estados_objetivo: estados_objetivo,
+            vendedores_ids: vendedores_ids
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        fetch("{% url 'api_crear_evento' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(data)
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (res.success) {
+                alert("¡Evento creado correctamente!");
+                location.reload();
+            } else {
+                alert("Error al guardar: " + res.error);
+            }
+        })
+        .catch(err => {
+            console.error("Error en Fetch", err);
+            alert("Ocurrió un error en la conexión.");
+        });
+    }
+</script>
+{% endblock %}
