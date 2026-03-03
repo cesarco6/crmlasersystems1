@@ -69,7 +69,7 @@ class CoreLead(models.Model):
     @transition(field=estatus, source='LEAD_CALIFICADO', target='CLIENTE')
     def formalizar_cliente(self):
         """Fase 3: Cierre exitoso. Bloqueante si no hay datos fiscales."""
-        if not hasattr(self, 'fiscalprofile') or not self.fiscalprofile.rfc:
+        if not hasattr(self, 'perfil_fiscal') or not self.perfil_fiscal.rfc:
             raise Exception("No se puede formalizar a CLIENTE sin un Perfil Fiscal completo.")
 
     def pausar_seguimiento(self, fecha_reactivacion):

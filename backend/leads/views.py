@@ -47,11 +47,19 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         # ---------------------------------------------------------
         else:
             # Regla INBOX ZERO: Ocultar los que ya terminaron su ciclo
-            qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
-            
+            #qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
             # Regla HIBERNACIÓN: Si está "En Espera" para una fecha futura, lo ocultamos hoy
             # (Asumiendo que usas next_action_date, si usas otro campo, lo cambiamos)
-            qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
+            #qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
+            if filtro_rapido == 'clientes':
+                # Si presionó el botón de Clientes, le traemos solo los clientes
+                qs = qs.filter(estatus='CLIENTE')
+            else:
+                # Regla INBOX ZERO: (Se mantiene para todo lo demás)
+                qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
+                
+                # Regla HIBERNACIÓN: (Se mantiene para todo lo demás)
+                qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
 
             # Aplicar el botón que el vendedor haya presionado
             if filtro_rapido == 'hoy':
@@ -97,7 +105,7 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         qs = qs.order_by('-updated_at')
 
         # Dividimos en bloques de 10 registros por página
-        paginador = Paginator(qs, 10) 
+        paginador = Paginator(qs, 7) 
         numero_pagina = self.request.GET.get('page')
         pagina_obj = paginador.get_page(numero_pagina)
 
@@ -116,7 +124,7 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
         
         # 3. ENVIAR RESULTADOS AL HTML
-        context['leads'] = qs.order_by('-updated_at') # Los movidos recientemente van arriba
+        #context['leads'] = qs.order_by('-updated_at') # Los movidos recientemente van arriba
         context['busqueda_actual'] = busqueda
         context['filtro_actual'] = filtro_rapido
         
@@ -490,6 +498,14 @@ def actualizar_lead_fsm(request, pk):
             
             if texto_calificacion in mapa:
                 lead.calificacion = mapa[texto_calificacion] # Guarda el número en la DB
+                
+                # Ejecutar la transición de la Máquina de Estados si el lead está en Fase 2
+                if lead.estatus == 'LEAD':
+                    try:
+                        lead.calificar_lead()
+                    except Exception as e:
+                        return JsonResponse({"error": str(e)}, status=400)
+                
                 lead.notas_variadas.setdefault("notas", []).append({
                     "tipo": "sistema",
                     "contenido": f"Lead calificado como: {texto_calificacion}", # Muestra el texto al vendedor
@@ -547,11 +563,32 @@ def actualizar_lead_fsm(request, pk):
             })
             
         elif accion == 'CERRAR_VENTA':
-            # 1. Transición oficial en la Máquina de Estados
-            lead.estatus = 'CLIENTE'
+            # 1. Extraer datos fiscales enviados desde el modal
+            rfc_val = data.get('rfc', '').strip().upper()
+            razon_val = data.get('razon_social', '').strip().upper()
+            regimen_val = data.get('regimen_fiscal', '').strip()
             
-            # 2. Dejar la miga de pan histórica obligatoria
-            # from django.utils import timezone
+            if not rfc_val or not razon_val or not regimen_val:
+                return JsonResponse({"error": "Faltan datos fiscales obligatorios para cerrar la venta."}, status=400)
+            
+            # 2. Crear o Actualizar el Perfil Fiscal
+            from leads.models import FiscalProfile
+            perfil, created = FiscalProfile.objects.get_or_create(lead=lead)
+            perfil.rfc = rfc_val
+            perfil.razon_social = razon_val
+            perfil.regimen_fiscal = regimen_val
+            perfil.save()
+
+            # 3. Transición oficial en la Máquina de Estados (DDS)
+            # NUEVO: Inyectar explícitamente la relación en la caché del objeto para la validación FSM
+            lead.perfil_fiscal = perfil
+
+            try:
+                lead.formalizar_cliente()
+            except Exception as e:
+                return JsonResponse({"error": str(e)}, status=400)
+            
+            # 4. Dejar la miga de pan histórica obligatoria
             timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
             
             if not isinstance(lead.notas_variadas, dict):
@@ -562,8 +599,11 @@ def actualizar_lead_fsm(request, pk):
             lead.notas_variadas["notas"].append({
                 "fecha": timestamp,
                 "tipo": "sistema",
-                "contenido": "🏆 ¡VENTA CERRADA! El prospecto ha cruzado la meta y se ha convertido oficialmente en CLIENTE."
+                "contenido": f"🏆 ¡VENTA CERRADA! RFC capturado: {rfc_val}. El prospecto se ha convertido oficialmente en CLIENTE."
             })
+            lead.save()
+            return JsonResponse({'status': 'success', 'mensaje': '¡Venta cerrada con éxito!'})
+            
 
         # 3. GUARDADO FINAL
         lead.save()
