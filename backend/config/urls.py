@@ -57,4 +57,7 @@ urlpatterns = [
     path('trabajo/<uuid:pk>/', FichaTrabajoView.as_view(), name='ficha_trabajo'),
     path('api/lead/<uuid:pk>/actualizar/', actualizar_lead_fsm, name='api_actualizar_lead'),
     path('', RedirectView.as_view(pattern_name='dashboard_agente'), name='root'),
+
+    path('api/lead/<uuid:pk>/no-cierre/', leads_views.api_marcar_no_cierre, name='api_no_cierre'),
+
 ]

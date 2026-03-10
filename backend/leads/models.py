@@ -3,7 +3,7 @@ import uuid
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
-from users.models import CatUbicacion, CatEspecialidad, CatProducto
+from users.models import CatUbicacion, CatEspecialidad, CatProducto, CatTitulo
 from users.models import UserProfile
 from django_fsm import FSMField, transition
 from django.utils import timezone
@@ -27,6 +27,13 @@ class CoreLead(models.Model):
     phone_primary = models.CharField(max_length=15)
     celular = models.CharField(max_length=15, blank=True)
     nombre = models.CharField(max_length=100)
+    
+    # --- FASE 2: IDENTIDAD ATÓMICA ---
+    titulo_cortesia = models.ForeignKey(CatTitulo, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
+    nombre_pila = models.CharField(max_length=100, null=True, blank=True)
+    apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
+    apellido_materno = models.CharField(max_length=100, null=True, blank=True)
+
     especialidad = models.CharField(max_length=50)
     producto_interes = models.CharField(max_length=50)
     # --- NUEVOS CAMPOS RELACIONALES (Catálogos Limpios) ---
@@ -43,6 +50,25 @@ class CoreLead(models.Model):
     next_action_date = models.DateField(null=True, blank=True, verbose_name="Fecha de Próximo Contacto")
     # Usamos el método default para que cada lead nuevo tenga la estructura limpia
     notas_variadas = models.JSONField(default=default_notas_variadas)
+
+    @property
+    def nombre_completo_mdm(self):
+        """
+        Concatena de forma inteligente los campos atómicos para no romper el Frontend.
+        Si hay datos atómicos, los prioriza. Si no, usa el campo 'nombre' histórico.
+        """
+        if self.nombre_pila or self.apellido_paterno:
+            partes = []
+            if self.titulo_cortesia:
+                partes.append(self.titulo_cortesia.nombre)
+            if self.nombre_pila:
+                partes.append(self.nombre_pila)
+            if self.apellido_paterno:
+                partes.append(self.apellido_paterno)
+            if self.apellido_materno:
+                partes.append(self.apellido_materno)
+            return " ".join(partes)
+        return self.nombre or ""
 
     def save(self, *args, **kwargs):
         # Usamos _state.adding para saber si el registro ya existe en la DB

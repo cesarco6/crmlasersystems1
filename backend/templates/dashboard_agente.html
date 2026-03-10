@@ -55,6 +55,10 @@
                class="{% if filtro_actual == 'campanas' %}btn-small btn-success{% else %}btn-small{% endif %}">
                🎟️ Campañas
             </a>
+            <a href="?filtro=clientes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+               class="{% if filtro_actual == 'clientes' %}btn-small btn-success{% else %}btn-small{% endif %}">
+               🏆 Mis Clientes
+            </a>
         </div>
 
         <form method="GET" class="d-flex w-100 min-w-300px mt-2 mt-md-0" style="max-width: 400px;">
@@ -168,34 +172,51 @@
         <div class="modal-box">
             <div class="card-header border-bottom mb-3 pb-2 d-flex justify-content-between align-items-center">
                 <h3 class="m-0">👤 Alta Rápida</h3>
-                <span onclick="document.getElementById('modal-alta').style.display='none'" class="modal-close-btn text-muted fw-bold h4 m-0" style="cursor: pointer;">&times;</span>
+                <span onclick="document.getElementById('modal-alta').style.display='none'" class="modal-close-btn text-light fw-bold h4 m-0" style="cursor: pointer;">&times;</span>
             </div>
             <div class="card-body">
                 <form id="form-alta-rapida" onsubmit="guardarLeadManual(event)">
                     <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <label class="form-label fw-bold text-muted">Nombre del Médico *</label>
-                            <input type="text" id="alta-nombre" required minlength="3" maxlength="100" pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s\.]+" class="form-control" placeholder="Ej. Dr. Juan Pérez">
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="form-label fw-bold text-light">Título</label>
+                            <select id="alta-titulo" class="form-select form-select-sm bg-dark text-light border-secondary">
+                                <option value="">--</option>
+                                {% for titulo in titulos_list %}
+                                    <option value="{{ titulo.id }}">{{ titulo.abreviatura }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-muted">Teléfono *</label>
-                            <input type="tel" id="alta-telefono" required pattern="[0-9]{10,15}" class="form-control" placeholder="Ej. 4421234567">
+                        <div class="col-md-4 mb-4 mb-md-0">
+                            <label class="form-label fw-bold text-light">Nombre(s) *</label>
+                            <input type="text" id="alta-nombre-pila" required minlength="2" maxlength="100" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Ej. Juan">
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-light">A. Paterno *</label>
+                            <input type="text" id="alta-apellido-paterno" required minlength="2" maxlength="100" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Ej. Pérez">
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-light">A. Materno</label>
+                            <input type="text" id="alta-apellido-materno" maxlength="100" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Ej. Gómez">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-light">Teléfono *</label>
+                            <input type="tel" id="alta-telefono" required pattern="[0-9]{10,15}" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Ej. 4421234567">
                         </div>                        
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label class="form-label fw-bold text-light">Celular WA</label>
+                            <input type="text" id="alta-celular" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Ej. 4421112233">
+                        </div>                        
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-light">Correo E</label>
+                            <input type="email" id="alta-email" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="doctor@clinica.com">
+                        </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
-                            <label class="form-label fw-bold text-muted">📱 Celular (WhatsApp)</label>
-                            <input type="text" id="alta-celular" class="form-control" placeholder="Ej. 4421112233">
-                        </div>                        
-                        <div class="col-md-6">
-                            <label class="form-label fw-bold text-muted">📧 Correo Electrónico</label>
-                            <input type="email" id="alta-email" class="form-control" placeholder="doctor@clinica.com">
-                        </div>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6 mb-3 mb-md-0">
-                            <label class="form-label fw-bold text-muted">Especialidad *</label>
-                            <select id="alta-especialidad" class="form-select" required>
+                            <label class="form-label fw-bold text-light">Especialidad *</label>
+                            <select id="alta-especialidad" class="form-select form-select-sm bg-dark text-light border-secondary" required>
                                 <option value="">-- Selecciona Especialidad --</option>
                                 {% for esp in especialidades_list %}
                                     <option value="{{ esp }}">{{ esp }}</option>
@@ -203,14 +224,15 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-bold text-muted">Ubicación (Ciudad) *</label>
-                            <select id="alta-ubicacion" class="form-select" required>
+                            <label class="form-label fw-bold text-light">Ubicación (Ciudad) *</label>
+                            <select id="alta-ubicacion" class="form-select form-select-sm bg-dark text-light border-secondary" required>
                                 <option value="">-- Selecciona Ciudad --</option>
                                 {% for ubi in ubicaciones_list %}
                                     <option value="{{ ubi }}">{{ ubi }}</option>
                                 {% endfor %}
                             </select>
                         </div>
+                        <label class="form-label fw-bold text-light"><span class="text-warning small">* Los campos marcados con asterisco son obligatorios</span></label>
                     </div>
                     <div class="text-end mt-4">
                         <button type="submit" class="btn btn-primary fw-bold px-4">Guardar Prospecto</button>

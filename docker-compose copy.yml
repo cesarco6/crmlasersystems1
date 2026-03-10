@@ -1,0 +1,48 @@
+services:
+  # Servicio 1: Nuestra aplicación Django
+  web:
+    build: .
+    working_dir: /app/backend
+    # Comando de desarrollo con Hot-Reloading
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app # Sincroniza tus cambios en Windows con el contenedor al instante
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env # Carga de contraseñas y claves desde el archivo oculto
+    depends_on:
+      - db
+      - redis
+  qcluster:
+    build: .
+    command: python backend/manage.py qcluster
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  # Servicio 2: Base de Datos PostgreSQL 16 (DDS v2.0)
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # Persistencia para no perder datos al apagar
+    environment:
+      - POSTGRES_DB=crm_ls
+      - POSTGRES_USER=crm_user
+      - POSTGRES_PASSWORD=crm_password
+    ports:
+      - "5432:5432"
+
+  # Servicio 3: Caché y Cola de Tareas para el M1
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

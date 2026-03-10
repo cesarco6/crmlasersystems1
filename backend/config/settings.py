@@ -26,9 +26,16 @@ sys.path.insert(0, os.path.join(BASE_DIR))
 SECRET_KEY = 'django-insecure-4o)jr0sydibzk0=)bmq+w&(p-8huq2k)krsrq1p0!xf0uob^@w'
 
 # SECURITY WARNING: don't run with debug turned on in production!
+#DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+#ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
+# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+
+# Comentamos tu configuración avanzada por hoy:
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
+# Agregamos la puerta abierta para la intranet:
+#ALLOWED_HOSTS = ['*']
 
 # Application definition
 

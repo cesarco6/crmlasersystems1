@@ -12,7 +12,8 @@ from django.db.models import Q
 from django.utils import timezone
 from .mixins import LeadOwnershipMixin
 from .models import CoreLead, Notificacion
-from users.models import CatUbicacion, CatEspecialidad, CatProducto
+from users.models import CatUbicacion, CatEspecialidad, CatProducto, CatTitulo
+from django.utils.timezone import localtime, now
 
 @method_decorator(role_required(['VENDEDOR']), name='dispatch')
 class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
@@ -25,7 +26,8 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         busqueda = self.request.GET.get('q', '').strip()
         filtro_rapido = self.request.GET.get('filtro', 'activos') # 'activos' por defecto
         
-        hoy = timezone.now().date()
+        #hoy = timezone.now().date()
+        hoy = localtime(now()).date()   
 
         # 2. BASE DE SEGURIDAD: Solo los leads de ESTE vendedor
         qs = CoreLead.objects.filter(owner=self.request.user)
@@ -122,6 +124,7 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
         context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
         context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
+        context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
         
         # 3. ENVIAR RESULTADOS AL HTML
         #context['leads'] = qs.order_by('-updated_at') # Los movidos recientemente van arriba
@@ -161,6 +164,7 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         # --- NUEVAS LÍNEAS PARA LOS DROPDOWNS ---
         context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
         context['productos_list'] = CatProducto.objects.filter(is_active=True).order_by('nombre')
+        context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
         # Variables súper cortas para que el HTML no se rompa al guardar
         context['celular_seguro'] = lead.celular if lead.celular else "No registrado"
         # Priorizamos el catálogo relacional (DDS Fase 2)
@@ -181,12 +185,9 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 import unicodedata
+import re
 
-def normalizar_texto(texto):
-    if not texto: return ""
-    texto = str(texto).strip().lower()
-    # Eliminar acentos
-    return ''.join(c for c in unicodedata.normalize('NFD', texto) if unicodedata.category(c) != 'Mn')
+from .mdm_services import normalizar_texto, limpiar_telefono_estricto, evaluar_duplicidad_estricta
 
 def obtener_catalogos_limpios(texto_especialidad, texto_producto):
     """Versión Estricta DDS 2.0: Solo lee, NUNCA crea."""
@@ -292,7 +293,8 @@ def procesar_ingesta_masiva(request):
                 notas_json["notas"].append({
                     "tipo": "contacto",
                     "contenido": notas_variadas_val,
-                    "fecha": timezone.now().isoformat()
+                    #   "fecha": timezone.now().isoformat()
+                    "fecha": localtime(now()).strftime("%Y-%m-%d %H:%M")
                 })
 
             esp_obj, prod_obj = obtener_catalogos_limpios(especialidad, producto_interes)
@@ -344,12 +346,12 @@ def procesar_ingesta_masiva(request):
                     # CASO C: Intento de re-ingesta de un cliente
                     lead_existente.notas_variadas.setdefault("notas", []).append({
                         "tipo": "sistema",
-                        "contenido": f"Intento de re-ingesta masiva bloqueado el {timezone.now().strftime('%Y-%m-%d %H:%M')}",
-                        "fecha": timezone.now().isoformat()
+                        "contenido": f"Intento de re-ingesta masiva bloqueado el {localtime(now()).strftime('%Y-%m-%d %H:%M')}",
+                        "fecha": localtime(now()).strftime('%Y-%m-%d %H:%M')
                     })
                     lead_existente.save(update_fields=['notas_variadas', 'updated_at'])
                     reporte['C'].append(nombre_raw)
-                elif lead_existente.estatus == 'NO_CIERRE' and timezone.now() - lead_existente.updated_at > timedelta(days=365):
+                elif lead_existente.estatus == 'NO_CIERRE' and localtime(now()) - lead_existente.updated_at > timedelta(days=365):
                     # CASO D: Revisión manual (Inactivo por > 1 año)
                     reporte['D'].append(nombre_raw)
                 else:
@@ -377,16 +379,54 @@ def procesar_alta_manual(request):
         telefono = str(data.get('telefono', '')).strip()
         celular = str(data.get('celular', '')).strip()
         email = str(data.get('email', '')).strip()
-        nombre = str(data.get('nombre', '')).strip()
-        especialidad = str(data.get('especialidad', 'No especificada')).strip()
+        
+        # --- ATOMICIDAD DE IDENTIDAD (FASE 3) ---
+        titulo_id = data.get('titulo_cortesia')
+        nombre_pila = str(data.get('nombre_pila', '')).strip()
+        apellido_paterno = str(data.get('apellido_paterno', '')).strip()
+        apellido_materno = str(data.get('apellido_materno', '')).strip()
+
+        valor_especialidad = str(data.get('especialidad', 'No especificada')).strip()
+        valor_producto = str(data.get('producto', 'No especificado')).strip()
         valor_ubicacion = str(data.get('ubicacion', 'Desconocida')).strip()
         
-        # Validaciones básicas
-        if not telefono or not nombre:
-            return JsonResponse({"error": "El nombre y teléfono son obligatorios."}, status=400)
+        # Concatenación temporal para MDM
+        titulo_obj = CatTitulo.objects.filter(id=titulo_id).first() if titulo_id else None
+        partes_nombre = []
+        # if titulo_obj: partes_nombre.append(titulo_obj.nombre)
+        if nombre_pila: partes_nombre.append(nombre_pila)
+        if apellido_paterno: partes_nombre.append(apellido_paterno)
+        if apellido_materno: partes_nombre.append(apellido_materno)
+        nombre_concatenado = " ".join(partes_nombre)
+        
+        # ==========================================
+        #  NUEVO MÓDULO: RESOLUCIÓN DE IDENTIDAD (MDM)
+        # ==========================================
+        if not nombre_concatenado:
+            return JsonResponse({"error": "El nombre es obligatorio."}, status=400)
             
-        if CoreLead.objects.filter(phone_primary=telefono[:15]).exists():
-            return JsonResponse({"error": "Ya existe un registro con este Teléfono Primario en el sistema."}, status=400)
+        # Pasamos la Cuarteta Completa al Motor de Reglas
+        estatus_identidad, resultado_identidad = evaluar_duplicidad_estricta(
+            nombre_concatenado, telefono, valor_especialidad, valor_ubicacion, CoreLead
+        )
+        
+        if estatus_identidad == 'ERROR':
+            return JsonResponse({"error": resultado_identidad}, status=400)
+            
+        elif estatus_identidad == 'DUPLICADO':
+            dueño_actual = resultado_identidad.owner.username if resultado_identidad.owner else 'Sin asignar'
+            return JsonResponse({
+                "error": f"⚠️ Posible Duplicado: Un médico con nombre o apellidos similares ({resultado_identidad.nombre}) ya usa este teléfono. Pertenece a la cartera de {dueño_actual}."
+            }, status=400)
+            
+        # Si sobrevive y es NUEVO o COMPARTIDO, continuamos el guardado
+        # Extraemos el teléfono que ya ha sido limpiado de formato
+        telefono_limpio = resultado_identidad
+        
+        # ==========================================
+
+        # Validaciones Catálogos Relacionales
+        especialidad_obj, producto_obj = obtener_catalogos_limpios(valor_especialidad, valor_producto)
 
         # 2. Gestionamos la Ubicación
         ubicacion_obj, created = CatUbicacion.objects.get_or_create(
@@ -394,19 +434,21 @@ def procesar_alta_manual(request):
             defaults={'estado': valor_ubicacion, 'is_active': True}
         )
 
-        # 3. Creamos el Lead (Nace en Fase 1)
+        # 3. Creamos el Lead (Nace en Fase 1) Guardando el teléfono limpiado
         nuevo_lead = CoreLead.objects.create(
             owner=request.user,
-            ubicacion_id=ubicacion_obj.id,
-            especialidad_cat_id=especialidad_obj.id,
-            producto_cat_id=producto_obj.id,
+            ubicacion=ubicacion_obj,
+            especialidad_cat=especialidad_obj,
+            producto_cat=producto_obj,
             estatus='PROSPECTO',
-            phone_primary=telefono[:15],
+            phone_primary=telefono_limpio,  # <--- SE USA LA VERSIÓN SANEADA
             celular=celular[:15],
             email=email,
-            nombre=nombre[:100],
-            #especialidad=especialidad[:50],
-            #producto_interes='No especificado', # Se llenará después
+            nombre=nombre_concatenado[:100],  # Fallback histórico
+            titulo_cortesia=titulo_obj,
+            nombre_pila=nombre_pila[:100],
+            apellido_paterno=apellido_paterno[:100],
+            apellido_materno=apellido_materno[:100],
             notas_variadas={"notas": [], "columnas_excel_historicas": {}}
         )
 
@@ -448,7 +490,30 @@ def actualizar_lead_fsm(request, pk):
         
         # Datos de Identidad (Solo editables en Fase 1)
         if lead.estatus == 'PROSPECTO':
-            lead.nombre = data.get('nombre', lead.nombre)
+            # --- CAPTURA ATÓMICA DE IDENTIDAD ---
+            titulo_id = data.get('titulo_cortesia')
+            nombre_pila = str(data.get('nombre_pila', '')).strip()
+            apellido_paterno = str(data.get('apellido_paterno', '')).strip()
+            apellido_materno = str(data.get('apellido_materno', '')).strip()
+
+            # Guardado Atómico Directo
+            if titulo_id:
+                lead.titulo_cortesia_id = titulo_id
+            else:
+                lead.titulo_cortesia = None
+                
+            lead.nombre_pila = nombre_pila[:100]
+            lead.apellido_paterno = apellido_paterno[:100]
+            lead.apellido_materno = apellido_materno[:100]
+
+            # REGLA ESTRICTA: Concatenación para Backup histórico (SIN EL TÍTULO)
+            partes_nombre = []
+            if nombre_pila: partes_nombre.append(nombre_pila)
+            if apellido_paterno: partes_nombre.append(apellido_paterno)
+            if apellido_materno: partes_nombre.append(apellido_materno)
+            
+            lead.nombre = " ".join(partes_nombre)[:100]
+
             lead.phone_primary = data.get('telefono', lead.phone_primary)
             # --- USAMOS LA ADUANA PARA GUARDAR LOS SELECTS DEL VENDEDOR ---
             texto_esp = data.get('especialidad', lead.especialidad_cat.nombre if lead.especialidad_cat else 'General')
@@ -483,7 +548,7 @@ def actualizar_lead_fsm(request, pk):
                 lead.notas_variadas.setdefault("notas", []).append({
                     "tipo": "sistema",
                     "contenido": "Identidad Validada: Avanzó a LEAD.",
-                    "fecha": timezone.now().isoformat()
+                    "fecha": localtime(now()).isoformat()
                 })
 
         elif accion == 'DESCARTAR':
@@ -509,7 +574,7 @@ def actualizar_lead_fsm(request, pk):
                 lead.notas_variadas.setdefault("notas", []).append({
                     "tipo": "sistema",
                     "contenido": f"Lead calificado como: {texto_calificacion}", # Muestra el texto al vendedor
-                    "fecha": timezone.now().isoformat()
+                    "fecha": localtime(now()).isoformat()
                 })
             else:
                 return JsonResponse({"error": "Calificación inválida."}, status=400)
@@ -521,7 +586,7 @@ def actualizar_lead_fsm(request, pk):
             
             # Convertir a objeto date y calcular diferencia
             fecha_contacto = datetime.strptime(fecha_contacto_str, '%Y-%m-%d').date()
-            hoy = timezone.now().date()
+            hoy = localtime(now()).date()
             dias_diferencia = (fecha_contacto - hoy).days
             
             lead.next_action_date = fecha_contacto
@@ -537,7 +602,7 @@ def actualizar_lead_fsm(request, pk):
             lead.notas_variadas.setdefault("notas", []).append({
                 "tipo": "sistema",
                 "contenido": mensaje_nota,
-                "fecha": timezone.now().isoformat()
+                "fecha": localtime(now()).isoformat()
             })
             
         elif accion == 'AGREGAR_NOTA':
@@ -548,7 +613,7 @@ def actualizar_lead_fsm(request, pk):
             lead.notas_variadas.setdefault("notas", []).append({
                 "tipo": "contacto", # 'contacto' es manual del vendedor, 'sistema' es de la FSM
                 "contenido": nueva_nota.strip(),
-                "fecha": timezone.now().isoformat()
+                "fecha": localtime(now()).isoformat()
             })
 
         elif accion == 'AGREGAR_NOTA':
@@ -559,9 +624,9 @@ def actualizar_lead_fsm(request, pk):
             lead.notas_variadas.setdefault("notas", []).append({
                 "tipo": "contacto",
                 "contenido": nueva_nota.strip(),
-                "fecha": timezone.now().isoformat()
+                "fecha": localtime(now()).isoformat()
             })
-            
+
         elif accion == 'CERRAR_VENTA':
             # 1. Extraer datos fiscales enviados desde el modal
             rfc_val = data.get('rfc', '').strip().upper()
@@ -589,7 +654,8 @@ def actualizar_lead_fsm(request, pk):
                 return JsonResponse({"error": str(e)}, status=400)
             
             # 4. Dejar la miga de pan histórica obligatoria
-            timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+            #timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+            timestamp = localtime(now()).strftime("%Y-%m-%d %H:%M")
             
             if not isinstance(lead.notas_variadas, dict):
                 lead.notas_variadas = {"notas": []}
@@ -625,6 +691,30 @@ def actualizar_lead_fsm(request, pk):
         
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+@login_required
+@require_POST
+def api_marcar_no_cierre(request, pk):
+    try:
+        data = json.loads(request.body)
+        motivo = data.get('motivo', 'Desconocido').strip()
+        
+        lead = get_object_or_404(CoreLead, id=pk)
+        
+        # Invocamos estrictamente a la máquina de estados FSM
+        try:
+            texto_nota_historica = f"Rechazo Definitivo: {motivo}"
+            lead.archivar_sin_exito(nota_motivo=texto_nota_historica, usuario_id=request.user.id)
+            lead.save()
+            
+            return JsonResponse({"status": "success", "mensaje": "El ciclo del prospecto se ha cerrado sin éxito (NO CIERRE)."})
+            
+        except Exception as e:
+            # Capturamos excepciones propias del FSM (ej. TransitionNotAllowed)
+            return JsonResponse({"error": str(e)}, status=400)
+            
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 
 
 def es_director(user):
@@ -682,7 +772,7 @@ def api_ingesta_historica(request):
                 notas_historicas["notas"].append({
                     "tipo": "sistema",
                     "contenido": nota_historica_compilada,
-                    "fecha": timezone.now().isoformat()
+                    "fecha": localtime(now()).isoformat()
                 })
             
             especialidad_obj, producto_obj = obtener_catalogos_limpios(fila.get('especialidad', ''), fila.get('producto', ''))
@@ -752,7 +842,7 @@ def director_dashboard_view(request):
     total_historicos = qs.filter(estatus='Histórico').count()
     total_vendedores_metric = lista_vendedores.count()
 
-    hace_7_dias = timezone.now() - timedelta(days=7)
+    hace_7_dias = localtime(now()) - timedelta(days=7)
     base_semana = qs.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
 
     total_trabajados_semana = base_semana.count()
@@ -809,7 +899,7 @@ def director_dashboard_view(request):
     # --- 7. FORECAST MENSUAL ---
     import datetime
     
-    hoy = timezone.now().date()
+    hoy = localtime(now()).date()
     inicio_mes = hoy.replace(day=1)
     
     if inicio_mes.month == 12:
@@ -894,7 +984,7 @@ def director_dashboard_view(request):
     total_vendedores_metric = lista_vendedores.count()
 
     # === KPIs SEMANALES ESTRICTOS (Últimos 7 días) ===
-    hace_7_dias = timezone.now() - timedelta(days=7)
+    hace_7_dias = localtime(now()) - timedelta(days=7)
     base_semana = qs.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
 
     total_trabajados_semana = base_semana.count()
@@ -1009,7 +1099,7 @@ def director_dashboard_view(request):
     total_vendedores_metric = lista_vendedores.count()
 
     # === KPIs SEMANALES ESTRICTOS (Últimos 7 días) ===
-    hace_7_dias = timezone.now() - timedelta(days=7)
+    hace_7_dias = localtime(now()) - timedelta(days=7)
 
     # 1. BASE: Todo lo que tuvo movimiento de trabajo esta semana
     base_semana = qs.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
@@ -1180,7 +1270,8 @@ def registrar_venta_extra(request):
         # --- NUEVO: Inyectar la miga de pan en el historial del Lead ---
         # from django.utils import timezone
         
-        timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+        #timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
+        timestamp = localtime(now()).strftime("%Y-%m-%d %H:%M")
         
         nueva_nota = {
             "fecha": timestamp,

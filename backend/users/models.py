@@ -17,6 +17,19 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} ({self.rol})"
 
+class CatTitulo(models.Model):
+    nombre = models.CharField(max_length=50, unique=True, help_text="Ej: Dr., Dra., M.V.Z.")
+    abreviatura = models.CharField(max_length=20, blank=True, null=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Título de Cortesía'
+        verbose_name_plural = 'Catálogo de Títulos'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return self.nombre
+
 class CatUbicacion(models.Model):
     ciudad = models.CharField(max_length=100)
     estado = models.CharField(max_length=100)

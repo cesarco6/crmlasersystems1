@@ -26,20 +26,28 @@
         </div>
         
         <div class="acciones-fsm d-flex gap-2 align-items-center flex-wrap">
+    
             {% if lead.estatus == 'CLIENTE' %}
                 <button class="btn-success btn-small" onclick="abrirModal('modal-venta-extra')">🎯 Registrar Oportunidad 360°</button>
-            {% elif lead.estatus != 'PROSPECTO' %}
                 
+            {% elif lead.estatus == 'PROSPECTO' %}
+                <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar Prospecto</button>
+
+            {% elif lead.estatus != 'PROSPECTO' %}
                 {% if lead.estatus == 'LEAD_CALIFICADO' %}
                     <button class="btn-warning btn-small text-light fw-bold" onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
                 {% else %}
-                    <!-- Si no está calificado (ej. LEAD), pide calificar primero -->
                     <button class="btn-warning btn-small text-light fw-bold" onclick="Swal.fire('Atención', 'Debes calificar al prospecto primero.', 'warning')">🏆 Cerrar Venta</button>
                 {% endif %}
                 
                 <button class="btn-primary btn-small" onclick="abrirModal('modal-calificar')">⭐ Calificar Lead</button>
                 
                 <button class="btn-secondary btn-small" onclick="abrirModal('modal-agendar')">📅 Agendar / Pausar</button>
+
+                {% if lead.estatus == 'LEAD' or lead.estatus == 'LEAD_CALIFICADO' %}
+                    <button type="button" id="btn-no-cierre" class="btn-warning btn-small text-light fw-bold" onclick="marcarNoCierre()">⚠️ Marcar No Cierre</button>
+                {% endif %}
+                
             {% endif %}
         </div>
     </div>
@@ -151,9 +159,22 @@
                         {% endfor %}
                     </div>
                     
-                    <div class="d-flex gap-2 mt-auto">
-                        <input type="text" id="input-nueva-nota" class="form-control bg-dark text-light" placeholder="Escribir nueva nota..." onkeypress="if(event.key === 'Enter') ejecutarAccionFase2('AGREGAR_NOTA')">
-                        <button class="btn-primary" onclick="ejecutarAccionFase2('AGREGAR_NOTA')">Agregar</button>
+                    <div class="mt-auto">
+                        <div class="mb-2">
+                            <select class="form-select form-select-sm bg-dark text-light border-secondary" onchange="insertarRespuestaRapida(this, 'input-nueva-nota')">
+                                <option value="">-- Respuestas Rápidas --</option>
+                                <option value="Manda a buzón">Manda a buzón</option>
+                                <option value="No contesta">No contesta</option>                                
+                                <option value="Interesado, pide llamar más tarde">Interesado, pide llamar más tarde</option>
+                                <option value="Se envió información">Se envió información</option>
+                                <option value="Sin presupuesto por el momento">Sin presupuesto por el momento</option>
+                                <option value="Rechazo Definitivo">Rechazo Definitivo</option>
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <input type="text" id="input-nueva-nota" class="form-control bg-dark text-light" placeholder="Escribir nueva nota..." onkeypress="if(event.key === 'Enter') ejecutarAccionFase2('AGREGAR_NOTA')">
+                            <button class="btn-primary" onclick="ejecutarAccionFase2('AGREGAR_NOTA')">Agregar</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -171,38 +192,55 @@
             <div class="card-body">
                 <form id="form-editar">
                     <div class="row mb-3">
-                        <div class="col-12">
-                            <label class="form-label text-secondary fw-bold small">Nombre del Médico *</label>
-                            <input type="text" id="edit-nombre" class="form-control bg-dark text-light border-secondary" value="{{ lead.nombre }}" required {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
+                        <div class="col-md-2 mb-2 mb-md-0">
+                            <label class="form-label text-secondary fw-bold small">Título</label>
+                            <select id="edit-titulo" class="form-select form-select-sm bg-dark text-light border-secondary" {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
+                                <option value="">-- Título --</option>
+                                {% for titulo in titulos_list %}
+                                    <option value="{{ titulo.id }}" {% if titulo.id == lead.titulo_cortesia_id %}selected{% endif %}>{{ titulo.abreviatura }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-4 mb-md-0">
+                            <label class="form-label text-secondary fw-bold small">Nombre(s) *</label>
+                            <input type="text" id="edit-nombre-pila" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.nombre_pila|default:'' }}" required {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
+                        </div>
+                        <div class="col-md-3 mb-3 mb-md-0">
+                            <label class="form-label text-secondary fw-bold small">A. Paterno *</label>
+                            <input type="text" id="edit-paterno" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.apellido_paterno|default:'' }}" required {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-secondary fw-bold small">A. Materno</label>
+                            <input type="text" id="edit-materno" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.apellido_materno|default:'' }}" {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <label class="form-label text-secondary fw-bold small">Teléfono*</label>
-                            <input type="text" id="edit-telefono" class="form-control bg-dark text-light border-secondary" value="{{ lead.phone_primary }}" required {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
+                            <input type="text" id="edit-telefono" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.phone_primary }}" required {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-secondary fw-bold small">Celular (WhatsApp)</label>
-                            <input type="text" id="edit-celular" class="form-control bg-dark text-light border-secondary" value="{{ lead.celular|default:'' }}">
+                            <input type="text" id="edit-celular" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.celular|default:'' }}">
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <label class="form-label text-secondary fw-bold small">Correo Electrónico</label>
-                            <input type="email" id="edit-email" class="form-control bg-dark text-light border-secondary" value="{{ lead.email|default:'' }}">
+                            <input type="email" id="edit-email" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.email|default:'' }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-secondary fw-bold small">Dirección Completa</label>
-                            <input type="text" id="edit-direccion" class="form-control bg-dark text-light border-secondary" value="{{ lead.direccion_completa|default:'' }}">
+                            <input type="text" id="edit-direccion" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.direccion_completa|default:'' }}">
                         </div>
                     </div>
 
                     <div class="row mb-4">
                         <div class="col-md-6 mb-3 mb-md-0">
                             <label class="form-label text-secondary fw-bold small">Especialidad</label>
-                            <select id="edit-especialidad" class="form-select bg-dark text-light border-secondary" {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
+                            <select id="edit-especialidad" class="form-select form-select-sm bg-dark text-light border-secondary" {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
                                 <option value="">-- Selecciona Especialidad --</option>
                                 {% for esp in especialidades_list %}
                                     <option value="{{ esp }}" {% if esp == especialidad_segura %}selected{% endif %}>{{ esp }}</option>
@@ -211,19 +249,20 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-secondary fw-bold small">Producto LS</label>
-                            <select id="edit-producto" class="form-select bg-dark text-light border-secondary" {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
+                            <select id="edit-producto" class="form-select form-select-sm bg-dark text-light border-secondary" {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
                                 {% for prod in productos_list %}
-                                    <option value="{{ prod.nombre }}" {% if prod.nombre == producto_seguro %}selected{% endif %}>{{ prod.nombre }}</option>
+                                    {% if prod.familia == 'EQUIPO' %}
+                                        <option value="{{ prod.nombre }}" {% if prod.nombre == producto_seguro %}selected{% endif %}>{{ prod.nombre }}</option>
+                                    {% endif %}
                                 {% endfor %}
                             </select>
                         </div>
+
                     </div>
 
                     <div class="d-flex flex-wrap justify-content-between align-items-center bg-dark bg-opacity-50 p-3 rounded gap-3">
                         {% if lead.estatus == 'PROSPECTO' %}
-                            <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar</button>
-                        {% else %}
-                            <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESCARTAR')">❌ Descartar</button>
+                            <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar Prospecto</button>
                         {% endif %}
                         
                         <div class="d-flex gap-2 flex-wrap">
@@ -246,7 +285,7 @@
             </div>
             <div class="card-body">
                 <label class="form-label text-secondary mb-2 d-block small">Nivel de interés:</label>
-                <select id="select-calificacion" class="form-select bg-dark text-light border-secondary mb-4">
+                <select id="select-calificacion" class="form-select form-select-sm bg-dark text-light border-secondary mb-4">
                     <option value="Alta" {% if lead.calificacion == 'Alta' %}selected{% endif %}>🔥 Alta (Muy interesado)</option>
                     <option value="Media" {% if lead.calificacion == 'Media' %}selected{% endif %}>🌤️ Media (Lo está pensando)</option>
                     <option value="Baja" {% if lead.calificacion == 'Baja' %}selected{% endif %}>❄️ Baja (Poco interés actual)</option>
@@ -269,7 +308,7 @@
                     ℹ️ <strong>Regla automática:</strong> Si agendas a más de 30 días, el prospecto pasará a "En Espera". Si es a menor plazo, continuará en "Seguimiento".
                 </div>
                 <label class="form-label text-secondary mb-2 d-block small">Fecha de próximo contacto:</label>
-                <input type="date" id="input-fecha-agenda" class="form-control bg-dark text-light border-secondary mb-4" required>
+                <input type="date" id="input-fecha-agenda" class="form-control form-control-sm bg-dark text-light border-secondary mb-4" required>
                 <div class="text-end">
                     <button class="btn-secondary" onclick="ejecutarAccionFase2('AGENDAR')">Confirmar Fecha</button>
                 </div>
@@ -279,17 +318,13 @@
 
    <div id="modal-venta-extra" class="modal-overlay" style="display: none;">
     <div class="modal-box w-100 mx-auto max-w-500px">
-        <div class="card-header d-flex justify-content-between align-items-center mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
             <h3 class="m-0 text-light fs-5">🎯 Registrar Oportunidad 360°</h3>
             <span onclick="cerrarModal('modal-venta-extra')" class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
         </div>
         <div class="card-body">
-            <p class="text-secondary small mb-4">
-                Registra ventas transaccionales. Las notas se guardarán en el historial del cliente.
-            </p>
-
             <label class="form-label text-secondary mb-2 d-block small">Tipo de Oportunidad *</label>
-            <select id="select-tipo-extra" class="form-select bg-dark text-light border-secondary mb-3" onchange="filtrarProductos360()" required>
+            <select id="select-tipo-extra" class="form-select form-select-sm bg-dark text-light border-secondary mb-3" onchange="filtrarProductos360()" required>
                 <option value="">-- Selecciona el Tipo --</option>
                 <option value="ACCESORIO">💰 Venta Adicional (Cross-Sell)</option>
                 <option value="SERVICIO">🔧 Mantenimiento / Servicio</option>
@@ -297,7 +332,7 @@
             </select>
 
             <label class="form-label text-secondary mb-2 d-block small">Producto/Servicio *</label>
-            <select id="extra-producto" class="form-select bg-dark text-light border-secondary mb-3" disabled required>
+            <select id="extra-producto" class="form-select form-select-sm bg-dark text-light border-secondary mb-3" disabled required>
                 <option value="">-- Selecciona primero el Tipo --</option>
                 {% for prod in productos_list %}
                     {% if prod.familia in 'ACCESORIO,SERVICIO,EVENTO' %}
@@ -308,15 +343,29 @@
             </select>
 
             <label class="form-label text-secondary mb-2 d-block small">Estatus *</label>
-            <select id="extra-estatus" class="form-select bg-dark text-light border-secondary mb-3" required>
+            <select id="extra-estatus" class="form-select form-select-sm bg-dark text-light border-secondary mb-3" required>
                 <option value="PENDIENTE">🟡 Pendiente (Por contactar)</option>
                 <option value="EN_GESTION">🔵 En Gestión (Contactado / Negociando)</option>
                 <option value="CONCRETADO">🟢 Concretado (Ganado / Pagado)</option>
                 <option value="DESCARTADO">🔴 Descartado (Perdido / No le interesa)</option>
             </select>
+            <!-- Selector de Respuestas Rápidas -->
+            <div class="mb-2">
+                <label class="form-label text-secondary mb-2 d-block small">Respuestas Rápidas</label>
+                <select class="form-select form-select-sm bg-dark text-light border-secondary" onchange="insertarRespuestaRapida(this, 'extra-notas')">
+                    <option value="">-- Selecciona --</option>
+                    <option value="Manda a buzón">Manda a buzón</option>
+                    <option value="No contesta">No contesta</option>
+                    <option value="Número equivocado">Número equivocado</option>
+                    <option value="Interesado, pide llamar más tarde">Interesado, pide llamar más tarde</option>
+                    <option value="Se envió información por WhatsApp">Se envió información por WhatsApp</option>
+                    <option value="Sin presupuesto por el momento">Sin presupuesto por el momento</option>
+                    <option value="Rechazo Definitivo">Rechazo Definitivo</option>
+                </select>
+            </div>
 
             <label class="form-label text-secondary mb-2 d-block small">Notas (Obligatorias) *</label>
-            <textarea id="extra-notas" class="form-control bg-dark text-light border-secondary mb-4" rows="3" placeholder="Escribe las migas de pan para el seguimiento..." required></textarea>
+            <textarea id="extra-notas" class="form-control form-control-sm bg-dark text-light border-secondary mb-4" rows="3" placeholder="Escribe las migas de pan para el seguimiento..." required></textarea>
 
             <div class="text-end">
                 <button class="btn-success" onclick="guardarOportunidad360()">Guardar Oportunidad</button>
@@ -340,17 +389,17 @@
                 <form id="form-cerrar-venta">
                     <div class="mb-3">
                         <label class="form-label text-secondary fw-bold small">R.F.C. *</label>
-                        <input type="text" id="venta-rfc" class="form-control bg-dark text-light border-secondary text-uppercase" placeholder="Ej. XAXX010101000" maxlength="13" required>
+                        <input type="text" id="venta-rfc" class="form-control form-control-sm bg-dark text-light border-secondary text-uppercase" placeholder="Ej. XAXX010101000" maxlength="13" required>
                     </div>
                     
                     <div class="mb-3">
                         <label class="form-label text-secondary fw-bold small">Razón Social *</label>
-                        <input type="text" id="venta-razon" class="form-control bg-dark text-light border-secondary text-uppercase" placeholder="Nombre completo o Empresa" required>
+                        <input type="text" id="venta-razon" class="form-control form-control-sm bg-dark text-light border-secondary text-uppercase" placeholder="Nombre completo o Empresa" required>
                     </div>
                     
                     <div class="mb-4">
                         <label class="form-label text-secondary fw-bold small">Régimen Fiscal *</label>
-                        <select id="venta-regimen" class="form-select bg-dark text-light border-secondary" required>
+                        <select id="venta-regimen" class="form-select form-select-sm bg-dark text-light border-secondary" required>
                             <option value="">-- Selecciona el Régimen --</option>
                             <option value="601">601 - General de Ley Personas Morales</option>
                             <option value="603">603 - Personas Morales con Fines no Lucrativos</option>
