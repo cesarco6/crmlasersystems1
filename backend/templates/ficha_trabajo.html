@@ -33,20 +33,15 @@
             {% elif lead.estatus == 'PROSPECTO' %}
                 <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar Prospecto</button>
 
-            {% elif lead.estatus != 'PROSPECTO' %}
-                {% if lead.estatus == 'LEAD_CALIFICADO' %}
-                    <button class="btn-warning btn-small text-light fw-bold" onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
-                {% else %}
-                    <button class="btn-warning btn-small text-light fw-bold" onclick="Swal.fire('Atención', 'Debes calificar al prospecto primero.', 'warning')">🏆 Cerrar Venta</button>
-                {% endif %}
-                
+            {% elif lead.estatus == 'LEAD' %}
+                <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar Lead</button>
                 <button class="btn-primary btn-small" onclick="abrirModal('modal-calificar')">⭐ Calificar Lead</button>
-                
                 <button class="btn-secondary btn-small" onclick="abrirModal('modal-agendar')">📅 Agendar / Pausar</button>
-
-                {% if lead.estatus == 'LEAD' or lead.estatus == 'LEAD_CALIFICADO' %}
-                    <button type="button" id="btn-no-cierre" class="btn-warning btn-small text-light fw-bold" onclick="marcarNoCierre()">⚠️ Marcar No Cierre</button>
-                {% endif %}
+                
+            {% elif lead.estatus == 'LEAD_CALIFICADO' %}
+                <button class="btn-warning btn-small text-light fw-bold" onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
+                <button class="btn-secondary btn-small" onclick="abrirModal('modal-agendar')">📅 Agendar / Pausar</button>
+                <button type="button" id="btn-no-cierre" class="btn-warning btn-small text-light fw-bold" onclick="marcarNoCierre()">⚠️ Marcar No Cierre</button>
                 
             {% endif %}
         </div>
@@ -191,8 +186,24 @@
             </div>
             <div class="card-body">
                 <form id="form-editar">
+                    <!-- Tipo de Entidad Toggle -->
+                    {% if lead.estatus == 'PROSPECTO' %}
                     <div class="row mb-3">
-                        <div class="col-md-2 mb-2 mb-md-0">
+                        <div class="col-12">
+                            <label class="form-label text-secondary fw-bold small d-block">Tipo de Entidad (Enlazado MDM)</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="tipo_entidad" id="tipo_individuo" value="INDIVIDUAL" autocomplete="off" checked onchange="toggleTipoEntidad()">
+                                <label class="btn btn-outline-secondary btn-sm" for="tipo_individuo">👩‍⚕️ Individuo (Médico)</label>
+
+                                <input type="radio" class="btn-check" name="tipo_entidad" id="tipo_corporativo" value="CORPORATIVO" autocomplete="off" onchange="toggleTipoEntidad()">
+                                <label class="btn btn-outline-secondary btn-sm" for="tipo_corporativo">🏥 Clínica / Corporativo</label>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="row mb-3">
+                        <div class="col-md-2 mb-2 mb-md-0" id="col-edit-titulo">
                             <label class="form-label text-secondary fw-bold small">Título</label>
                             <select id="edit-titulo" class="form-select form-select-sm bg-dark text-light border-secondary" {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
                                 <option value="">-- Título --</option>
@@ -201,15 +212,17 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4 mb-4 mb-md-0">
-                            <label class="form-label text-secondary fw-bold small">Nombre(s) *</label>
+                        
+                        <div class="col-md-4 mb-4 mb-md-0" id="col-edit-nombre">
+                            <label class="form-label text-secondary fw-bold small">Nombre *</label>
                             <input type="text" id="edit-nombre-pila" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.nombre_pila|default:'' }}" required {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                         </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
+
+                        <div class="col-md-3 mb-3 mb-md-0" id="col-edit-paterno">
                             <label class="form-label text-secondary fw-bold small">A. Paterno *</label>
                             <input type="text" id="edit-paterno" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.apellido_paterno|default:'' }}" required {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3" id="col-edit-materno">
                             <label class="form-label text-secondary fw-bold small">A. Materno</label>
                             <input type="text" id="edit-materno" class="form-control form-control-sm bg-dark text-light border-secondary" value="{{ lead.apellido_materno|default:'' }}" {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                         </div>
@@ -260,15 +273,16 @@
 
                     </div>
 
-                    <div class="d-flex flex-wrap justify-content-between align-items-center bg-dark bg-opacity-50 p-3 rounded gap-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center bg-dark bg-opacity-50 p-3 rounded gap-3 mt-4">
                         {% if lead.estatus == 'PROSPECTO' %}
-                            <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar Prospecto</button>
+                            <button type="button" class="btn btn-outline-danger btn-sm w-100 w-md-auto" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar Prospecto</button>
+                        {% else %}
+                            <div></div>
                         {% endif %}
-                        
-                        <div class="d-flex gap-2 flex-wrap">
-                            <button type="button" class="btn-secondary btn-small" onclick="ejecutarRitual('GUARDAR')">💾 Guardar Cambios</button>
+                        <div class="d-flex gap-2 w-100 w-md-auto justify-content-end">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="ejecutarRitual('GUARDAR')">💾 Guardar Cambios</button>
                             {% if lead.estatus == 'PROSPECTO' %}
-                            <button type="button" class="btn-success btn-small" onclick="ejecutarRitual('VALIDAR')">✅ Validar Identidad</button>
+                            <button type="button" class="btn btn-success btn-sm" onclick="ejecutarRitual('VALIDAR')">✅ Validar Identidad</button>
                             {% endif %}
                         </div>
                     </div>

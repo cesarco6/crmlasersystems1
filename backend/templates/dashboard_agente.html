@@ -176,8 +176,22 @@
             </div>
             <div class="card-body">
                 <form id="form-alta-rapida" onsubmit="guardarLeadManual(event)">
+                    <!-- Tipo de Entidad Toggle (Enlazado MDM) -->
                     <div class="row mb-3">
-                        <div class="col-md-2 mb-2 mb-md-0">
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-light d-block">Tipo de Entidad (Enlazado MDM)</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="alta_tipo_entidad" id="alta_tipo_individuo" value="INDIVIDUAL" autocomplete="off" checked onchange="toggleTipoEntidadAlta()">
+                                <label class="btn btn-outline-secondary btn-sm" for="alta_tipo_individuo">👩‍⚕️ Individuo (Médico)</label>
+
+                                <input type="radio" class="btn-check" name="alta_tipo_entidad" id="alta_tipo_corporativo" value="CORPORATIVO" autocomplete="off" onchange="toggleTipoEntidadAlta()">
+                                <label class="btn btn-outline-secondary btn-sm" for="alta_tipo_corporativo">🏥 Clínica / Corporativo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-2 mb-2 mb-md-0" id="col-alta-titulo">
                             <label class="form-label fw-bold text-light">Título</label>
                             <select id="alta-titulo" class="form-select form-select-sm bg-dark text-light border-secondary">
                                 <option value="">--</option>
@@ -186,15 +200,15 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4 mb-4 mb-md-0">
+                        <div class="col-md-4 mb-4 mb-md-0" id="col-alta-nombre-pila">
                             <label class="form-label fw-bold text-light">Nombre(s) *</label>
                             <input type="text" id="alta-nombre-pila" required minlength="2" maxlength="100" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Ej. Juan">
                         </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
+                        <div class="col-md-3 mb-3 mb-md-0" id="col-alta-paterno">
                             <label class="form-label fw-bold text-light">A. Paterno *</label>
                             <input type="text" id="alta-apellido-paterno" required minlength="2" maxlength="100" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Ej. Pérez">
                         </div>
-                        <div class="col-md-3 mb-3 mb-md-0">
+                        <div class="col-md-3 mb-3 mb-md-0" id="col-alta-materno">
                             <label class="form-label fw-bold text-light">A. Materno</label>
                             <input type="text" id="alta-apellido-materno" maxlength="100" class="form-control form-control-sm bg-dark text-light border-secondary" placeholder="Ej. Gómez">
                         </div>

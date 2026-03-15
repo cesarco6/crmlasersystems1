@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ventanilla Express - Migración Histórica{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <a href="{% url 'director_ingesta' %}" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
+                ⚡ Ventanilla de Ingesta Histórica Express
+            </h3>
+            <p class="text-light small mb-0">Captura manual y unificada de registros históricos rezagados con validación estricta y ruteo a CoreLead en fase neutral.</p>
+        </div>
+    </div>
+
+    <!-- Alertas -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card border-0 shadow-sm border-top border-warning border-4">
+                <div class="card-header bg-white pt-4 pb-2">
+                    <h5 class="fw-bold text-warning-emphasis mb-0"><i class="bi bi-rocket-takeoff"></i> Inyección Directa a Cartera (Fase: CLIENTE)</h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form method="POST" action="{% url 'ingesta_express' %}">
+                        {% csrf_token %}
+
+                        <!-- Configuración -->
+                        <h6 class="fw-bold text-light mb-3 border-bottom pb-2">0. Configuración de Inyección</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Asignación de Propietario</label>
+                                <select class="form-select" name="vendedor_id">
+                                    <option value="">🤖 Asignación Automática (Equilibrada)</option>
+                                    {% for v in vendedores_list %}
+                                        <option value="{{ v.id }}">{{ v.username }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="text-light">Si lo dejas en automático, distribuye equitativamente</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Tipo de Entidad *</label>
+                                <select class="form-select" name="tipo_entidad" required>
+                                    <option value="INDIVIDUAL">👩‍⚕️ Individuo (Médico)</option>
+                                    <option value="CORPORATIVO">🏥 Clínica/Corporativo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Identidad -->
+                        <h6 class="fw-bold text-light mb-3 border-bottom pb-2">1. Identidad Atomizada (Fase 2)</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold">Título</label>
+                                <select class="form-select" name="titulo_cortesia">
+                                    <option value="">(Ninguno)</option>
+                                    {% for t in titulos_list %}
+                                        <option value="{{ t.id }}">{{ t.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-9">
+                                <label class="form-label small fw-bold">Nombre de Pila / Razón Social *</label>
+                                <input type="text" class="form-control" name="nombre_pila" value="" required placeholder="Obligatorio">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Ap. Paterno (Solo individuo)</label>
+                                <input type="text" class="form-control" name="apellido_paterno" value="" placeholder="Opcional">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Ap. Materno (Solo individuo)</label>
+                                <input type="text" class="form-control" name="apellido_materno" value="" placeholder="Opcional">
+                            </div>
+                        </div>
+
+                        <!-- Contacto -->
+                        <h6 class="fw-bold text-light mb-3 border-bottom pb-2">2. Contacto Inteligente</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Teléfono* (Para cotejar MDM)</label>
+                                <input type="text" class="form-control border-danger border-2" name="telefono" value="" required placeholder="10 dígitos min.">
+                                <small class="text-danger" style="font-size: 0.70rem;">Activará alarma estricta si detecta colisión.</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Celular / WhatsApp</label>
+                                <input type="text" class="form-control" name="celular" value="">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Email</label>
+                                <input type="email" class="form-control" name="email" value="">
+                            </div>
+                        </div>
+
+                        <!-- Catalogos -->
+                        <h6 class="fw-bold text-light mb-3 border-bottom pb-2">3. Clasificación Cruzada Estricta</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Especialidad *</label>
+                                <select class="form-select" name="especialidad_id" required>
+                                    <option value="">Selecciona...</option>
+                                    {% for esp in especialidades_list %}
+                                    <option value="{{ esp.id }}">{{ esp.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Ubicación (Región) *</label>
+                                <select class="form-select" name="ubicacion_id" required>
+                                    <option value="">Selecciona...</option>
+                                    {% for ub in ubicaciones_list %}
+                                    <option value="{{ ub.id }}">{{ ub.ciudad }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Botón Grande -->
+                        <div class="d-grid mt-5 pt-3 border-top">
+                            <button type="submit" class="btn btn-success btn-lg fw-bold" onclick="this.innerText='Validando MDM e Inyectando...';">
+                                <i class="bi bi-floppy"></i> 💾 Guardar Registro Histórico
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

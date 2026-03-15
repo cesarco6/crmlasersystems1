@@ -16,6 +16,19 @@ def default_notas_variadas():
         "columnas_excel_historicas": {}
     }
 
+class Clinica(models.Model):
+    nombre = models.CharField(max_length=200)
+    telefono_master = models.CharField(max_length=15, unique=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Clínica / Grupo'
+        verbose_name_plural = 'Clínicas y Grupos Corporativos'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return f"{self.nombre} ({self.telefono_master})"
+
 class CoreLead(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     owner = models.ForeignKey(User, on_delete=models.PROTECT, related_name='leads')
@@ -39,6 +52,7 @@ class CoreLead(models.Model):
     # --- NUEVOS CAMPOS RELACIONALES (Catálogos Limpios) ---
     especialidad_cat = models.ForeignKey(CatEspecialidad, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
     producto_cat = models.ForeignKey(CatProducto, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
+    clinica = models.ForeignKey(Clinica, on_delete=models.SET_NULL, null=True, blank=True, related_name='medicos')
     
     # Operación
     email = models.EmailField(blank=True, null=True)
@@ -131,6 +145,41 @@ class CoreLead(models.Model):
         self.owner_id = nuevo_owner_id
         self.plan = 'SEGUIMIENTO'
         self.next_action_date = timezone.now().date()
+
+class LeadStaging(models.Model):
+    ESTATUS_CHOICES = [
+        ('PENDIENTE', 'Pendiente de Revisión'),
+        ('RESUELTO', 'Resuelto / Inyectado'),
+        ('DESCARTADO', 'Descartado / Basura'),
+    ]
+    
+    # UUID para seguridad y ofuscación en URLs
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    
+    # Quién subió el archivo que contenía este registro defectuoso
+    owner = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads_staging')
+    
+    # La fila exacta de Excel convertida a diccionario JSON
+    datos_crudos = models.JSONField(default=dict)
+    
+    # Lo que el parser intentó deducir (Nombres atomizados, etc)
+    datos_parseados = models.JSONField(default=dict)
+    
+    # ¿Por qué este Lead cayó en Staging?
+    motivo_conflicto = models.TextField()
+    
+    estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='PENDIENTE')
+    
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+        verbose_name = 'Lead en Cuarentena'
+        verbose_name_plural = 'Leads en Cuarentena'
+
+    def __str__(self):
+        return f"Staging {self.id} - {self.estatus}"
 
 class FiscalProfile(models.Model):
     lead = models.OneToOneField(CoreLead, on_delete=models.CASCADE, related_name='perfil_fiscal')

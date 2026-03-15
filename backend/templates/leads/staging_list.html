@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Quirófano (Cuarentena) - CRM Laser Systems{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-12 d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="fw-bold text-danger">🩻 El Quirófano (Staging)</h2>
+                <p class="text-muted">Desentrañando los expedientes conflictivos de la migración histórica.</p>
+            </div>
+            <div>
+                <span class="badge bg-warning text-dark fs-5 p-3">
+                    En Cuarentena: {{ total_pendientes }} prospecto{{ total_pendientes|pluralize }}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4">Fecha Subida</th>
+                            <th>Diagnóstico (Motivo)</th>
+                            <th>Info Cruda Resaltada</th>
+                            <th>Operado Por</th>
+                            <th class="text-end pe-4">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lead in leads_staging %}
+                        <tr>
+                            <td class="ps-4">{{ lead.created_at|date:"d M Y H:i" }}</td>
+                            <td>
+                                <span class="badge bg-danger">{{ lead.motivo_conflicto }}</span>
+                            </td>
+                            <td>
+                                <small class="text-muted d-block"><b>Nom:</b> {{ lead.datos_crudos.nombre|default:"N/A"|truncatechars:35 }}</small>
+                                <small class="text-muted d-block"><b>Tel:</b> {{ lead.datos_crudos.telefono|default:"N/A" }} | <b>Esp:</b> {{ lead.datos_crudos.especialidad|default:"N/A" }}</small>
+                            </td>
+                            <td>{{ lead.owner.username|default:"Sistema" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'staging_procesar' pk=lead.pk %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-bandaid"></i> Operar Registro
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-5">
+                                <h4 class="text-success mb-3">✨ Quirófano Vacío ✨</h4>
+                                <p class="text-muted">No hay más prospectos estancados. Excelente trabajo.</p>
+                                <a href="{% url 'dashboard_agente' %}" class="btn btn-outline-primary mt-2">Volver al Inicio</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        {% if is_paginated %}
+        <div class="card-footer bg-white py-3">
+            <nav aria-label="Navegación de páginas">
+                <ul class="pagination mb-0 justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                    {% endif %}
+                    <li class="page-item disabled"><span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

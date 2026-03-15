@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}Ingesta Histórica | CRM Médico{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-history text-primary"></i> Migración de Históricos</h2>
+        <a href="{% url 'ingesta_express' %}" class="btn btn-warning fw-bold shadow-sm">
+            ⚡ Ingesta Express (Manual)
+        </a>    
+        <a href="{% url 'director_dashboard' %}" class="btn btn-outline-secondary">Volver al Dashboard</a>
+    </div>
+
+    <!-- Pestaña de Alertas -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- PASO 1: Subir Archivo -->
+    {% if not simulacion_activa %}
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3">Paso 1: Subir Plantilla (CSV o Excel)</h5>
+            <p class="text-muted small">El sistema analizará el archivo en memoria y generará un reporte de impacto antes de guardar cualquier dato.</p>
+            
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="simulate">
+                <div class="mb-3">
+                    <label for="archivo_historico" class="form-label fw-bold">Archivo de Carga</label>
+                    <input class="form-control" type="file" id="archivo_historico" name="archivo_historico" accept=".csv, .xls, .xlsx" required>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Analizar Documento
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- PASO 2: Resumen de Simulacro (Dry Run) -->
+    {% if simulacion_activa and reporte %}
+    <div class="alert alert-warning shadow-sm border-warning sticky-top z-index-1020">
+        <h4 class="alert-heading"><i class="fas fa-exclamation-triangle"></i> MODO SIMULACRO ACTIVO</h4>
+        <p class="mb-0">Los datos aún <strong>NO</strong> han sido guardados en la base de datos. Por favor revisa el impacto del documento a continuación.</p>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card text-center h-100 shadow-sm border-0 border-start border-4 border-secondary">
+                <div class="card-body py-3">
+                    <h6 class="text-light mb-1">Total Filas</h6>
+                    <h2 class="mb-0 fw-bold text-primary">{{ reporte.total_procesados }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100 shadow-sm border-0 border-start border-4 border-info">
+                <div class="card-body py-3">
+                    <h6 class="text-light mb-1">Clínicas Detectadas</h6>
+                    <h2 class="mb-0 fw-bold text-info">{{ reporte.clinicas_identificadas }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100 shadow-sm border-0 border-start border-4 border-success">
+                <div class="card-body py-3">
+                    <h6 class="text-light mb-1">Individuos Atomiz.</h6>
+                    <h2 class="mb-0 fw-bold text-success">{{ reporte.individuos_atomizados }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center h-100 shadow-sm border-0 border-start border-4 border-danger">
+                <div class="card-body py-3">
+                    <h6 class="text-light mb-1">Conflictos a Revisión</h6>
+                    <h2 class="mb-0 fw-bold text-danger">{{ reporte.siameses_revision_manual }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Vista Previa -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Previsualización de Inyección</h5>
+            <span class="badge bg-secondary">{{ reporte.detalles|length }} registros mapeados</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-hover table-sm mb-0 align-middle">
+                    <thead class="table-light sticky-top shadow-sm">
+                        <tr>
+                            <th>Original</th>
+                            <th>Tipo Parseo</th>
+                            <th>Resultado Final</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in reporte.detalles %}
+                        <tr>
+                            <td>
+                                <div class="fw-bold">{{ item.data.nombre }}</div>
+                                <div class="small text-muted"><i class="fas fa-phone"></i> {{ item.data.telefono }}</div>
+                            </td>
+                            <td>
+                                {% if item.tipo == 'CORPORATIVO' %}
+                                    <span class="badge bg-info">CORPORATIVO</span>
+                                {% elif item.tipo == 'INDIVIDUAL' %}
+                                    <span class="badge bg-success">INDIVIDUAL</span>
+                                {% elif item.tipo == 'ERROR' %}
+                                    <span class="badge bg-dark">DESCARTADO</span>
+                                {% else %}
+                                    <span class="badge bg-danger">CONFLICTO MDM</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.tipo == 'CORPORATIVO' %}
+                                    Clínica: <strong>{{ item.nombre_inyectado }}</strong>
+                                {% elif item.tipo == 'INDIVIDUAL' %}
+                                    Pila: <strong>{{ item.pila }}</strong><br>
+                                    Apellidos: {{ item.paterno }} {{ item.materno }}
+                                {% else %}
+                                    <span class="text-danger small"><i class="fas fa-info-circle"></i> {{ item.motivo }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Acciones Finales -->
+    <div class="d-flex justify-content-end gap-3 p-3 bg-light border rounded shadow-sm">
+        <form method="POST" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="cancel">
+            <input type="hidden" name="file_uuid" value="{{ file_uuid }}">
+            <button type="submit" class="btn btn-outline-danger">Cancelar y Limpiar</button>
+        </form>
+
+        <form method="POST" class="d-inline">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="commit">
+            <input type="hidden" name="file_uuid" value="{{ file_uuid }}">
+            <button type="submit" class="btn btn-success fw-bold px-4">
+                <i class="fas fa-cloud-upload-alt"></i> Confirmar Inyección en BD
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

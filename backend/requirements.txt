@@ -16,3 +16,5 @@ python-dotenv>=1.0.1  # Permite leer variables de entorno desde un archivo .env 
 Pillow>=10.2.0  # Librería de procesamiento de imágenes (útil para avatares en UserProfile).
 django-fsm==3.0.1
 django-q2>=1.6.0
+pandas>=2.0.0
+openpyxl>=3.1.0
