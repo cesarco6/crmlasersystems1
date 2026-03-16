@@ -792,6 +792,7 @@ def procesar_ingesta_masiva(request):
                     "fecha": localtime(now()).strftime("%Y-%m-%d %H:%M")
                 })
 
+            from leads.services.common_services import obtener_catalogos_limpios
             esp_obj, prod_obj = obtener_catalogos_limpios(especialidad, producto_interes)
 
             # Lógica de Arbitraje de 4 Casos
@@ -873,117 +874,26 @@ def procesar_alta_manual(request):
     
     try:
         data = json.loads(request.body)
+        from leads.services.lead_creation_service import crear_prospecto_core
         
-        # 1. Extraemos los datos del Modal
-        telefono = str(data.get('telefono', '')).strip()
-        celular = str(data.get('celular', '')).strip()
-        email = str(data.get('email', '')).strip()
+        # Delegamos TODA la lógica al Service Layer
+        resultado = crear_prospecto_core(data, request.user)
         
-        # --- ATOMICIDAD Y TIPO DE ENTIDAD ---
-        tipo_entidad = data.get('tipo_entidad', 'INDIVIDUAL')
-        titulo_id = data.get('titulo_cortesia')
-        nombre_pila = str(data.get('nombre_pila', '')).strip()
-        apellido_paterno = str(data.get('apellido_paterno', '')).strip()
-        apellido_materno = str(data.get('apellido_materno', '')).strip()
-
-        valor_especialidad = str(data.get('especialidad', 'No especificada')).strip()
-        valor_producto = str(data.get('producto', 'No especificado')).strip()
-        valor_ubicacion = str(data.get('ubicacion', 'Desconocida')).strip()
-        
-        # Concatenación inteligente para MDM
-        titulo_obj = CatTitulo.objects.filter(id=titulo_id).first() if titulo_id else None
-        
-        nombre_concatenado = ""
-        if tipo_entidad == 'CORPORATIVO':
-            nombre_concatenado = nombre_pila
-        else:
-            partes_nombre = []
-            if nombre_pila: partes_nombre.append(nombre_pila)
-            if apellido_paterno: partes_nombre.append(apellido_paterno)
-            if apellido_materno: partes_nombre.append(apellido_materno)
-            nombre_concatenado = " ".join(partes_nombre)
-        
-        # ==========================================
-        #  MÓDULO: RESOLUCIÓN DE IDENTIDAD (MDM)
-        # ==========================================
-        if not nombre_concatenado:
-            return JsonResponse({"error": "El nombre es obligatorio."}, status=400)
-            
-        from .mdm_services import evaluar_duplicidad_estricta
-        estatus_identidad, resultado_identidad = evaluar_duplicidad_estricta(
-            nombre_concatenado, telefono, valor_especialidad, valor_ubicacion, CoreLead
-        )
-        
-        if estatus_identidad == 'ERROR':
-            return JsonResponse({"error": resultado_identidad}, status=400)
-            
-        elif estatus_identidad == 'DUPLICADO':
-            dueño_actual = resultado_identidad.owner.username if resultado_identidad.owner else 'Sin asignar'
+        if resultado.get("success"):
             return JsonResponse({
-                "error": f"⚠️ Posible Duplicado: Un registro similar ({resultado_identidad.nombre}) ya usa este teléfono. Pertenece a la cartera de {dueño_actual}."
-            }, status=400)
-            
-        telefono_limpio = resultado_identidad
-        
-        # ==========================================
-
-        especialidad_obj, producto_obj = obtener_catalogos_limpios(valor_especialidad, valor_producto)
-
-        ubicacion_obj, created = CatUbicacion.objects.get_or_create(
-            ciudad=valor_ubicacion, 
-            defaults={'estado': valor_ubicacion, 'is_active': True}
-        )
-
-        # 3. Creamos el Lead bifurcado (Clínica vs Individuo)
-        from .models import Clinica
-        
-        if tipo_entidad == 'CORPORATIVO':
-            clinica_obj, _ = Clinica.objects.get_or_create(
-                telefono_master=telefono_limpio,
-                defaults={'nombre': nombre_concatenado}
-            )
-            nuevo_lead = CoreLead.objects.create(
-                owner=request.user,
-                ubicacion=ubicacion_obj,
-                especialidad_cat=especialidad_obj,
-                producto_cat=producto_obj,
-                estatus='PROSPECTO',
-                phone_primary=telefono_limpio,
-                celular=celular[:15],
-                email=email,
-                nombre=nombre_concatenado[:100], 
-                nombre_pila=nombre_concatenado[:100],
-                clinica=clinica_obj,
-                notas_variadas={"notas": [], "columnas_excel_historicas": {}}
-            )
+                'status': 'success', 
+                'mensaje': resultado.get("mensaje", "Creado con éxito"),
+                'lead_id': resultado.get("lead_id")
+            })
         else:
-            nuevo_lead = CoreLead.objects.create(
-                owner=request.user,
-                ubicacion=ubicacion_obj,
-                especialidad_cat=especialidad_obj,
-                producto_cat=producto_obj,
-                estatus='PROSPECTO',
-                phone_primary=telefono_limpio,
-                celular=celular[:15],
-                email=email,
-                nombre=nombre_concatenado[:100],
-                titulo_cortesia=titulo_obj,
-                nombre_pila=nombre_pila[:100],
-                apellido_paterno=apellido_paterno[:100],
-                apellido_materno=apellido_materno[:100],
-                notas_variadas={"notas": [], "columnas_excel_historicas": {}}
-            )
-
-        return JsonResponse({
-            'status': 'success', 
-            'mensaje': 'Prospecto creado exitosamente',
-            'lead_id': str(nuevo_lead.id)
-        })
+            return JsonResponse({"error": resultado.get("error")}, status=resultado.get("status_code", 400))
 
     except json.JSONDecodeError:
         return JsonResponse({"error": "Datos inválidos enviados desde el formulario."}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
 @login_required
 @require_POST
 def actualizar_lead_fsm(request, pk):
@@ -992,254 +902,23 @@ def actualizar_lead_fsm(request, pk):
     
     try:
         data = json.loads(request.body)
-        accion = data.get('accion') 
-        lead = get_object_or_404(CoreLead, id=pk)
+        from leads.services.fsm_services import procesar_transicion_fsm
         
-        # --- REGLA: DESECHAR (ELIMINAR) ---
-        if accion == 'DESECHAR':
-            if lead.estatus == 'PROSPECTO':
-                lead.delete() 
-                return JsonResponse({"status": "deleted", "mensaje": "Prospecto desechado y eliminado de la base de datos."})
-            else:
-                return JsonResponse({"error": "Solo puedes desechar prospectos en Fase 1."}, status=400)
-
-        # 1. ACTUALIZAR DATOS BASE (Candado de Integridad DDS)
-        # Datos de Enriquecimiento (Siempre editables)
-        lead.celular = data.get('celular', lead.celular)
-        lead.email = data.get('email', lead.email)
-        lead.direccion_completa = data.get('direccion', lead.direccion_completa)
+        resultado = procesar_transicion_fsm(pk, data, request.user)
         
-      # Datos de Identidad (Solo editables en Fase 1)
-        if lead.estatus == 'PROSPECTO':
-            from leads.models import Clinica # Aseguramos importación
-
-            # --- CAPTURA DE TIPO DE ENTIDAD ---
-            tipo_entidad = data.get('tipo_entidad', 'INDIVIDUAL')
-            
-            # --- CAPTURA ATÓMICA DE IDENTIDAD ---
-            titulo_id = data.get('titulo_cortesia')
-            nombre_pila = str(data.get('nombre_pila', '')).strip()
-            apellido_paterno = str(data.get('apellido_paterno', '')).strip()
-            apellido_materno = str(data.get('apellido_materno', '')).strip()
-
-            if tipo_entidad == 'CORPORATIVO':
-                telefono = data.get('telefono', lead.phone_primary)
-                clinica, _ = Clinica.objects.get_or_create(
-                    telefono_master=telefono,
-                    defaults={'nombre': nombre_pila}
-                )
-                lead.clinica = clinica
-                lead.titulo_cortesia = None
-                lead.apellido_paterno = ''
-                lead.apellido_materno = ''
-                lead.nombre_pila = nombre_pila[:100]
-                
-                # Respaldo histórico para corporativo
-                lead.nombre = nombre_pila[:100] 
-            else:
-                # Guardado Atómico Directo para INDIVIDUAL
-                lead.clinica = None # Limpiamos por si antes era corporativo
-                
-                if titulo_id:
-                    lead.titulo_cortesia_id = titulo_id
-                else:
-                    lead.titulo_cortesia = None
-                    
-                lead.nombre_pila = nombre_pila[:100]
-                lead.apellido_paterno = apellido_paterno[:100]
-                lead.apellido_materno = apellido_materno[:100]
-
-                # REGLA ESTRICTA: Concatenación para Backup histórico (SIN EL TÍTULO)
-                partes_nombre = []
-                if nombre_pila: partes_nombre.append(nombre_pila)
-                if apellido_paterno: partes_nombre.append(apellido_paterno)
-                if apellido_materno: partes_nombre.append(apellido_materno)
-                
-                lead.nombre = " ".join(partes_nombre)[:100]
-
-            lead.phone_primary = data.get('telefono', lead.phone_primary)
-            # --- USAMOS LA ADUANA PARA GUARDAR LOS SELECTS DEL VENDEDOR ---
-            texto_esp = data.get('especialidad', lead.especialidad_cat.nombre if lead.especialidad_cat else 'General')
-            texto_prod = data.get('producto', lead.producto_cat.nombre if lead.producto_cat else 'Por Definir / Otro')
-            
-            esp_obj, prod_obj = obtener_catalogos_limpios(texto_esp, texto_prod)
-            
-            lead.especialidad_cat = esp_obj
-            lead.producto_cat = prod_obj
-            
-            # Borramos el guardado en los campos viejos de texto libre
-            #lead.especialidad = data.get('especialidad', lead.especialidad)
-            #lead.producto_interes = data.get('producto', lead.producto_interes)
-
-            # --- NUEVO: ACTUALIZAR CATÁLOGOS (CANDADO ESTRICTO) ---
-            nueva_esp_str = data.get('especialidad', '').strip()
-            if nueva_esp_str:
-                esp_obj = CatEspecialidad.objects.filter(nombre__iexact=nueva_esp_str).first()
-                if esp_obj: lead.especialidad_cat = esp_obj
-                else: return JsonResponse({"error": f"La especialidad '{nueva_esp_str}' no existe."}, status=400)
-            
-            nuevo_prod_str = data.get('producto', '').strip()
-            if nuevo_prod_str:
-                prod_obj = CatProducto.objects.filter(nombre__iexact=nuevo_prod_str).first()
-                if prod_obj: lead.producto_cat = prod_obj
-                else: return JsonResponse({"error": f"El producto '{nuevo_prod_str}' no existe."}, status=400)
-        
-        # 2. LA MÁQUINA DE ESTADOS
-        if accion == 'VALIDAR':
-            if lead.estatus == 'PROSPECTO':
-                lead.validar_identidad()
-                lead.notas_variadas.setdefault("notas", []).append({
-                    "tipo": "sistema",
-                    "contenido": "Identidad Validada: Avanzó a LEAD.",
-                    "fecha": localtime(now()).isoformat()
-                })
-
-        elif accion == 'DESCARTAR':
-            motivo = data.get('motivo', 'Sin motivo especificado')
-            lead.plan = 'DESCARTADO'
-            lead.next_action_date = None
-            lead.notas_variadas.setdefault("notas", []).append({
-                "tipo": "contacto",
-                "contenido": f"Descartado: {motivo}",
-                "fecha": localtime(now()).isoformat()
+        if resultado.get("success"):
+            return JsonResponse({
+                "status": resultado.get("status", "success"), # Soporte para status="deleted"
+                "mensaje": resultado.get("mensaje"),
+                "nuevo_estatus": resultado.get("nuevo_estatus")
             })
-            
-        elif accion == 'CALIFICAR':
-            texto_calificacion = data.get('calificacion')
-            
-            # EL TRADUCTOR: Mapeamos los textos a números (int4)
-            mapa = {'Alta': 3, 'Media': 2, 'Baja': 1}
-            
-            if texto_calificacion in mapa:
-                lead.calificacion = mapa[texto_calificacion] # Guarda el número en la DB
-                
-                # Ejecutar la transición de la Máquina de Estados si el lead está en Fase 2
-                if lead.estatus == 'LEAD':
-                    try:
-                        lead.calificar_lead()
-                    except Exception as e:
-                        return JsonResponse({"error": str(e)}, status=400)
-                
-                lead.notas_variadas.setdefault("notas", []).append({
-                    "tipo": "sistema",
-                    "contenido": f"Lead calificado como: {texto_calificacion}", # Muestra el texto al vendedor
-                    "fecha": localtime(now()).isoformat()
-                })
-            else:
-                return JsonResponse({"error": "Calificación inválida."}, status=400)
+        else:
+            return JsonResponse({"error": resultado.get("error")}, status=resultado.get("status_code", 400))
 
-        elif accion == 'AGENDAR':
-            fecha_contacto_str = data.get('fecha_contacto')
-            if not fecha_contacto_str:
-                return JsonResponse({"error": "La fecha es obligatoria."}, status=400)
-            
-            # Convertir a objeto date y calcular diferencia
-            fecha_contacto = datetime.strptime(fecha_contacto_str, '%Y-%m-%d').date()
-            hoy = localtime(now()).date()
-            dias_diferencia = (fecha_contacto - hoy).days
-            
-            lead.next_action_date = fecha_contacto
-            
-            # REGLA DDS: Gatillo Inteligente de 30 días
-            if dias_diferencia <= 30:
-                lead.plan = 'SEGUIMIENTO'
-                mensaje_nota = f"🗓️ Acción a corto plazo: {fecha_contacto_str} (Continúa en Seguimiento)"
-            else:
-                lead.plan = 'EN_ESPERA'
-                mensaje_nota = f"⏸️ Pausado a largo plazo: {fecha_contacto_str} (Pasa a En Espera)"
-            
-            lead.notas_variadas.setdefault("notas", []).append({
-                "tipo": "sistema",
-                "contenido": mensaje_nota,
-                "fecha": localtime(now()).isoformat()
-            })
-            
-        elif accion == 'AGREGAR_NOTA':
-            nueva_nota = data.get('nota')
-            if not nueva_nota:
-                return JsonResponse({"error": "La nota no puede estar vacía."}, status=400)
-            
-            lead.notas_variadas.setdefault("notas", []).append({
-                "tipo": "contacto", # 'contacto' es manual del vendedor, 'sistema' es de la FSM
-                "contenido": nueva_nota.strip(),
-                "fecha": localtime(now()).isoformat()
-            })
-
-        elif accion == 'AGREGAR_NOTA':
-            nueva_nota = data.get('nota')
-            if not nueva_nota:
-                return JsonResponse({"error": "La nota no puede estar vacía."}, status=400)
-            
-            lead.notas_variadas.setdefault("notas", []).append({
-                "tipo": "contacto",
-                "contenido": nueva_nota.strip(),
-                "fecha": localtime(now()).isoformat()
-            })
-
-        elif accion == 'CERRAR_VENTA':
-            # 1. Extraer datos fiscales enviados desde el modal
-            rfc_val = data.get('rfc', '').strip().upper()
-            razon_val = data.get('razon_social', '').strip().upper()
-            regimen_val = data.get('regimen_fiscal', '').strip()
-            
-            if not rfc_val or not razon_val or not regimen_val:
-                return JsonResponse({"error": "Faltan datos fiscales obligatorios para cerrar la venta."}, status=400)
-            
-            # 2. Crear o Actualizar el Perfil Fiscal
-            from leads.models import FiscalProfile
-            perfil, created = FiscalProfile.objects.get_or_create(lead=lead)
-            perfil.rfc = rfc_val
-            perfil.razon_social = razon_val
-            perfil.regimen_fiscal = regimen_val
-            perfil.save()
-
-            # 3. Transición oficial en la Máquina de Estados (DDS)
-            # NUEVO: Inyectar explícitamente la relación en la caché del objeto para la validación FSM
-            lead.perfil_fiscal = perfil
-
-            try:
-                lead.formalizar_cliente()
-            except Exception as e:
-                return JsonResponse({"error": str(e)}, status=400)
-            
-            # 4. Dejar la miga de pan histórica obligatoria
-            #timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
-            timestamp = localtime(now()).strftime("%Y-%m-%d %H:%M")
-            
-            if not isinstance(lead.notas_variadas, dict):
-                lead.notas_variadas = {"notas": []}
-            if "notas" not in lead.notas_variadas:
-                lead.notas_variadas["notas"] = []
-                
-            lead.notas_variadas["notas"].append({
-                "fecha": timestamp,
-                "tipo": "sistema",
-                "contenido": f"🏆 ¡VENTA CERRADA! RFC capturado: {rfc_val}. El prospecto se ha convertido oficialmente en CLIENTE."
-            })
-            lead.save()
-            return JsonResponse({'status': 'success', 'mensaje': '¡Venta cerrada con éxito!'})
-            
-
-        # 3. GUARDADO FINAL
-        lead.save()
-        
-        return JsonResponse({
-            "status": "success", 
-            "mensaje": f"Operación {accion} realizada con éxito.",
-            "nuevo_estatus": lead.estatus
-        })
-
-        # 3. GUARDADO FINAL
-        lead.save()
-        
-        return JsonResponse({
-            "status": "success", 
-            "mensaje": f"Operación {accion} realizada con éxito.",
-            "nuevo_estatus": lead.estatus
-        })
-        
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Datos inválidos enviados desde el formulario."}, status=400)
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=400)
+        return JsonResponse({"error": str(e)}, status=500)
 
 @login_required
 @require_POST
@@ -1533,146 +1212,23 @@ def director_dashboard_view(request):
     }
     
     return render(request, 'director_dashboard.html', context)
-    # --- 1. CAPTURAR FILTROS DE LA URL ---
-    filtro_estado = request.GET.get('estado', '')
-    filtro_especialidad = request.GET.get('especialidad', '')
-    filtro_producto = request.GET.get('producto', '')
-    filtro_vendedor = request.GET.get('vendedor', '')
+@login_required
+@user_passes_test(es_director, login_url='dashboard_agente')
+def director_dashboard_view(request):
+    from leads.services.dashboard_services import obtener_metricas_director
     
-    lista_vendedores = User.objects.filter(is_superuser=False, is_active=True).values_list('username', flat=True).order_by('username')
-   
-    # --- 2. APLICAR FILTROS A LA CONSULTA BASE ---
-    qs = CoreLead.objects.all()
-    
-    if filtro_estado:
-        qs = qs.filter(ubicacion__estado__iexact=filtro_estado)
-    if filtro_especialidad:
-        qs = qs.filter(especialidad__iexact=filtro_especialidad)
-    if filtro_producto:
-        qs = qs.filter(producto_interes__iexact=filtro_producto)
-    if filtro_vendedor:
-        # En CoreLead la fk es owner
-        qs = qs.filter(owner__username__iexact=filtro_vendedor)
-
-    # --- 3. EXTRAER OPCIONES ÚNICAS PARA LOS DROPDOWNS ---
-    # Obtenemos los valores únicos de toda la BD (sin filtrar) para llenar los combos
-    lista_estados = CatUbicacion.objects.exclude(estado='').values_list('estado', flat=True).distinct().order_by('estado')
-    lista_especialidades = CoreLead.objects.exclude(especialidad='').values_list('especialidad', flat=True).distinct().order_by('especialidad')
-    lista_productos = CoreLead.objects.exclude(producto_interes='').values_list('producto_interes', flat=True).distinct().order_by('producto_interes')
-    
-    # Lista de vendedores (usuarios que no son superusers y están activos)
-    lista_vendedores = User.objects.filter(is_superuser=False, is_active=True).values_list('username', flat=True).order_by('username')
-
-    # --- 4. KPIs GLOBALES (Usando el qs filtrado) ---
-    total_leads = qs.count()
-    total_historicos = qs.filter(estatus='Histórico').count()
-    total_vendedores_metric = lista_vendedores.count()
-
-    # === KPIs SEMANALES ESTRICTOS (Últimos 7 días) ===
-    hace_7_dias = localtime(now()) - timedelta(days=7)
-
-    # 1. BASE: Todo lo que tuvo movimiento de trabajo esta semana
-    base_semana = qs.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
-
-    # KPI 1: Volumen de trabajo (Promedio de leads tocados por ejecutivo en la semana)
-    total_trabajados_semana = base_semana.count()
-    vendedores_activos = total_vendedores_metric
-    volumen_promedio = round(total_trabajados_semana / vendedores_activos, 1) if vendedores_activos > 0 else 0
-
-    # KPI 2: Tasa de calidad (Número de Leads descartados)
-    # Regla: plan = 'descartado'
-    tasa_calidad = base_semana.filter(plan__iexact='descartado').count()
-
-    # KPI 3: Tasa de prospección (Posibilidad de venta)
-    # Regla: calificacion en ['media', 'alta'] -> mapeado a [2, 3] en DB
-    tasa_prospeccion = base_semana.filter(calificacion__in=[2, 3]).count()
-
-    # KPI 4: Índice de Venta (Ventas realizadas)
-    # Regla: estatus = 'cliente'
-    indice_venta = base_semana.filter(estatus__iexact='cliente').count()
-
-    # --- 6. DATOS PARA GRÁFICAS MULTIDIMENSIONALES ---
-    
-    # Función auxiliar para extraer listas de Chart.js
-    def procesar_agrupacion(query_result, campo_label):
-        labels = []
-        rechazos, seguimientos, calificados, ventas = [], [], [], []
-        for fila in query_result:
-            # Manejo de nulos o vacíos
-            etiqueta = fila[campo_label]
-            if not etiqueta: etiqueta = 'Desconocido / Sin Asignar'
-            
-            labels.append(str(etiqueta))
-            rechazos.append(fila['total_rechazos'])
-            seguimientos.append(fila['total_seguimientos'])
-            calificados.append(fila['total_calificados'])
-            ventas.append(fila['total_ventas'])
-        return labels, rechazos, seguimientos, calificados, ventas
-
-    # Condiciones de negocio exactas
-    q_rechazo = Q(plan__iexact='descartado')
-    q_seguimiento = Q(plan__iexact='seguimiento')
-    q_calificado = Q(calificacion__in=[2, 3])
-    q_venta = Q(estatus__iexact='cliente')
-
-    # 1. Agrupación por Vendedor
-    stats_vendedor = qs.values('owner__username').annotate(
-        total_rechazos=Count('id', filter=q_rechazo),
-        total_seguimientos=Count('id', filter=q_seguimiento),
-        total_calificados=Count('id', filter=q_calificado),
-        total_ventas=Count('id', filter=q_venta)
-    ).order_by('owner__username')
-    v_labels, v_rech, v_seg, v_cal, v_ven = procesar_agrupacion(stats_vendedor, 'owner__username')
-
-    # 2. Agrupación por Ubicación (Estado)
-    stats_ubicacion = qs.values('ubicacion__estado').annotate(
-        total_rechazos=Count('id', filter=q_rechazo),
-        total_seguimientos=Count('id', filter=q_seguimiento),
-        total_calificados=Count('id', filter=q_calificado),
-        total_ventas=Count('id', filter=q_venta)
-    ).order_by('ubicacion__estado')
-    u_labels, u_rech, u_seg, u_cal, u_ven = procesar_agrupacion(stats_ubicacion, 'ubicacion__estado')
-
-    # 3. Agrupación por Especialidad Médica
-    stats_especialidad = qs.values('especialidad').annotate(
-        total_rechazos=Count('id', filter=q_rechazo),
-        total_seguimientos=Count('id', filter=q_seguimiento),
-        total_calificados=Count('id', filter=q_calificado),
-        total_ventas=Count('id', filter=q_venta)
-    ).order_by('especialidad')
-    e_labels, e_rech, e_seg, e_cal, e_ven = procesar_agrupacion(stats_especialidad, 'especialidad')
-
-    # --- 7. CONTEXTO ---
-    context = {
-        # Listas para pintar los selects
-        'estados': lista_estados,
-        'especialidades': lista_especialidades,
-        'productos': lista_productos,
-        'vendedores': lista_vendedores,
-        
-        # Valores seleccionados actualmente para dejarlos marcados
-        'filtro_estado': filtro_estado,
-        'filtro_especialidad': filtro_especialidad,
-        'filtro_producto': filtro_producto,
-        'filtro_vendedor': filtro_vendedor,
-
-        # Métricas Globales
-        'total_leads': total_leads,
-        'total_historicos': total_historicos,
-        'total_vendedores': total_vendedores_metric,
-        
-        # Métricas Semanales
-        'volumen_promedio': volumen_promedio,
-        'tasa_calidad': tasa_calidad,
-        'tasa_prospeccion': tasa_prospeccion,
-        'indice_venta': indice_venta,
-
-        # Gráficas JSON
-        'chart_v_labels': json.dumps(v_labels), 'chart_v_rech': json.dumps(v_rech), 'chart_v_seg': json.dumps(v_seg), 'chart_v_cal': json.dumps(v_cal), 'chart_v_ven': json.dumps(v_ven),
-        'chart_u_labels': json.dumps(u_labels), 'chart_u_rech': json.dumps(u_rech), 'chart_u_seg': json.dumps(u_seg), 'chart_u_cal': json.dumps(u_cal), 'chart_u_ven': json.dumps(u_ven),
-        'chart_e_labels': json.dumps(e_labels), 'chart_e_rech': json.dumps(e_rech), 'chart_e_seg': json.dumps(e_seg), 'chart_e_cal': json.dumps(e_cal), 'chart_e_ven': json.dumps(e_ven),
+    # 1. Recolectar parámetros HTTP
+    filtros = {
+        'estado': request.GET.get('estado', ''),
+        'especialidad': request.GET.get('especialidad', ''),
+        'producto': request.GET.get('producto', ''),
+        'vendedor': request.GET.get('vendedor', '')
     }
     
+    # 2. Delegar el cálculo pesado al Service Layer
+    context = obtener_metricas_director(filtros)
+    
+    # 3. Renderizar la vista
     return render(request, 'director_dashboard.html', context)
 
 def marcar_alerta_leida(request, alerta_id):
