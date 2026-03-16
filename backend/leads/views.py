@@ -1521,3 +1521,83 @@ def api_crear_evento(request):
         
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def actualizar_estatus_venta_extra(request, venta_id):
+    """
+    Endpoint para actualizar el estatus de una VentaTransaccional (Oportunidad 360°).
+    Inyecta una miga de pan en notas_variadas del CoreLead asociado.
+    """
+    try:
+        data = json.loads(request.body)
+        nuevo_estatus = data.get('estatus')
+
+        # Validación de estatus permitido
+        from .models import VentaTransaccional
+        estatus_validos = [choice[0] for choice in VentaTransaccional.ESTATUS_CHOICES]
+        if nuevo_estatus not in estatus_validos:
+            return JsonResponse({"error": f"Estatus '{nuevo_estatus}' no es válido."}, status=400)
+
+        venta = get_object_or_404(VentaTransaccional, id=venta_id)
+
+        # --- Guardia de Flujo Unidireccional ---
+        TRANSICIONES_PERMITIDAS = {
+            'PENDIENTE':   ['EN_GESTION'],
+            'EN_GESTION':  ['CONCRETADO', 'DESCARTADO'],
+            'CONCRETADO':  [],   # Estado terminal
+            'DESCARTADO':  [],   # Estado terminal
+        }
+
+        transiciones_validas = TRANSICIONES_PERMITIDAS.get(venta.estatus, [])
+        if nuevo_estatus not in transiciones_validas:
+            return JsonResponse({
+                "error": f"Transición no permitida: {venta.get_estatus_display()} → {nuevo_estatus}. "
+                         f"Solo puedes avanzar a: {', '.join(transiciones_validas) or 'Ninguno (estado final)'}."
+            }, status=400)
+
+        estatus_anterior = venta.get_estatus_display()
+
+        # Actualizar el estatus
+        venta.estatus = nuevo_estatus
+        venta.save(update_fields=['estatus'])
+
+        # --- Inyectar miga de pan en el historial del Lead ---
+        lead = venta.lead
+        timestamp = localtime(now()).strftime("%Y-%m-%d %H:%M")
+
+        nueva_nota = {
+            "fecha": timestamp,
+            "tipo": "sistema",
+            "contenido": f"🔄 Oportunidad 360° actualizada: {venta.producto.nombre} — {estatus_anterior} → {venta.get_estatus_display()}."
+        }
+
+        if not isinstance(lead.notas_variadas, dict):
+            lead.notas_variadas = {"notas": []}
+        if "notas" not in lead.notas_variadas:
+            lead.notas_variadas["notas"] = []
+
+        lead.notas_variadas["notas"].append(nueva_nota)
+
+        # --- Nota opcional del vendedor ---
+        nota_vendedor = data.get('nota', '').strip()
+        if nota_vendedor:
+            nota_humana = {
+                "fecha": timestamp,
+                "tipo": "vendedor",
+                "contenido": f"📝 [{venta.producto.nombre}] {nota_vendedor}"
+            }
+            lead.notas_variadas["notas"].append(nota_humana)
+
+        lead.save(update_fields=['notas_variadas'])
+
+        return JsonResponse({
+            "status": "success",
+            "mensaje": f"Estatus actualizado a {venta.get_estatus_display()}."
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "JSON inválido."}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

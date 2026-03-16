@@ -20,7 +20,7 @@ from django.views.generic import RedirectView
 from leads import views as leads_views
 
 # 1. Agregamos "procesar_alta_manual" a la lista de importaciones
-from leads.views import DashboardAgenteView, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView
+from leads.views import DashboardAgenteView, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra
 from users.views import panel_territorios, custom_login_view, custom_logout_view, api_territorios_vendedor
 
 urlpatterns = [
@@ -56,6 +56,7 @@ urlpatterns = [
     # 2. La nueva ruta que escuchará a nuestro Modal
     path('api/alta-manual/', procesar_alta_manual, name='api_alta_manual'),
     path('api/venta-extra/', registrar_venta_extra, name='registrar_venta_extra'),
+    path('api/venta-extra/<int:venta_id>/actualizar/', actualizar_estatus_venta_extra, name='api_actualizar_venta_extra'),
     
     path('alta/', AltaIndividualView.as_view(), name='alta_individual'),
     path('trabajo/<uuid:pk>/', FichaTrabajoView.as_view(), name='ficha_trabajo'),
