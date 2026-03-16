@@ -1,0 +1,113 @@
+{# templates/partials/modals/_modal_venta_extra.html #}
+{# Componente DRY: Modal de Registrar Oportunidad 360° (Venta Cruzada) #}
+{# Dependencias: modals.css, ficha_trabajo.js (filtrarProductos360, guardarOportunidad360) #}
+{# Contexto requerido: productos_list (con familia: ACCESORIO, SERVICIO, EVENTO) #}
+
+<div id="modal-venta-extra" class="modal-overlay d-none">
+    <div class="modal-box modal-box--medium">
+        {# ===== HEADER ===== #}
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="m-0 text-light fs-5">🎯 Registrar Oportunidad 360°</h3>
+            <span onclick="cerrarModal('modal-venta-extra')"
+                  class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
+        </div>
+
+        {# ===== BODY ===== #}
+        <div class="card-body">
+
+            {# --- Fila 1: Tipo de Oportunidad (Cascada Padre) --- #}
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label text-secondary mb-2 d-block small">
+                        Tipo de Oportunidad *
+                    </label>
+                    <select id="select-tipo-extra"
+                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            onchange="filtrarProductos360()" required>
+                        <option value="">-- Selecciona el Tipo --</option>
+                        <option value="ACCESORIO">💰 Venta Adicional (Cross-Sell)</option>
+                        <option value="SERVICIO">🔧 Mantenimiento / Servicio</option>
+                        <option value="EVENTO">🎉 Evento / Capacitación</option>
+                    </select>
+                </div>
+            </div>
+
+            {# --- Fila 2: Producto/Servicio (Cascada Hijo) --- #}
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label text-secondary mb-2 d-block small">
+                        Producto/Servicio *
+                    </label>
+                    <select id="extra-producto"
+                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            disabled required>
+                        <option value="">-- Selecciona primero el Tipo --</option>
+                        {% for prod in productos_list %}
+                            {% if prod.familia in 'ACCESORIO,SERVICIO,EVENTO' %}
+                                <option value="{{ prod.id }}"
+                                        data-familia="{{ prod.familia }}"
+                                        class="d-none">
+                                    {{ prod.nombre }}
+                                </option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            {# --- Fila 3: Estatus --- #}
+            <div class="row mb-3">
+                <div class="col-12">
+                    <label class="form-label text-secondary mb-2 d-block small">Estatus *</label>
+                    <select id="extra-estatus"
+                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            required>
+                        <option value="PENDIENTE">🟡 Pendiente (Por contactar)</option>
+                        <option value="EN_GESTION">🔵 En Gestión (Contactado / Negociando)</option>
+                        <option value="CONCRETADO">🟢 Concretado (Ganado / Pagado)</option>
+                        <option value="DESCARTADO">🔴 Descartado (Perdido / No le interesa)</option>
+                    </select>
+                </div>
+            </div>
+
+            {# --- Fila 4: Respuestas Rápidas --- #}
+            <div class="row mb-2">
+                <div class="col-12">
+                    <label class="form-label text-secondary mb-2 d-block small">Respuestas Rápidas</label>
+                    <select class="form-select form-select-sm bg-dark text-light border-secondary"
+                            onchange="insertarRespuestaRapida(this, 'extra-notas')">
+                        <option value="">-- Selecciona --</option>
+                        <option value="Manda a buzón">Manda a buzón</option>
+                        <option value="No contesta">No contesta</option>
+                        <option value="Número equivocado">Número equivocado</option>
+                        <option value="Interesado, pide llamar más tarde">Interesado, pide llamar más tarde</option>
+                        <option value="Se envió información por WhatsApp">Se envió información por WhatsApp</option>
+                        <option value="Sin presupuesto por el momento">Sin presupuesto por el momento</option>
+                        <option value="Rechazo Definitivo">Rechazo Definitivo</option>
+                    </select>
+                </div>
+            </div>
+
+            {# --- Fila 5: Notas obligatorias --- #}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label class="form-label text-secondary mb-2 d-block small">Notas (Obligatorias) *</label>
+                    <textarea id="extra-notas"
+                              class="form-control form-control-sm bg-dark text-light border-secondary"
+                              rows="3"
+                              placeholder="Escribe las migas de pan para el seguimiento..."
+                              required></textarea>
+                </div>
+            </div>
+
+            {# --- Botón Blindado --- #}
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-success btn-sm"
+                        onclick="guardarOportunidad360(this)">
+                    Guardar Oportunidad
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>

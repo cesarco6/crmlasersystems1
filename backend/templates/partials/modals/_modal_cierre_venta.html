@@ -1,0 +1,73 @@
+{# templates/partials/modals/_modal_cierre_venta.html #}
+{# Componente DRY: Modal de Cierre de Venta Exitoso #}
+{# Dependencias: modals.css, ficha_trabajo.js #}
+{# Contexto requerido: (ninguno — datos fiscales se capturan en el formulario) #}
+
+<div id="modal-cerrar-venta" class="modal-overlay d-none">
+    <div class="modal-box modal-box--medium">
+        {# ===== HEADER ===== #}
+        <div class="card-header d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0 text-light fs-5">🏆 Confirmar Cierre de Venta</h3>
+            <span onclick="cerrarModal('modal-cerrar-venta')"
+                  class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
+        </div>
+
+        {# ===== BODY ===== #}
+        <div class="card-body">
+            {# --- Alerta de Requisito --- #}
+            <div class="alert alert-warning bg-warning bg-opacity-10 text-warning border-warning small mb-3">
+                ⛔ <strong>Requisito Indispensable:</strong> El backend exige un perfil fiscal para procesar facturación y comisiones.
+            </div>
+
+            <form id="form-cerrar-venta">
+                {# --- Fila 1: RFC y Razón Social --- #}
+                {# Mobile-First: col-12 (100% en móvil), col-md-6 en desktop #}
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <label class="form-label text-secondary fw-bold small">R.F.C. *</label>
+                        <input type="text" id="venta-rfc"
+                               class="form-control form-control-sm bg-dark text-light border-secondary text-uppercase"
+                               placeholder="Ej. XAXX010101000" maxlength="13" required>
+                    </div>
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <label class="form-label text-secondary fw-bold small">Razón Social *</label>
+                        <input type="text" id="venta-razon"
+                               class="form-control form-control-sm bg-dark text-light border-secondary text-uppercase"
+                               placeholder="Nombre completo o Empresa" required>
+                    </div>
+                </div>
+
+                {# --- Fila 2: Régimen Fiscal --- #}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <label class="form-label text-secondary fw-bold small">Régimen Fiscal *</label>
+                        <select id="venta-regimen"
+                                class="form-select form-select-sm bg-dark text-light border-secondary"
+                                required>
+                            <option value="">-- Selecciona el Régimen --</option>
+                            <option value="601">601 - General de Ley Personas Morales</option>
+                            <option value="603">603 - Personas Morales con Fines no Lucrativos</option>
+                            <option value="605">605 - Sueldos y Salarios e Ingresos Asimilados a Salarios</option>
+                            <option value="606">606 - Arrendamiento</option>
+                            <option value="608">608 - Demás ingresos</option>
+                            <option value="612">612 - Personas Físicas con Actividades Empresariales y Profesionales</option>
+                            <option value="616">616 - Sin obligaciones fiscales</option>
+                            <option value="621">621 - Incorporación Fiscal</option>
+                            <option value="622">622 - Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras</option>
+                            <option value="626">626 - Régimen Simplificado de Confianza (RESICO)</option>
+                        </select>
+                    </div>
+                </div>
+
+                {# --- Botón de Confirmación --- #}
+                <div class="d-flex justify-content-end">
+                    <button type="button"
+                            class="btn btn-warning btn-sm text-light fw-bold"
+                            onclick="guardarCierreVenta(this)">
+                        🏆 Confirmar Cierre de Venta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

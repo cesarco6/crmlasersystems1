@@ -1,0 +1,44 @@
+{# templates/partials/modals/_modal_calificar_lead.html #}
+{# Componente DRY: Modal de Calificación de Lead #}
+{# Dependencias: modals.css, ficha_trabajo.js #}
+{# Contexto requerido: lead (para preseleccionar calificación actual) #}
+
+<div id="modal-calificar" class="modal-overlay d-none">
+    <div class="modal-box modal-box--small">
+        {# ===== HEADER ===== #}
+        <div class="card-header d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0 text-light fs-5">⭐ Calificar Prospecto</h3>
+            <span onclick="cerrarModal('modal-calificar')"
+                  class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
+        </div>
+
+        {# ===== BODY ===== #}
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-12">
+                    <label class="form-label text-secondary mb-2 d-block small">Nivel de interés:</label>
+                    <select id="select-calificacion"
+                            class="form-select form-select-sm bg-dark text-light border-secondary">
+                        <option value="Alta" {% if lead.calificacion == 'Alta' %}selected{% endif %}>
+                            🔥 Alta (Muy interesado)
+                        </option>
+                        <option value="Media" {% if lead.calificacion == 'Media' %}selected{% endif %}>
+                            🌤️ Media (Lo está pensando)
+                        </option>
+                        <option value="Baja" {% if lead.calificacion == 'Baja' %}selected{% endif %}>
+                            ❄️ Baja (Poco interés actual)
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            {# --- Botón Blindado --- #}
+            <div class="d-flex justify-content-end">
+                <button class="btn btn-primary btn-sm"
+                        onclick="ejecutarAccionFase2('CALIFICAR', this)">
+                    Guardar Calificación
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

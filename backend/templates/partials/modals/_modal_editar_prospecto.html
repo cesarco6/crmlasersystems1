@@ -1,0 +1,181 @@
+{# templates/partials/modals/_modal_editar_prospecto.html #}
+{# Componente DRY: Modal de Editar y Validar Prospecto #}
+{# Dependencias: modals.css, ficha_trabajo.js #}
+{# Contexto requerido: lead, titulos_list, especialidades_list, productos_list, especialidad_segura, producto_seguro #}
+
+<div id="modal-editar" class="modal-overlay d-none">
+    <div class="modal-box modal-box--wide">
+        {# ===== HEADER ===== #}
+        <div class="card-header d-flex justify-content-between align-items-center mb-4">
+            <h3 class="m-0 text-light fs-5">✏️ Editar y Validar Prospecto</h3>
+            <span onclick="cerrarModal('modal-editar')"
+                  class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
+        </div>
+
+        {# ===== BODY ===== #}
+        <div class="card-body">
+            <form id="form-editar">
+
+                {# --- Fila 1: Toggle Tipo de Entidad (solo Fase 1) --- #}
+                {% if lead.estatus == 'PROSPECTO' %}
+                <div class="row mb-3">
+                    <div class="col-12">
+                        <label class="form-label text-secondary fw-bold small d-block">
+                            Tipo de Entidad (Enlazado MDM)
+                        </label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="tipo_entidad"
+                                   id="tipo_individuo" value="INDIVIDUAL"
+                                   autocomplete="off" checked
+                                   onchange="toggleTipoEntidad()">
+                            <label class="btn btn-outline-secondary btn-sm" for="tipo_individuo">
+                                👩‍⚕️ Individuo (Médico)
+                            </label>
+
+                            <input type="radio" class="btn-check" name="tipo_entidad"
+                                   id="tipo_corporativo" value="CORPORATIVO"
+                                   autocomplete="off"
+                                   onchange="toggleTipoEntidad()">
+                            <label class="btn btn-outline-secondary btn-sm" for="tipo_corporativo">
+                                🏥 Clínica / Corporativo
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {# --- Fila 2: Identidad Atómica --- #}
+                {# Mobile-First: col-12 (100% en móvil), col-md-* en desktop #}
+                <div class="row mb-3">
+                    <div class="col-12 col-md-2 mb-2 mb-md-0" id="col-edit-titulo">
+                        <label class="form-label text-secondary fw-bold small">Título</label>
+                        <select id="edit-titulo"
+                                class="form-select form-select-sm bg-dark text-light border-secondary"
+                                {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
+                            <option value="">-- Título --</option>
+                            {% for titulo in titulos_list %}
+                                <option value="{{ titulo.id }}"
+                                    {% if titulo.id == lead.titulo_cortesia_id %}selected{% endif %}>
+                                    {{ titulo.abreviatura }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4 mb-2 mb-md-0" id="col-edit-nombre">
+                        <label class="form-label text-secondary fw-bold small">Nombre *</label>
+                        <input type="text" id="edit-nombre-pila"
+                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               value="{{ lead.nombre_pila|default:'' }}" required
+                               {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
+                    </div>
+                    <div class="col-12 col-md-3 mb-2 mb-md-0" id="col-edit-paterno">
+                        <label class="form-label text-secondary fw-bold small">A. Paterno *</label>
+                        <input type="text" id="edit-paterno"
+                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               value="{{ lead.apellido_paterno|default:'' }}" required
+                               {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
+                    </div>
+                    <div class="col-12 col-md-3 mb-2 mb-md-0" id="col-edit-materno">
+                        <label class="form-label text-secondary fw-bold small">A. Materno</label>
+                        <input type="text" id="edit-materno"
+                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               value="{{ lead.apellido_materno|default:'' }}"
+                               {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
+                    </div>
+                </div>
+
+                {# --- Fila 3: Contacto --- #}
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <label class="form-label text-secondary fw-bold small">Teléfono*</label>
+                        <input type="text" id="edit-telefono"
+                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               value="{{ lead.phone_primary }}" required
+                               {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
+                    </div>
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <label class="form-label text-secondary fw-bold small">Celular (WhatsApp)</label>
+                        <input type="text" id="edit-celular"
+                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               value="{{ lead.celular|default:'' }}">
+                    </div>
+                </div>
+
+                {# --- Fila 4: Email y Dirección --- #}
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <label class="form-label text-secondary fw-bold small">Correo Electrónico</label>
+                        <input type="email" id="edit-email"
+                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               value="{{ lead.email|default:'' }}">
+                    </div>
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <label class="form-label text-secondary fw-bold small">Dirección Completa</label>
+                        <input type="text" id="edit-direccion"
+                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               value="{{ lead.direccion_completa|default:'' }}">
+                    </div>
+                </div>
+
+                {# --- Fila 5: Catálogos --- #}
+                <div class="row mb-4">
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <label class="form-label text-secondary fw-bold small">Especialidad</label>
+                        <select id="edit-especialidad"
+                                class="form-select form-select-sm bg-dark text-light border-secondary"
+                                {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
+                            <option value="">-- Selecciona Especialidad --</option>
+                            {% for esp in especialidades_list %}
+                                <option value="{{ esp }}"
+                                    {% if esp == especialidad_segura %}selected{% endif %}>
+                                    {{ esp }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                        <label class="form-label text-secondary fw-bold small">Producto LS</label>
+                        <select id="edit-producto"
+                                class="form-select form-select-sm bg-dark text-light border-secondary"
+                                {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
+                            {% for prod in productos_list %}
+                                {% if prod.familia == 'EQUIPO' %}
+                                    <option value="{{ prod.nombre }}"
+                                        {% if prod.nombre == producto_seguro %}selected{% endif %}>
+                                        {{ prod.nombre }}
+                                    </option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                {# --- Barra de Acciones --- #}
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center bg-dark bg-opacity-50 p-3 rounded gap-3 mt-4">
+                    {% if lead.estatus == 'PROSPECTO' %}
+                        <button type="button"
+                                class="btn btn-outline-danger btn-sm w-100 w-md-auto"
+                                onclick="ejecutarRitual('DESECHAR', this)">
+                            🗑️ Desechar Prospecto
+                        </button>
+                    {% else %}
+                        <div></div>
+                    {% endif %}
+                    <div class="d-flex gap-2 w-100 w-md-auto justify-content-end">
+                        <button type="button" class="btn btn-secondary btn-sm"
+                                onclick="ejecutarRitual('GUARDAR', this)">
+                            💾 Guardar Cambios
+                        </button>
+                        {% if lead.estatus == 'PROSPECTO' %}
+                        <button type="button" class="btn btn-success btn-sm"
+                                onclick="ejecutarRitual('VALIDAR', this)">
+                            ✅ Validar Identidad
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
