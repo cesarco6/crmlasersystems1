@@ -651,6 +651,11 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         # Priorizamos el catálogo relacional (DDS Fase 2)
         context['especialidad_segura'] = lead.especialidad_cat.nombre if lead.especialidad_cat else (lead.especialidad if lead.especialidad else "No especificada")
         context['producto_seguro'] = lead.producto_cat.nombre if lead.producto_cat else (lead.producto_interes if lead.producto_interes else "No especificado")
+
+        # --- Auto-crear TrackingPostVenta si el lead es CLIENTE ---
+        if lead.status == 'CLIENTE':
+            from .models import TrackingPostVenta
+            TrackingPostVenta.objects.get_or_create(lead=lead)
         
         return context
 
@@ -907,6 +912,12 @@ def actualizar_lead_fsm(request, pk):
         resultado = procesar_transicion_fsm(pk, data, request.user)
         
         if resultado.get("success"):
+            # Auto-resolución: si el agente está tocando el lead, ya no está estancado
+            from .models import Notificacion
+            Notificacion.objects.filter(
+                lead_id=pk, tipo__in=['estancamiento', 'reactivacion'], leida=False
+            ).update(leida=True)
+
             return JsonResponse({
                 "status": resultado.get("status", "success"), # Soporte para status="deleted"
                 "mensaje": resultado.get("mensaje"),
@@ -1247,6 +1258,75 @@ def marcar_alerta_leida(request, alerta_id):
     # Si es una alerta general, lo regresamos al dashboard
     return redirect('dashboard_agente')
 
+
+@login_required
+@require_POST
+def api_atender_alerta(request, alerta_id):
+    """
+    Endpoint para atender/descartar una alerta (Notificacion) mediante POST.
+    - Marca la alerta como leída.
+    - Inyecta auditoría en notas_variadas del CoreLead asociado.
+    - Regla del Reloj Flotante: si el tipo es 'mantenimiento',
+      crea un VentaTransaccional con estatus DESCARTADO para reiniciar el conteo de 18 meses.
+    """
+    from .models import Notificacion, VentaTransaccional
+    try:
+        data = json.loads(request.body)
+        motivo = data.get('motivo', '').strip()
+
+        alerta = get_object_or_404(Notificacion, id=alerta_id, usuario=request.user)
+
+        # 1. Apagar la alerta
+        alerta.leida = True
+        alerta.save(update_fields=['leida'])
+
+        # 2. Auditoría en notas_variadas del Lead asociado
+        if alerta.lead:
+            lead = alerta.lead
+            tipo_display = alerta.get_tipo_display()
+            timestamp = localtime(now()).strftime("%Y-%m-%d %H:%M")
+
+            nueva_nota = {
+                "fecha": timestamp,
+                "tipo": "sistema",
+                "contenido": f"🚨 Alerta de {tipo_display} atendida/descartada. Motivo: {motivo or 'Sin motivo registrado'}."
+            }
+
+            if not isinstance(lead.notas_variadas, dict):
+                lead.notas_variadas = {"notas": []}
+            if "notas" not in lead.notas_variadas:
+                lead.notas_variadas["notas"] = []
+
+            lead.notas_variadas["notas"].append(nueva_nota)
+            lead.save(update_fields=['notas_variadas'])
+
+            # 3. Regla del Reloj Flotante (solo para tipo 'mantenimiento')
+            if alerta.tipo == 'mantenimiento':
+                # Buscar o crear un producto genérico de familia SERVICIO
+                producto_servicio, _ = CatProducto.objects.get_or_create(
+                    familia='SERVICIO',
+                    nombre='Servicio de mantenimiento',
+                    defaults={'is_active': True}
+                )
+                VentaTransaccional.objects.create(
+                    lead=lead,
+                    producto=producto_servicio,
+                    vendedor=request.user,
+                    estatus='DESCARTADO',
+                    notas=f"Rechazo desde Alerta (18 meses). Motivo: {motivo or 'Sin motivo registrado'}."
+                )
+
+        return JsonResponse({
+            "status": "success",
+            "mensaje": "Alerta atendida correctamente.",
+            "lead_id": str(alerta.lead.id) if alerta.lead else None
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "JSON inválido."}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
 @login_required
 @require_POST
 def registrar_venta_extra(request):
@@ -1315,6 +1395,13 @@ def registrar_venta_extra(request):
         lead.notas_variadas["notas"].append(nueva_nota)
         lead.save(update_fields=['notas_variadas'])
         # ----------------------------------------------------------------
+
+        # --- Auto-resolución: si el producto es SERVICIO, apagar alertas de mantenimiento ---
+        if producto.familia == 'SERVICIO':
+            from .models import Notificacion
+            Notificacion.objects.filter(
+                lead=lead, tipo='mantenimiento', leida=False
+            ).update(leida=True)
 
         return JsonResponse({
             "status": "success",
@@ -1695,3 +1782,77 @@ def dashboard_fidelizacion_view(request):
         'filtro_fecha_hasta': filtro_fecha_hasta,
     }
     return render(request, 'director_fidelizacion.html', context)
+
+
+@login_required
+@require_POST
+def api_marcar_hito_postventa(request, lead_id):
+    """
+    Marca un hito post-venta (capacitacion o calidad) como completado.
+    Actualiza TrackingPostVenta e inyecta miga de pan en notas_variadas.
+    """
+    from .models import TrackingPostVenta
+    try:
+        data = json.loads(request.body)
+        hito = data.get('hito', '')
+
+        lead = get_object_or_404(CoreLead, id=lead_id)
+        tracking, _ = TrackingPostVenta.objects.get_or_create(lead=lead)
+
+        timestamp = localtime(now()).strftime("%Y-%m-%d %H:%M")
+
+        if hito == 'capacitacion':
+            if tracking.capacitacion_dada:
+                return JsonResponse({"error": "La capacitación ya fue marcada como realizada."}, status=400)
+            tracking.capacitacion_dada = True
+            tracking.fecha_capacitacion = now()
+            tracking.save(update_fields=['capacitacion_dada', 'fecha_capacitacion'])
+            emoji = "🎓"
+            nombre_hito = "Capacitación Post-Venta"
+            # Auto-resolución: apagar alertas vivas de tipo 'capacitacion' para este lead
+            from .models import Notificacion
+            Notificacion.objects.filter(
+                lead=lead, tipo='capacitacion', leida=False
+            ).update(leida=True)
+
+        elif hito == 'calidad':
+            if tracking.calidad_hecha:
+                return JsonResponse({"error": "La llamada de calidad ya fue marcada como realizada."}, status=400)
+            tracking.calidad_hecha = True
+            tracking.fecha_calidad = now()
+            tracking.save(update_fields=['calidad_hecha', 'fecha_calidad'])
+            emoji = "📞"
+            nombre_hito = "Llamada de Calidad"
+            # Auto-resolución: apagar alertas vivas de tipo 'calidad' para este lead
+            from .models import Notificacion
+            Notificacion.objects.filter(
+                lead=lead, tipo='calidad', leida=False
+            ).update(leida=True)
+
+        else:
+            return JsonResponse({"error": "Hito no válido. Use 'capacitacion' o 'calidad'."}, status=400)
+
+        # --- Inyectar miga de pan ---
+        nueva_nota = {
+            "fecha": timestamp,
+            "tipo": "sistema",
+            "contenido": f"{emoji} Hito Post-Venta completado: {nombre_hito}."
+        }
+
+        if not isinstance(lead.notas_variadas, dict):
+            lead.notas_variadas = {"notas": []}
+        if "notas" not in lead.notas_variadas:
+            lead.notas_variadas["notas"] = []
+
+        lead.notas_variadas["notas"].append(nueva_nota)
+        lead.save(update_fields=['notas_variadas'])
+
+        return JsonResponse({
+            "status": "success",
+            "mensaje": f"✅ {nombre_hito} marcado como completado."
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "JSON inválido."}, status=400)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

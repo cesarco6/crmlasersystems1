@@ -86,17 +86,23 @@
                             
                             {% if lista_alertas %}
                                 {% for alerta in lista_alertas %}
-                                <li><a class="dropdown-item d-flex align-items-center py-2" href="{% url 'marcar_alerta_leida' alerta.id %}">
-                                    <div class="me-3">
-                                        <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center p-2">
-                                            <i class="bi bi-exclamation-triangle"></i>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center py-2" href="#"
+                                       data-alerta-id="{{ alerta.id }}"
+                                       data-alerta-tipo="{{ alerta.tipo }}"
+                                       data-lead-id="{{ alerta.lead.id|default:'' }}"
+                                       onclick="atenderAlerta(this.dataset.alertaId, this.dataset.alertaTipo, this.dataset.leadId)">
+                                        <div class="me-3">
+                                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center p-2">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div>
-                                        <span class="small text-muted">Hace {{ alerta.fecha_creacion|timesince }}</span>
-                                        <p class="mb-0 text-sm text-wrap">{{ alerta.mensaje }}</p>
-                                    </div>
-                                </a></li>
+                                        <div>
+                                            <span class="small text-muted">Hace {{ alerta.fecha_creacion|timesince }}</span>
+                                            <p class="mb-0 text-sm text-wrap">{{ alerta.mensaje }}</p>
+                                        </div>
+                                    </a>
+                                </li>
                                 {% endfor %}
                             {% else %}
                                 <li><span class="dropdown-item text-center small text-muted py-3">No tienes alertas nuevas 🎉</span></li>
@@ -159,6 +165,73 @@
                 });
             }
         });
+    </script>
+
+    <!-- SweetAlert2 Global (para atenderAlerta) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+    function getCsrfFromCookie() {
+        const name = 'csrftoken';
+        const cookies = document.cookie.split(';');
+        for (let c of cookies) {
+            c = c.trim();
+            if (c.startsWith(name + '=')) return c.substring(name.length + 1);
+        }
+        return '';
+    }
+
+    function atenderAlerta(alertaId, tipoAlerta, leadId) {
+        const tiposConMotivo = ['mantenimiento', 'calidad', 'capacitacion', 'estancamiento', 'no_cierre', 'fidelizacion'];
+        const esOperativo = tiposConMotivo.includes(tipoAlerta);
+
+        Swal.fire({
+            title: '📋 Atender Alerta',
+            html: `
+                <p class="text-muted small mb-2">Tipo: <strong>${tipoAlerta}</strong></p>
+                <textarea id="swal-motivo" class="swal2-textarea" rows="3"
+                    placeholder="${esOperativo ? 'Motivo obligatorio: describe el resultado o acción tomada...' : 'Motivo (opcional)...'}"></textarea>
+            `,
+            showCancelButton: true,
+            confirmButtonText: '✅ Confirmar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            preConfirm: () => {
+                const motivo = document.getElementById('swal-motivo').value.trim();
+                if (esOperativo && !motivo) {
+                    Swal.showValidationMessage('⚠️ El motivo es obligatorio para este tipo de alerta.');
+                    return false;
+                }
+                return motivo;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const motivo = result.value || '';
+                fetch(`/api/alerta/${alertaId}/atender/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCsrfFromCookie()
+                    },
+                    body: JSON.stringify({ motivo: motivo })
+                })
+                .then(r => r.json())
+                .then(res => {
+                    if (res.status === 'success') {
+                        if (res.lead_id) {
+                            window.location.href = `/trabajo/${res.lead_id}/`;
+                        } else {
+                            location.reload();
+                        }
+                    } else {
+                        Swal.fire('Error', res.error, 'error');
+                    }
+                })
+                .catch(() => Swal.fire('Error de Conexión', 'No se pudo comunicar con el servidor.', 'error'));
+            }
+        });
+    }
     </script>
 </body>
 

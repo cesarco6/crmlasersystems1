@@ -51,6 +51,7 @@ urlpatterns = [
     # Vistas de Dirección - Bandeja de Rescate
     path('director/rescate/', leads_views.bandeja_rescate_view, name='director_rescate'),
     path('director/fidelizacion/', leads_views.dashboard_fidelizacion_view, name='director_fidelizacion'),
+    path('api/hito-postventa/<uuid:lead_id>/', leads_views.api_marcar_hito_postventa, name='api_marcar_hito_postventa'),
     path('api/reasignar-lead/', leads_views.api_reasignar_lead, name='api_reasignar_lead'),
     path('api/desechar-lead/', leads_views.api_desechar_lead, name='api_desechar_lead'),
     
@@ -65,6 +66,6 @@ urlpatterns = [
     path('', RedirectView.as_view(pattern_name='dashboard_agente'), name='root'),
 
     path('api/lead/<uuid:pk>/no-cierre/', leads_views.api_marcar_no_cierre, name='api_no_cierre'),
-
+    path('api/alerta/<int:alerta_id>/atender/', leads_views.api_atender_alerta, name='api_atender_alerta'),
 
 ]

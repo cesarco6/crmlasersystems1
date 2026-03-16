@@ -199,6 +199,9 @@ class Notificacion(models.Model):
         ('reactivacion', 'Reactivación Programada'),
         ('no_cierre', 'Revisión de No Cierre'),
         ('fidelizacion', 'Seguimiento Post-Venta'),
+        ('capacitacion', 'Capacitación Post-Venta (8 días)'),
+        ('calidad', 'Llamada de Calidad (180 días)'),
+        ('mantenimiento', 'Mantenimiento Preventivo (18 meses)'),
         ('general', 'Aviso General'),
     ]
 
@@ -251,6 +254,31 @@ class VentaTransaccional(models.Model):
 
     def __str__(self):
         return f"{self.producto.nombre} vendido a {self.lead.nombre}"
+
+
+class TrackingPostVenta(models.Model):
+    """
+    Tabla satélite One-to-One para rastrear hitos post-venta.
+    Se crea automáticamente cuando el lead pasa a CLIENTE.
+    """
+    lead = models.OneToOneField(CoreLead, on_delete=models.CASCADE, related_name='tracking_postventa')
+
+    # Hito 1: Capacitación (target: 8 días post-venta)
+    capacitacion_dada = models.BooleanField(default=False)
+    fecha_capacitacion = models.DateTimeField(null=True, blank=True)
+
+    # Hito 2: Llamada de Calidad (target: 180 días post-venta)
+    calidad_hecha = models.BooleanField(default=False)
+    fecha_calidad = models.DateTimeField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'Tracking Post-Venta'
+        verbose_name_plural = 'Tracking Post-Venta'
+
+    def __str__(self):
+        return f"Tracking PV: {self.lead.nombre}"
 
 class Evento(models.Model):
     ESTATUS_CHOICES = [
