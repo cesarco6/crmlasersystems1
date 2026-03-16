@@ -1601,3 +1601,97 @@ def actualizar_estatus_venta_extra(request, venta_id):
         return JsonResponse({"error": "JSON inválido."}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+@login_required
+@user_passes_test(es_director, login_url='dashboard_agente')
+def dashboard_fidelizacion_view(request):
+    """
+    Dashboard de Fidelización 360° — Métricas de volumen
+    para oportunidades de venta cruzada (VentaTransaccional).
+    Solo accesible para la Dirección.
+    """
+    from .models import VentaTransaccional
+    from django.core.paginator import Paginator
+    from datetime import datetime
+
+    # 1. Filtros
+    filtro_vendedor = request.GET.get('vendedor', '')
+    filtro_estatus = request.GET.get('estatus', '')
+    filtro_familia = request.GET.get('familia', '')
+    filtro_fecha_desde = request.GET.get('fecha_desde', '')
+    filtro_fecha_hasta = request.GET.get('fecha_hasta', '')
+
+    qs = VentaTransaccional.objects.select_related('lead', 'producto', 'vendedor').all()
+
+    if filtro_vendedor:
+        qs = qs.filter(vendedor__username__iexact=filtro_vendedor)
+    if filtro_estatus:
+        qs = qs.filter(estatus=filtro_estatus)
+    if filtro_familia:
+        qs = qs.filter(producto__familia__iexact=filtro_familia)
+
+    # Filtros de rango de fechas (sobre fecha_venta)
+    if filtro_fecha_desde:
+        try:
+            fecha_desde = datetime.strptime(filtro_fecha_desde, '%Y-%m-%d')
+            qs = qs.filter(fecha_venta__date__gte=fecha_desde.date())
+        except ValueError:
+            pass
+    if filtro_fecha_hasta:
+        try:
+            fecha_hasta = datetime.strptime(filtro_fecha_hasta, '%Y-%m-%d')
+            qs = qs.filter(fecha_venta__date__lte=fecha_hasta.date())
+        except ValueError:
+            pass
+
+    qs = qs.order_by('-fecha_venta')
+
+    # 2. KPIs (Volumen)
+    total_ops = qs.count()
+    pendientes = qs.filter(estatus='PENDIENTE').count()
+    concretadas = qs.filter(estatus='CONCRETADO').count()
+    en_gestion = qs.filter(estatus='EN_GESTION').count()
+    descartadas = qs.filter(estatus='DESCARTADO').count()
+
+    tasa_cierre = 0
+    ops_cerradas = concretadas + descartadas
+    if ops_cerradas > 0:
+        tasa_cierre = round((concretadas / ops_cerradas) * 100, 1)
+
+    # 3. Datos para Chart.js (JSON seguro para el template)
+    chart_data = json.dumps({
+        'labels': ['Pendiente', 'En Gestión', 'Concretado', 'Descartado'],
+        'data': [pendientes, en_gestion, concretadas, descartadas],
+        'colors': ['#ffc107', '#0d6efd', '#198754', '#dc3545'],
+    })
+
+    # 4. Listas para Dropdowns
+    vendedores_list = User.objects.filter(is_active=True, is_superuser=False).order_by('username')
+    familias_list = ['ACCESORIO', 'SERVICIO', 'EVENTO']
+    estatus_list = VentaTransaccional.ESTATUS_CHOICES
+
+    # 5. Paginación (5 registros para convivir con la gráfica)
+    paginator = Paginator(qs, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'total_ops': total_ops,
+        'pendientes': pendientes,
+        'concretadas': concretadas,
+        'en_gestion': en_gestion,
+        'descartadas': descartadas,
+        'tasa_cierre': tasa_cierre,
+        'chart_data': chart_data,
+        'vendedores': vendedores_list,
+        'familias': familias_list,
+        'estatus_list': estatus_list,
+        'filtro_vendedor': filtro_vendedor,
+        'filtro_estatus': filtro_estatus,
+        'filtro_familia': filtro_familia,
+        'filtro_fecha_desde': filtro_fecha_desde,
+        'filtro_fecha_hasta': filtro_fecha_hasta,
+    }
+    return render(request, 'director_fidelizacion.html', context)

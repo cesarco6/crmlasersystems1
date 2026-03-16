@@ -50,6 +50,7 @@ urlpatterns = [
     
     # Vistas de Dirección - Bandeja de Rescate
     path('director/rescate/', leads_views.bandeja_rescate_view, name='director_rescate'),
+    path('director/fidelizacion/', leads_views.dashboard_fidelizacion_view, name='director_fidelizacion'),
     path('api/reasignar-lead/', leads_views.api_reasignar_lead, name='api_reasignar_lead'),
     path('api/desechar-lead/', leads_views.api_desechar_lead, name='api_desechar_lead'),
     
