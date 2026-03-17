@@ -14,124 +14,147 @@
 <input type="hidden" id="lead_id_hidden" value="{{ lead.id }}">
 <input type="hidden" id="dashboard_url_hidden" value="{% url 'dashboard_agente' %}">
 
-<section class="module active" id="module-ficha-trabajo">
+<section class="container-fluid px-4 py-3" id="module-ficha-trabajo">
     
-    <div class="module-header d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="text-light mb-1">🛠️ Ficha: {{ lead.nombre }}</h2>
-            <p class="text-secondary m-0">
-                Estatus actual: 
-                <span class="badge badge-primary px-3 py-2 ms-2 fs-6">{{ lead.estatus }}</span>
-            </p>
+    <div class="row align-items-center mb-4 g-3">
+        <div class="col-md-7">
+            <h2 class="fw-bold text-body mb-1">🛠️ Ficha: {{ lead.nombre }}</h2>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-muted small">Estatus actual:</span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">{{ lead.estatus }}</span>
+            </div>
         </div>
         
-        <div class="acciones-fsm d-flex gap-2 align-items-center flex-wrap">
-    
-            {% if lead.estatus == 'CLIENTE' %}
-                <button class="btn-success btn-small" onclick="abrirModal('modal-venta-extra')">🎯 Registrar Oportunidad 360°</button>
-                
-            {% elif lead.estatus == 'PROSPECTO' %}
-                <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar Prospecto</button>
+        <div class="col-md-5 text-md-end">
+            <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+                {% if lead.estatus == 'CLIENTE' %}
+                    <button class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-venta-extra')">🎯 Oportunidad 360°</button>
+                    
+                {% elif lead.estatus == 'PROSPECTO' %}
+                    <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar</button>
 
-            {% elif lead.estatus == 'LEAD' %}
-                <button type="button" class="btn-danger btn-small" onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar Lead</button>
-                <button class="btn-primary btn-small" onclick="abrirModal('modal-calificar')">⭐ Calificar Lead</button>
-                <button class="btn-secondary btn-small" onclick="abrirModal('modal-agendar')">📅 Agendar / Pausar</button>
-                
-            {% elif lead.estatus == 'LEAD_CALIFICADO' %}
-                <button class="btn-warning btn-small text-light fw-bold" onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
-                <button class="btn-secondary btn-small" onclick="abrirModal('modal-agendar')">📅 Agendar / Pausar</button>
-                <button type="button" id="btn-no-cierre" class="btn-warning btn-small text-light fw-bold" onclick="marcarNoCierre()">⚠️ Marcar No Cierre</button>
-                
-            {% endif %}
+                {% elif lead.estatus == 'LEAD' %}
+                    <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar</button>
+                    <button class="btn btn-info fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-calificar')">⭐ Calificar</button>
+                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
+                    
+                {% elif lead.estatus == 'LEAD_CALIFICADO' %}
+                    <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-dark" onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
+                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
+                    <button type="button" id="btn-no-cierre" class="btn btn-outline-warning fw-bold px-3 py-2 shadow-sm" onclick="marcarNoCierre()">⚠️ No Cierre</button>
+                    
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <div class="row mt-4">
+    <div class="row g-4">
         
-        <div class="col-md-6 mb-4 mb-md-0">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="text-light m-0 fs-5">📋 Datos de Identidad</h3>
-                    <button class="btn-secondary btn-small" onclick="abrirModal('modal-editar')">✏️ Editar / Validar</button>
+        <div class="col-md-6">
+            <div class="card card-ers h-100 shadow-sm border-0">
+                <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-body m-0">📋 Datos de Identidad</h5>
+                    <button class="btn btn-sm btn-outline-secondary fw-bold px-3" onclick="abrirModal('modal-editar')">✏️ Editar</button>
                 </div>
                 
                 <div class="card-body">
-                    <div class="row mb-3">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <p class="mb-2"><strong class="text-secondary">Teléfono:</strong><br> <span class="text-light">{{ lead.phone_primary }}</span></p>
-                            <p class="mb-2"><strong class="text-secondary">Celular:</strong><br> 
-                                {% if lead.celular %}<span class="text-light">{{ lead.celular }}</span>{% else %}<span class="text-danger small">⚠️ Falta celular</span>{% endif %}
-                            </p>
-                            <p class="mb-0"><strong class="text-secondary">Email:</strong><br> 
-                                {% if lead.email %}<span class="text-light">{{ lead.email }}</span>{% else %}<span class="text-danger small">⚠️ Falta correo</span>{% endif %}
-                            </p>
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Teléfono Principal</label>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-telephone text-primary me-2"></i> {{ lead.phone_primary }}</p>
+                            
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Celular</label>
+                            {% if lead.celular %}
+                                <p class="text-body fw-semibold mb-3"><i class="bi bi-whatsapp text-success me-2"></i> {{ lead.celular }}</p>
+                            {% else %}
+                                <p class="text-danger small mb-3"><i class="bi bi-exclamation-circle me-1"></i> Falta celular</p>
+                            {% endif %}
+                            
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Email</label>
+                            {% if lead.email %}
+                                <p class="text-body fw-semibold mb-0"><i class="bi bi-envelope text-info me-2"></i> {{ lead.email }}</p>
+                            {% else %}
+                                <p class="text-danger small mb-0"><i class="bi bi-exclamation-circle me-1"></i> Falta correo</p>
+                            {% endif %}
                         </div>
-                        <div class="col-md-6 mt-3 mt-md-0">
-                            <p class="mb-2"><strong class="text-secondary">Especialidad:</strong><br> <span class="text-light">{{ especialidad_segura }}</span></p>
-                            <p class="mb-2"><strong class="text-secondary">Ubicación:</strong><br> <span class="text-light">{{ lead.ubicacion.ciudad }}</span></p>
-                            <p class="mb-0"><strong class="text-secondary">Dirección:</strong><br> 
-                                {% if lead.direccion_completa %}<span class="text-light">{{ lead.direccion_completa }}</span>{% else %}<span class="text-warning small">⏳ Falta dirección</span>{% endif %}
-                            </p>
+                        <div class="col-md-6">
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Especialidad</label>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-briefcase text-muted me-2"></i> {{ especialidad_segura }}</p>
+                            
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Ubicación</label>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-geo-alt text-danger me-2"></i> {{ lead.ubicacion.ciudad }}</p>
+                            
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Dirección</label>
+                            {% if lead.direccion_completa %}
+                                <p class="text-body small mb-0">{{ lead.direccion_completa }}</p>
+                            {% else %}
+                                <p class="text-warning small mb-0"><i class="bi bi-hourglass-split me-1"></i> Falta dirección</p>
+                            {% endif %}
                         </div>
                     </div>
                     
-                    <div class="pt-3 border-top border-secondary opacity-75">
-                        <p class="m-0"><strong class="text-secondary">Producto:</strong> <span class="badge badge-primary ms-2">{{ producto_seguro }}</span></p>
+                    <div class="pt-3 border-top">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="text-muted small fw-bold text-uppercase">Interés</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3">{{ producto_seguro }}</span>
+                        </div>
                     </div>
                     
                     {% if lead.estatus != 'CLIENTE' %}
-                    <div class="mt-4 p-3 bg-dark rounded border border-secondary opacity-75">
-                        <h4 class="text-light mb-3 fs-6">⚙️ Estado Operativo</h4>
+                    <div class="mt-4 p-3 bg-body-tertiary rounded border border-secondary border-opacity-25 shadow-inner">
+                        <h6 class="fw-bold mb-3 text-body small text-uppercase">⚙️ Estado Operativo</h6>
                         
-                        <p class="mb-2"><strong class="text-secondary">Plan Actual:</strong> 
-                            <span class="text-info fw-bold ms-2">{{ lead.plan|default:"SEGUIMIENTO" }}</span>
-                        </p>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Plan Actual:</span>
+                            <span class="text-info fw-bold small">{{ lead.plan|default:"SEGUIMIENTO" }}</span>
+                        </div>
                         
-                        <p class="mb-2"><strong class="text-secondary">Calificación:</strong> 
-                            <span class="ms-2 text-light">
-                            {% if lead.calificacion == 3 %}🔥 Alta
-                            {% elif lead.calificacion == 2 %}🌤️ Media
-                            {% elif lead.calificacion == 1 %}❄️ Baja
-                            {% else %}⚪ Sin calificar{% endif %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted small">Calificación:</span>
+                            <span class="text-body small fw-semibold">
+                                {% if lead.calificacion == 3 %}🔥 Alta
+                                {% elif lead.calificacion == 2 %}🌤️ Media
+                                {% elif lead.calificacion == 1 %}❄️ Baja
+                                {% else %}⚪ Sin calificar{% endif %}
                             </span>
-                        </p>
+                        </div>
                         
                         {% if lead.next_action_date %}
-                        <p class="m-0"><strong class="text-secondary">Próximo Contacto:</strong> 
-                            <span class="text-warning ms-2">{{ lead.next_action_date|date:"d M Y" }}</span>
-                        </p>
+                        <div class="d-flex justify-content-between">
+                            <span class="text-muted small">Próximo Contacto:</span>
+                            <span class="text-warning small fw-bold">{{ lead.next_action_date|date:"d M Y" }}</span>
+                        </div>
                         {% endif %}
                     </div>
                     
                     {% else %}
-                    <div class="mt-4 p-3 bg-dark rounded border border-secondary opacity-75">
-                        <h4 class="text-light mb-3 fs-6">📡 Radar 360° (Ventas Cruzadas)</h4>
+                    <div class="mt-4 p-3 bg-body-tertiary rounded border border-secondary border-opacity-25">
+                        <h6 class="fw-bold mb-3 text-body small text-uppercase">📡 Radar 360° (Ventas Cruzadas)</h6>
                         
                         {% if lead.compras_extra.all %}
                             <ul class="list-unstyled m-0 small">
                                 {% for op in lead.compras_extra.all %}
-                                <li class="mb-2 p-2 bg-light bg-opacity-10 rounded border-start border-warning border-3 text-light d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                <li class="mb-2 p-2 bg-body rounded border-start border-warning border-3 text-body d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
                                     <div>
                                         <strong class="d-block">{{ op.producto.nombre }}</strong>
-                                        <span class="text-secondary small">Apertura: {{ op.fecha_venta|date:"d M Y" }}</span>
+                                        <span class="text-muted small">Apertura: {{ op.fecha_venta|date:"d M Y" }}</span>
                                     </div>
 
                                     {# --- Estados terminales: Badge fijo (sin interacción) --- #}
                                     {% if op.estatus == 'CONCRETADO' %}
-                                        <span class="badge bg-success">🟢 Concretado</span>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">🟢 Concretado</span>
                                     {% elif op.estatus == 'DESCARTADO' %}
-                                        <span class="badge bg-danger">🔴 Descartado</span>
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">🔴 Descartado</span>
 
                                     {# --- Estados activos: Select con transiciones válidas --- #}
                                     {% elif op.estatus == 'PENDIENTE' %}
-                                        <select class="form-select form-select-sm bg-dark text-light border-secondary w-auto"
+                                        <select class="form-select form-select-sm bg-body border-secondary text-body w-auto shadow-none"
                                                 onchange="actualizarEstatus360('{{ op.id }}', this, '{{ op.estatus }}')">
                                             <option value="PENDIENTE" selected>🟡 Pendiente</option>
                                             <option value="EN_GESTION">🔵 En Gestión →</option>
                                         </select>
                                     {% elif op.estatus == 'EN_GESTION' %}
-                                        <select class="form-select form-select-sm bg-dark text-light border-secondary w-auto"
+                                        <select class="form-select form-select-sm bg-body border-secondary text-body w-auto shadow-none"
                                                 onchange="actualizarEstatus360('{{ op.id }}', this, '{{ op.estatus }}')">
                                             <option value="EN_GESTION" selected>🔵 En Gestión</option>
                                             <option value="CONCRETADO">🟢 Concretado →</option>
@@ -142,27 +165,27 @@
                                 {% endfor %}
                             </ul>
                         {% else %}
-                            <p class="text-secondary small m-0">No hay oportunidades 360 activas para este cliente.</p>
+                            <p class="text-muted small m-0">No hay oportunidades 360 activas.</p>
                         {% endif %}
                     </div>
 
                     {# ===== HITOS POST-VENTA ===== #}
                     {% if lead.tracking_postventa %}
-                    <div class="mt-3 p-3 bg-dark rounded border border-secondary opacity-75">
-                        <h4 class="text-light mb-3 fs-6">🏆 Hitos Post-Venta</h4>
+                    <div class="mt-3 p-3 bg-body-tertiary rounded border border-secondary border-opacity-25">
+                        <h6 class="fw-bold mb-3 text-body small text-uppercase">🏆 Hitos Post-Venta</h6>
                         <div class="d-flex flex-column gap-2 small">
 
                             {# Hito 1: Capacitación #}
-                            <div class="p-2 bg-light bg-opacity-10 rounded border-start border-3 text-light d-flex justify-content-between align-items-center
+                            <div class="p-2 bg-body rounded border-start border-3 text-body d-flex justify-content-between align-items-center shadow-sm
                                         {% if lead.tracking_postventa.capacitacion_dada %}border-success{% else %}border-warning{% endif %}">
                                 <div>
-                                    <strong>🎓 Capacitación</strong>
-                                    <span class="text-secondary ms-1">(8 días post-venta)</span>
+                                    <strong class="d-block">🎓 Capacitación</strong>
+                                    <span class="text-muted small">(8 días post-venta)</span>
                                 </div>
                                 {% if lead.tracking_postventa.capacitacion_dada %}
-                                    <span class="badge bg-success">✅ {{ lead.tracking_postventa.fecha_capacitacion|date:"d M Y" }}</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fw-bold">✅ {{ lead.tracking_postventa.fecha_capacitacion|date:"d M Y" }}</span>
                                 {% else %}
-                                    <button class="btn btn-outline-warning btn-sm"
+                                    <button class="btn btn-sm btn-outline-warning fw-bold px-3"
                                             onclick="marcarHitoPostVenta('capacitacion', '{{ lead.id }}')">
                                         Marcar ✓
                                     </button>
@@ -170,16 +193,16 @@
                             </div>
 
                             {# Hito 2: Llamada de Calidad #}
-                            <div class="p-2 bg-light bg-opacity-10 rounded border-start border-3 text-light d-flex justify-content-between align-items-center
+                            <div class="p-2 bg-body rounded border-start border-3 text-body d-flex justify-content-between align-items-center shadow-sm
                                         {% if lead.tracking_postventa.calidad_hecha %}border-success{% else %}border-info{% endif %}">
                                 <div>
-                                    <strong>📞 Llamada de Calidad</strong>
-                                    <span class="text-secondary ms-1">(180 días post-venta)</span>
+                                    <strong class="d-block">📞 Llamada de Calidad</strong>
+                                    <span class="text-muted small">(180 días post-venta)</span>
                                 </div>
                                 {% if lead.tracking_postventa.calidad_hecha %}
-                                    <span class="badge bg-success">✅ {{ lead.tracking_postventa.fecha_calidad|date:"d M Y" }}</span>
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fw-bold">✅ {{ lead.tracking_postventa.fecha_calidad|date:"d M Y" }}</span>
                                 {% else %}
-                                    <button class="btn btn-outline-info btn-sm"
+                                    <button class="btn btn-sm btn-outline-info fw-bold px-3"
                                             onclick="marcarHitoPostVenta('calidad', '{{ lead.id }}')">
                                         Marcar ✓
                                     </button>
@@ -197,35 +220,42 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card h-100">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="text-light m-0 fs-5">📝 Historial y Notas</h3>
+            <div class="card card-ers h-100 shadow-sm border-0">
+                <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold text-body m-0">📝 Historial y Notas</h5>
                 </div>
                 <div class="card-body d-flex flex-column">
                     <!-- Panel contenedor con altura fija y scroll -->
-                    <div id="panel-notas" class="flex-grow-1 bg-dark p-3 rounded border border-secondary bg-opacity-50 d-flex flex-column gap-3 mb-3" style="max-height: 45vh; overflow-y: auto;">
+                    <div id="panel-notas" class="flex-grow-1 bg-body-tertiary p-3 rounded border border-secondary border-opacity-25 d-flex flex-column gap-3 mb-3" style="max-height: 55vh; overflow-y: auto;">
                         {% for nota in lead.notas_variadas.notas reversed %}
                             {% if nota.tipo == 'sistema' %}
-                                <div class="bg-light bg-opacity-10 p-2 rounded text-secondary border-start border-info border-3">
-                                    <strong class="small d-block text-white-50">🤖 Sistema - <span class="small">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span></strong>
-                                    <span class="small">{{ nota.contenido }}</span>
+                                <div class="bg-body border border-info border-opacity-25 p-2 rounded shadow-sm border-start border-info border-4">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <strong class="small text-info text-uppercase fw-bold">🤖 Sistema</strong>
+                                        <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span>
+                                    </div>
+                                    <span class="small text-body">{{ nota.contenido }}</span>
                                 </div>
                             {% else %}
-                                <div class="bg-primary bg-opacity-25 p-2 rounded text-light border-start border-success border-3">
-                                    <strong class="small d-block text-light">👤 Vendedor - <span class="small text-white-50">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span></strong>
-                                    <span class="small">{{ nota.contenido }}</span>
+                                <div class="bg-body border border-success border-opacity-25 p-2 rounded shadow-sm border-start border-success border-4">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <strong class="small text-success text-uppercase fw-bold">👤 Vendedor</strong>
+                                        <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span>
+                                    </div>
+                                    <span class="small text-body">{{ nota.contenido }}</span>
                                 </div>
                             {% endif %}
                         {% empty %}
-                            <p class="text-secondary text-center small mt-5 pt-5">
-                                Aún no hay historial operativo.
-                            </p>
+                        <div class="text-center py-5">
+                            <i class="bi bi-chat-left-dots fs-1 text-muted opacity-25"></i>
+                            <p class="text-muted small mt-2">Aún no hay historial operativo.</p>
+                        </div>
                         {% endfor %}
                     </div>
                     
                     <div class="mt-auto">
                         <div class="mb-2">
-                            <select class="form-select form-select-sm bg-dark text-light border-secondary" onchange="insertarRespuestaRapida(this, 'input-nueva-nota')">
+                            <select class="form-select form-select-sm bg-body border-secondary text-body shadow-none" onchange="insertarRespuestaRapida(this, 'input-nueva-nota')">
                                 <option value="">-- Respuestas Rápidas --</option>
                                 <option value="Manda a buzón">Manda a buzón</option>
                                 <option value="No contesta">No contesta</option>                                
@@ -236,8 +266,8 @@
                             </select>
                         </div>
                         <div class="d-flex gap-2">
-                            <input type="text" id="input-nueva-nota" class="form-control bg-dark text-light" placeholder="Escribir nueva nota..." onkeypress="if(event.key === 'Enter') ejecutarAccionFase2('AGREGAR_NOTA')">
-                            <button class="btn-primary" onclick="ejecutarAccionFase2('AGREGAR_NOTA')">Agregar</button>
+                            <input type="text" id="input-nueva-nota" class="form-control bg-body border-secondary text-body shadow-none" placeholder="Escribir nueva nota..." onkeypress="if(event.key === 'Enter') ejecutarAccionFase2('AGREGAR_NOTA')">
+                            <button class="btn btn-primary fw-bold px-4 shadow-sm" onclick="ejecutarAccionFase2('AGREGAR_NOTA')">Agregar</button>
                         </div>
                     </div>
                 </div>

@@ -5,28 +5,28 @@
 <div class="container-fluid mt-4">
     <div class="row mb-4">
         <div class="col-12">
-            <h2 class="fw-bold" style="color: var(--text-primary, #181c32);">📥 Ingesta Histórica de Prospectos</h2>
-            <p style="color: var(--text-secondary, #a1a5b7);">Sube un archivo Excel para cargar prospectos con historial y asignarlos automáticamente a sus territorios.</p>
+            <h2 class="fw-bold text-body">📥 Ingesta Histórica de Prospectos</h2>
+            <p class="text-body-secondary">Sube un archivo Excel para cargar prospectos con historial y asignarlos automáticamente a sus territorios.</p>
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-8 offset-md-2">
-            <div class="card shadow-sm border-0">
+            <div class="card shadow-sm border-0 card-ers">
                 <div class="card-body p-5 text-center">
                     <div class="mb-4">
-                        <i class="fs-1">📄</i>
+                        <i class="fs-1 text-info">📄</i>
                     </div>
-                    <h5 class="fw-bold mb-3">Selecciona tu archivo de ingesta histórica</h5>
+                    <h5 class="fw-bold mb-3 text-body">Selecciona tu archivo de ingesta histórica</h5>
                     
-                    <input type="file" id="archivo-historico" accept=".xlsx, .xls, .csv" class="form-control mb-3 w-50 mx-auto">
+                    <input type="file" id="archivo-historico" accept=".xlsx, .xls, .csv" class="form-control mb-3 w-50 mx-auto bg-body border-secondary shadow-none">
                     
                     <button id="btn-subir" class="btn btn-primary fw-bold px-4 py-2" onclick="leerArchivoHistorico()">
                         🚀 Seleccionar y Procesar Archivo
                     </button>
 
                     <div id="zona-reporte" class="mt-4 text-start d-none">
-                        <div id="mensaje-estado" class="alert alert-info" role="alert">
+                        <div id="mensaje-estado" class="alert alert-info border-info-subtle" role="alert">
                             Esperando archivo...
                         </div>
                     </div>

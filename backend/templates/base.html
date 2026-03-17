@@ -1,7 +1,6 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="es">
-
+<html lang="es" data-bs-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,19 +27,20 @@
         </div>
         <ul class="sidebar-nav ps-0 list-unstyled">
             {% if user.is_superuser %}
-                <li class="menu-title text-uppercase text-muted fw-bold mb-2 mt-3 px-3">Piso de Dirección</li>                
-                <li><a href="{% url 'director_dashboard' %}">📊 Dashboard Panorámico</a></li>
-                <li><a href="{% url 'director_directorio' %}">🎯 Directorio Maestro</a></li>
-                <li><a href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li>
-                <li><a href="{% url 'director_ingesta' %}">📥 Ingesta Histórica</a></li>
-                <li><a href="{% url 'director_rescate' %}">🛟 Bandeja de Rescate</a></li>
-                <li><a href="{% url 'director_eventos' %}">📅 Campañas y Eventos</a></li>
-                <li><a href="{% url 'staging_list' %}">🏥 Quirófano (Staging)</a></li>
-                <li><a href="{% url 'director_fidelizacion' %}">🎯 Fidelización 360°</a></li>
+                <li class="menu-title text-uppercase text-light fw-bold mb-2 mt-3 px-3">Piso de Dirección</li>                
+                <li><a class="leftmenu" href="{% url 'director_dashboard' %}">📊 Dashboard Panorámico</a></li>
+                <li><a class="leftmenu" href="{% url 'director_directorio' %}">🎯 Directorio Maestro</a></li>
+                <li><a class="leftmenu" href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li>
+                <li><a class="leftmenu" href="{% url 'director_fidelizacion' %}">🎯 Fidelización 360°</a></li>                
+                <li><a class="leftmenu" href="{% url 'director_rescate' %}">🛟 Bandeja de Rescate</a></li>
+                <li><a class="leftmenu" href="{% url 'director_eventos' %}">📅 Campañas y Eventos</a></li>
+                <li><a class="leftmenu" href="{% url 'director_ingesta' %}">📥 Ingesta Histórica</a></li>
+                <li><a class="leftmenu" href="{% url 'staging_list' %}">🏥 Quirófano (Staging)</a></li>
+                
             {% else %}
                 <li class="menu-title text-uppercase text-muted fw-bold mb-2 mt-3 px-3">Operación Ventas</li>
-                <li><a href="{% url 'dashboard_agente' %}">🎯 Mi Dashboard</a></li>
-                <li><a href="{% url 'ingesta_masiva' %}">📥 Carga de Prospectos</a></li>
+                <li><a class="leftmenu" href="{% url 'dashboard_agente' %}">🎯 Mi Dashboard</a></li>
+                <li><a class="leftmenu" href="{% url 'ingesta_masiva' %}">📥 Carga de Prospectos</a></li>
             {% endif %}
         </ul>
     </aside>
@@ -56,21 +56,9 @@
 
             <!-- Acciones Derecha -->
             <div class="d-flex align-items-center gap-3 ms-auto">
-                {% if user.is_authenticated %}
-                    
-                    <!-- BUSCADOR OMNIPOTENTE (Solo visible para Director) 
-                    {% if user.is_superuser %}
-                    <form action="{% url 'director_busqueda' %}" method="GET" class="d-flex me-3">
-                        <div class="input-group input-group-sm">
-                            <span class="input-group-text bg-dark border-secondary text-light rounded-start-pill" id="search-addon">
-                                <i class="bi bi-search"></i>
-                            </span>
-                            <input type="text" name="q" class="form-control bg-dark text-light border-secondary shadow-none rounded-end-pill" placeholder="Buscar lead, teléfono..." aria-label="Buscador global">
-                        </div>
-                    </form>
-                    {% endif %}  
-                -->
+                {% if user.is_authenticated %}  
                     <!-- Dropdown Alertas -->
+                     {% if not user.is_superuser %}
                     <div class="dropdown">
                         <a class="nav-link position-relative text-dark px-2" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell text-warning fs-5"></i> 
@@ -112,6 +100,7 @@
                             <li><a class="dropdown-item text-center small text-primary fw-bold py-2" href="#">Ver todas las alertas</a></li>
                         </ul>   
                     </div>
+                    {% endif %} 
 
                     <!-- Usuario -->
                     <span class="text-secondary small ms-2">
@@ -144,10 +133,6 @@
 
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Luckysheet JS -->
-    <script src="https://cdn.jsdelivr.net/npm/luckysheet/dist/plugins/js/plugin.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/luckysheet/dist/luckysheet.umd.js"></script>
 
     <!-- Custom Scripts -->
     {% block extra_js %}{% endblock %}

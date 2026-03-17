@@ -109,7 +109,7 @@
     <!-- BARRA DE FILTROS BI -->
     <div class="row mb-4">
         <div class="col-12">
-            <div class="card shadow-sm border-0 bg-light">
+            <div class="card shadow-sm border-0">
                 <div class="card-body p-3">
                     <form id="formFiltrosBI" method="GET" action="{% url 'director_dashboard' %}" class="row g-3 align-items-end">
                         
@@ -307,6 +307,11 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // --- 1. Obtener colores dinámicos del tema ---
+        const style = getComputedStyle(document.body);
+        const textColor = style.getPropertyValue('--bs-body-color').trim() || '#3f4254';
+        const gridColor = style.getPropertyValue('--bs-border-color').trim() || 'rgba(0,0,0,0.1)';
+
         // Colores corporativos estándar
         const colorRechazo = '#f1416c';    // Danger
         const colorSeguimiento = '#009ef7'; // Primary
@@ -333,11 +338,21 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: {
-                        legend: { position: 'top', labels: { color: document.body.classList.contains('dark-mode') ? '#a1a5b7' : '#3f4254' } }
+                        legend: { 
+                            position: 'top', 
+                            labels: { color: textColor } 
+                        }
                     },
                     scales: {
-                        x: { ticks: { color: document.body.classList.contains('dark-mode') ? '#a1a5b7' : '#3f4254' }, grid: { display: false } },
-                        y: { beginAtZero: true, ticks: { precision: 0, color: document.body.classList.contains('dark-mode') ? '#a1a5b7' : '#3f4254' } }
+                        x: { 
+                            ticks: { color: textColor }, 
+                            grid: { display: false } 
+                        },
+                        y: { 
+                            beginAtZero: true, 
+                            ticks: { precision: 0, color: textColor },
+                            grid: { color: gridColor }
+                        }
                     }
                 }
             });
@@ -365,11 +380,13 @@
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { position: 'bottom', labels: { color: document.body.classList.contains('dark-mode') ? '#a1a5b7' : '#3f4254' } }
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { color: textColor } 
+                    }
                 }
             }
         });
-        
     });
 </script>
 {% endblock %}

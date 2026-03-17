@@ -12,21 +12,21 @@
     {# ===== ENCABEZADO ===== #}
     <div class="row mb-2">
         <div class="col-12">
-            <h2 class="fw-bold text-light">🎯 Dashboard de Fidelización 360°</h2>
-            <p class="text-body-primary">Métricas de volumen para oportunidades de venta cruzada (Accesorios, Servicios y Eventos).</p>
+            <h2 class="fw-bold text-body">🎯 Dashboard de Fidelización 360°</h2>
+            <p class="text-body-secondary">Métricas de volumen para oportunidades de venta cruzada (Accesorios, Servicios y Eventos).</p>
         </div>
     </div>
 
     {# ===== FILTROS ===== #}
     <div class="row mb-2">
         <div class="col-12">
-            <form method="get" class="card shadow-sm border-0 bg-body">
+            <form method="get" class="card shadow-sm border-0 card-ers">
                 <div class="card-body py-2 px-3">
                     <div class="row g-2 align-items-end">
                         {# Filtro Vendedor #}
                         <div class="col-6 col-md-2">
-                            <label class="form-label text-body-secondary small fw-bold mb-1">Vendedor</label>
-                            <select name="vendedor" class="form-select form-select-sm">
+                            <label class="form-label text-muted small fw-bold mb-1">Vendedor</label>
+                            <select name="vendedor" class="form-select form-select-sm bg-body border-secondary shadow-none">
                                 <option value="">-- Todos --</option>
                                 {% for v in vendedores %}
                                     <option value="{{ v.username }}" {% if filtro_vendedor == v.username %}selected{% endif %}>
@@ -38,8 +38,8 @@
 
                         {# Filtro Familia #}
                         <div class="col-6 col-md-2">
-                            <label class="form-label text-body-secondary small fw-bold mb-1">Familia</label>
-                            <select name="familia" class="form-select form-select-sm">
+                            <label class="form-label text-muted small fw-bold mb-1">Familia</label>
+                            <select name="familia" class="form-select form-select-sm bg-body border-secondary shadow-none">
                                 <option value="">-- Todas --</option>
                                 {% for fam in familias %}
                                     <option value="{{ fam }}" {% if filtro_familia == fam %}selected{% endif %}>
@@ -51,8 +51,8 @@
 
                         {# Filtro Estatus #}
                         <div class="col-6 col-md-2">
-                            <label class="form-label text-body-secondary small fw-bold mb-1">Estatus</label>
-                            <select name="estatus" class="form-select form-select-sm">
+                            <label class="form-label text-muted small fw-bold mb-1">Estatus</label>
+                            <select name="estatus" class="form-select form-select-sm bg-body border-secondary shadow-none">
                                 <option value="">-- Todos --</option>
                                 {% for code, label in estatus_list %}
                                     <option value="{{ code }}" {% if filtro_estatus == code %}selected{% endif %}>
@@ -64,22 +64,22 @@
 
                         {# Filtro Fecha Desde #}
                         <div class="col-6 col-md-2">
-                            <label class="form-label text-body-secondary small fw-bold mb-1">Desde</label>
-                            <input type="date" name="fecha_desde" class="form-control form-control-sm"
+                            <label class="form-label text-muted small fw-bold mb-1">Desde</label>
+                            <input type="date" name="fecha_desde" class="form-control form-control-sm bg-body border-secondary shadow-none"
                                    value="{{ filtro_fecha_desde }}">
                         </div>
 
                         {# Filtro Fecha Hasta #}
                         <div class="col-6 col-md-2">
-                            <label class="form-label text-body-secondary small fw-bold mb-1">Hasta</label>
-                            <input type="date" name="fecha_hasta" class="form-control form-control-sm"
+                            <label class="form-label text-muted small fw-bold mb-1">Hasta</label>
+                            <input type="date" name="fecha_hasta" class="form-control form-control-sm bg-body border-secondary shadow-none"
                                    value="{{ filtro_fecha_hasta }}">
                         </div>
 
                         {# Botones #}
                         <div class="col-6 col-md-2 d-flex gap-2">
-                            <button type="submit" class="btn btn-primary btn-sm flex-grow-1">🔍 Filtrar</button>
-                            <a href="{% url 'director_fidelizacion' %}" class="btn btn-outline-secondary btn-sm">✕</a>
+                            <button type="submit" class="btn btn-sm btn-primary">🔍 Aplicar Filtros</button>
+                            <a href="{% url 'director_fidelizacion' %}" class="btn btn-sm btn-light border me-2">Limpiar Filtros</a>
                         </div>
                     </div>
                 </div>
@@ -88,12 +88,13 @@
     </div>
 
     {# ===== KPIs DE VOLUMEN ===== #}
+    
     <div class="row mb-3 g-2">
         {# Total Generadas #}
         <div class="col-6 col-md-3">
             <div class="card shadow-sm border-0 border-start border-primary border-4 h-100 bg-body">
                 <div class="card-body p-3 text-center">
-                    <div class="text-body-secondary fw-bold text-uppercase kpi-title">Total Generadas</div>
+                    <div class="text-muted fw-bold text-uppercase kpi-title">Total Generadas</div>
                     <h2 class="fw-bold mb-0 text-body mt-2">{{ total_ops }}</h2>
                 </div>
             </div>
@@ -103,7 +104,7 @@
         <div class="col-6 col-md-3">
             <div class="card shadow-sm border-0 border-start border-warning border-4 h-100 bg-body">
                 <div class="card-body p-3 text-center">
-                    <div class="text-body-secondary fw-bold text-uppercase kpi-title">En Gestión</div>
+                    <div class="text-muted fw-bold text-uppercase kpi-title">En Gestión</div>
                     <h2 class="fw-bold mb-0 text-warning mt-2">{{ en_gestion }}</h2>
                 </div>
             </div>
@@ -113,7 +114,7 @@
         <div class="col-6 col-md-3">
             <div class="card shadow-sm border-0 border-start border-success border-4 h-100 bg-body">
                 <div class="card-body p-3 text-center">
-                    <div class="text-body-secondary fw-bold text-uppercase kpi-title">Concretadas</div>
+                    <div class="text-muted fw-bold text-uppercase kpi-title">Concretadas</div>
                     <h2 class="fw-bold mb-0 text-success mt-2">{{ concretadas }}</h2>
                 </div>
             </div>
@@ -123,11 +124,12 @@
         <div class="col-6 col-md-3">
             <div class="card shadow-sm border-0 border-start border-info border-4 h-100 bg-body">
                 <div class="card-body p-3 text-center">
-                    <div class="text-body-secondary fw-bold text-uppercase kpi-title">Tasa de Cierre</div>
+                    <div class="text-muted fw-bold text-uppercase kpi-title">Tasa de Cierre</div>
                     <h2 class="fw-bold mb-0 text-info mt-2">{{ tasa_cierre }}%</h2>
                 </div>
             </div>
         </div>
+        
     </div>
 
     {# ===== GRÁFICA + TABLA (2 columnas) ===== #}
@@ -135,8 +137,8 @@
 
         {# --- Columna Izquierda: Gráfica de Barras --- #}
         <div class="col-12 col-lg-5">
-            <div class="card shadow-sm border-0 bg-body h-100">
-                <div class="card-header bg-body border-bottom">
+            <div class="card shadow-sm border-0 h-100 card-ers">
+                <div class="card-header border-bottom">
                     <h5 class="fw-bold text-body m-0">📊 Distribución por Estatus</h5>
                 </div>
                 <div class="card-body d-flex align-items-center justify-content-center">
@@ -147,54 +149,54 @@
 
         {# --- Columna Derecha: Tabla de Operaciones --- #}
         <div class="col-12 col-lg-7">
-            <div class="card shadow-sm border-0 bg-body h-100">
-                <div class="card-header bg-body border-bottom">
+            <div class="card shadow-sm border-0 h-100 card-ers">
+                <div class="card-header border-bottom">
                     <h5 class="fw-bold text-body m-0">📋 Últimas Operaciones 360°</h5>
                 </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
-                        <table class="table table-hover table-striped mb-0 align-middle">
-                            <thead class="table-dark">
+                        <table class="table table-hover table-ers mb-0 align-middle">
+                            <thead>
                                 <tr>
-                                    <th>Fecha</th>
-                                    <th>Cliente</th>
-                                    <th>Producto</th>
-                                    <th>Familia</th>
-                                    <th>Vendedor</th>
-                                    <th class="text-center">Estatus</th>
+                                    <th class="text-uppercase">Fecha</th>
+                                    <th class="text-uppercase">Cliente</th>
+                                    <th class="text-uppercase">Producto</th>
+                                    <th class="text-uppercase">Familia</th>
+                                    <th class="text-uppercase">Vendedor</th>
+                                    <th class="text-uppercase text-center">Estatus</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for op in page_obj %}
                                 <tr>
-                                    <td class="small">{{ op.fecha_venta|date:"d M Y" }}</td>
+                                    <td class="small text-muted">{{ op.fecha_venta|date:"d M Y" }}</td>
                                     <td>
-                                        <a href="{% url 'ficha_trabajo' op.lead.id %}" class="text-decoration-none fw-bold">
+                                        <a href="{% url 'ficha_trabajo' op.lead.id %}" class="text-decoration-none fw-bold text-info">
                                             {{ op.lead.nombre|truncatechars:25 }}
                                         </a>
                                     </td>
-                                    <td class="small">{{ op.producto.nombre }}</td>
+                                    <td class="small text-body">{{ op.producto.nombre }}</td>
                                     <td>
-                                        <span class="badge bg-secondary bg-opacity-25 text-body border">
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
                                             {{ op.producto.familia }}
                                         </span>
                                     </td>
-                                    <td class="small">{{ op.vendedor.get_full_name|default:op.vendedor.username }}</td>
+                                    <td class="small text-muted">{{ op.vendedor.get_full_name|default:op.vendedor.username }}</td>
                                     <td class="text-center">
                                         {% if op.estatus == 'PENDIENTE' %}
-                                            <span class="badge bg-warning text-dark">🟡 Pendiente</span>
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">🟡 Pendiente</span>
                                         {% elif op.estatus == 'EN_GESTION' %}
-                                            <span class="badge bg-primary">🔵 En Gestión</span>
+                                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">🔵 En Gestión</span>
                                         {% elif op.estatus == 'CONCRETADO' %}
-                                            <span class="badge bg-success">🟢 Concretado</span>
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle">🟢 Concretado</span>
                                         {% elif op.estatus == 'DESCARTADO' %}
-                                            <span class="badge bg-danger">🔴 Descartado</span>
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle">🔴 Descartado</span>
                                         {% endif %}
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="6" class="text-center text-body-secondary py-4">
+                                    <td colspan="6" class="text-center text-muted py-4">
                                         No se encontraron operaciones con los filtros seleccionados.
                                     </td>
                                 </tr>
@@ -256,7 +258,13 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
+    // --- 1. Obtener colores dinámicos del tema ---
+    const style = getComputedStyle(document.body);
+    const textColor = style.getPropertyValue('--bs-body-color').trim() || '#adb5bd';
+    const gridColor = style.getPropertyValue('--bs-border-color').trim() || 'rgba(0,0,0,0.1)';
+    
+    // 2. Inyectar JSON de forma segura y directa
+    const chartData = {{ chart_data|safe }};
     const ctx = document.getElementById('chart360').getContext('2d');
 
     new Chart(ctx, {
@@ -291,12 +299,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     beginAtZero: true,
                     ticks: {
                         stepSize: 1,
-                        color: '#adb5bd'
+                        color: textColor
                     },
-                    grid: { color: 'rgba(255,255,255,0.05)' }
+                    grid: { color: gridColor }
                 },
                 x: {
-                    ticks: { color: '#adb5bd' },
+                    ticks: { color: textColor },
                     grid: { display: false }
                 }
             }

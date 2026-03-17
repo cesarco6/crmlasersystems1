@@ -653,7 +653,7 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['producto_seguro'] = lead.producto_cat.nombre if lead.producto_cat else (lead.producto_interes if lead.producto_interes else "No especificado")
 
         # --- Auto-crear TrackingPostVenta si el lead es CLIENTE ---
-        if lead.status == 'CLIENTE':
+        if lead.estatus == 'CLIENTE':
             from .models import TrackingPostVenta
             TrackingPostVenta.objects.get_or_create(lead=lead)
         
