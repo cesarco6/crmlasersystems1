@@ -6,7 +6,7 @@ from leads.services.common_services import obtener_catalogos_limpios
 def procesar_transicion_fsm(lead_id: str, data: dict, user):
     try:
         lead = CoreLead.objects.get(id=lead_id)
-        accion = data.get('action')
+        accion = data.get('accion')
         
         # 1. ACTUALIZAR IDENTIDAD ATÓMICA
         if accion in ['VALIDAR', 'GUARDAR']:

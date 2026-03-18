@@ -152,6 +152,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = 'login'
 
+# --- AUTENTICACIÓN DUAL ---
+AUTHENTICATION_BACKENDS = [
+    'users.backends.EmailAuthBackend',          # 1. Custom Scanner (por Email)
+    'django.contrib.auth.backends.ModelBackend',# 2. Fallback nativo (por Username)
+]
+
 # --- CONFIGURACIÓN DE DJANGO Q (TAREAS EN SEGUNDO PLANO) ---
 Q_CLUSTER = {
     'name': 'crm_laser_cluster',
