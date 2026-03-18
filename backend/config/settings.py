@@ -34,6 +34,14 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 # Comentamos tu configuración avanzada por hoy:
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
+# Si el dominio duckdns es fijo, lo ideal es permitirlo tanto en CORS como en CSRF
+CSRF_TRUSTED_ORIGINS = [
+    'https://crm-lasersystems.duckdns.org',
+]
+
+# Esencial para cuando Django corre detrás de un Proxy inverso (Nginx, Traefik) bajo HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # Agregamos la puerta abierta para la intranet:
 #ALLOWED_HOSTS = ['*']
 
