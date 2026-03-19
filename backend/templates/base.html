@@ -64,7 +64,7 @@
                             <i class="bi bi-bell text-warning fs-5"></i> 
                             
                             {% if notificaciones_no_leidas > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary px-2 border border-dark" style="font-size: 0.75rem; transform: translate(-30%, -30%) !important;">
                                 {{ notificaciones_no_leidas }}
                             </span>
                             {% endif %}
@@ -111,7 +111,7 @@
                     </span>
                     
                     <!-- Botón Salir -->
-                    <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm fw-bold ms-2">
+                    <a href="{% url 'logout' %}" class="btn btn-outline-primary btn-sm fw-bold ms-2">
                         🚪 Salir
                     </a>
                 {% endif %}
