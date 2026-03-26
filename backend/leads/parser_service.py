@@ -13,7 +13,14 @@ def normalizar_telefono(telefono):
     digitos = re.sub(r'\D', '', str(telefono))
     return digitos[:15]
 
-def extraer_titulo_cortesia(nombre_raw):
+def get_fila_val(fila_data, posibles_claves):
+    """Helper para buscar valores independientemente de si pandas extrajo la columna con acentos o no"""
+    for k, v in fila_data.items():
+        if k in posibles_claves:
+            return str(v).strip()
+    return ""
+
+def extraer_titulo_cortesia(nombre_raw, dry_run=False):
     """Extrae títulos como Dr., Dra., MVZ y devuelve el id de CatTitulo y el nombre sobrante."""
     if not nombre_raw:
         return None, ""
@@ -27,18 +34,19 @@ def extraer_titulo_cortesia(nombre_raw):
     nombre_limpio = nombre_raw
     
     if match:
-        particula_encontrada = match.group(1).replace('.', '').strip().lower()
+        particula_encontrada = match.group(1).replace('.', '').strip().title()
         # Eliminar el título del nombre
         nombre_limpio = re.sub(patron, '', nombre_raw, flags=re.IGNORECASE).strip()
         
-        # Mapeo simple o consulta a base de datos
-        titulos_db = CatTitulo.objects.all()
-        for t in titulos_db:
-            t_norm = normalizar_texto(t.nombre).replace('.', '')
-            t_abrev = normalizar_texto(t.abreviatura).replace('.', '') if t.abreviatura else ""
-            if particula_encontrada == t_norm or (t_abrev and particula_encontrada == t_abrev):
-                titulo_id = t.id
-                break
+        if not dry_run:
+            t, _ = CatTitulo.objects.get_or_create(
+                nombre__iexact=particula_encontrada,
+                defaults={'nombre': particula_encontrada + '.', 'abreviatura': particula_encontrada.upper()}
+            )
+            titulo_id = t.id
+        else:
+            t = CatTitulo.objects.filter(nombre__iexact=particula_encontrada).first()
+            titulo_id = t.id if t else None
                 
     return titulo_id, nombre_limpio
 
@@ -121,20 +129,39 @@ def atomizar_identidad(nombre_limpio):
         
     return nombre_pila[:100], apellido_paterno[:100], apellido_materno[:100]
 
-def parsear_fila(fila_data):
-    """Orquestador del pipeline ETL"""
-    telefono_raw = fila_data.get('telefono', fila_data.get('phone_primary', ''))
-    telefono_norm = normalizar_telefono(telefono_raw)
+def parsear_fila(fila_data, dry_run=False):
+    """Orquestador del pipeline ETL adaptado a Fase 2"""
+    # 1. Teléfonos (Limpieza Regex y Prioridad Celular > Teléfono)
+    val_celular = get_fila_val(fila_data, ['celular'])
+    val_telefono = get_fila_val(fila_data, ['teléfono', 'telefono'])
     
-    nombre_raw = str(fila_data.get('nombre', '')).strip()
+    celular_limpio = re.sub(r'\D', '', val_celular)[:15]
+    telefono_limpio = re.sub(r'\D', '', val_telefono)[:15]
+    
+    phone_primary = celular_limpio if celular_limpio else telefono_limpio
+    
+    # 2. Email (Limpiar espacios y minúsculas)
+    email_raw = get_fila_val(fila_data, ['email', 'correo'])
+    email_limpio = email_raw.replace(' ', '').lower()
+    
+    nombre_raw = get_fila_val(fila_data, ['nombre', 'nombre_completo'])
+    
+    # 3. Catálogos Raw
+    especialidad_raw = get_fila_val(fila_data, ['especialidad'])
+    ubicacion_raw = get_fila_val(fila_data, ['ubicación', 'ubicacion'])
+    titulo_raw = get_fila_val(fila_data, ['titulo', 'título'])
     
     # 1. Clasificar Entidad
     tipo_entidad = clasificar_entidad(nombre_raw)
     
     res = {
         "tipo_entidad": tipo_entidad,
-        "telefono_norm": telefono_norm,
+        "telefono_norm": phone_primary,
+        "celular_norm": celular_limpio,
         "nombre_original": nombre_raw,
+        "email_norm": email_limpio,
+        "especialidad_raw": especialidad_raw,
+        "ubicacion_raw": ubicacion_raw,
     }
     
     if tipo_entidad == 'CORPORATIVO':
@@ -143,7 +170,30 @@ def parsear_fila(fila_data):
         pass # Se enviará a revisión manual
     else:
         # Individuo
-        titulo_id, nombre_sin_titulo = extraer_titulo_cortesia(nombre_raw)
+        titulo_id = None
+        nombre_sin_titulo = nombre_raw
+        
+        if titulo_raw:
+            particula_encontrada = titulo_raw.strip().title()
+            if not particula_encontrada.endswith('.'):
+                particula_encontrada += '.'
+                
+            if not dry_run:
+                t, _ = CatTitulo.objects.get_or_create(
+                    nombre__iexact=particula_encontrada,
+                    defaults={'nombre': particula_encontrada, 'abreviatura': titulo_raw.strip().upper()}
+                )
+                titulo_id = t.id
+            else:
+                t = CatTitulo.objects.filter(nombre__iexact=particula_encontrada).first()
+                titulo_id = t.id if t else None
+            
+            # Eliminar prefijos repetidos por si el usuario puso "Dr." en titulo y "Dr. Juan" en nombre
+            patron = r'^\s*(dr\.?|dra\.?|m\.?v\.?z\.?|lic\.?|ing\.?|prof\.?|profa\.?|ltf\.?|odont\.?)\s+'
+            nombre_sin_titulo = re.sub(patron, '', nombre_raw, flags=re.IGNORECASE).strip()
+        else:
+            titulo_id, nombre_sin_titulo = extraer_titulo_cortesia(nombre_raw, dry_run)
+            
         pila, paterno, materno = atomizar_identidad(nombre_sin_titulo)
         
         res['titulo_id'] = titulo_id
@@ -157,187 +207,46 @@ from django.utils import timezone
 
 def orquestar_ingesta_historica(filas_data, admin_user=None, dry_run=True):
     """
-    Orquesta la ingesta de un lote de filas.
-    - Soporta Dry Run (sin db impact).
-    - Aplica Zona Neutral (estatus='CLIENTE').
-    - Detecta Clínica vs Individuo vs Siameses.
-    - Usa Evaluación MDM estricta y evita guardar si dry_run=True.
+    Orquesta la ingesta de un lote de filas enviándolas a la aduana (LeadStaging).
+    Respetando la nueva regla estricta: Cero Inyección en CoreLead.
     """
+    from leads.models import LeadStaging
+
+    total_filas = len(filas_data)
     reporte = {
-        "total_procesados": len(filas_data),
+        "total_procesados": total_filas,
         "clinicas_identificadas": 0,
         "individuos_atomizados": 0,
-        "siameses_revision_manual": 0,
+        "siameses_revision_manual": total_filas,
         "errores_criticos": 0,
         "detalles": []
     }
 
-    # Carga perezosa de Modelos para evitar importaciones circulares en el topo del archivo
-    from django.db.models import Q
-    from leads.models import CoreLead, Clinica, LeadStaging, CatEspecialidad
-    from users.models import CatUbicacion
-    from django.contrib.auth import get_user_model
-    from leads.mdm_services import evaluar_duplicidad_estricta
-    import itertools
-
-    User = get_user_model()
-
-    # --- REGLA 5: ROUND-ROBIN DE VENDEDORES (FUERA DEL CICLO) ---
-    vendedores_activos = list(User.objects.filter(is_active=True, is_superuser=False))
-    if not vendedores_activos:
-        vendedores_activos = [admin_user] if admin_user else []
-    
-    ruleta_vendedores = itertools.cycle(vendedores_activos) if vendedores_activos else None
+    stagings_a_crear = []
 
     for fila in filas_data:
-        resultado_parseo = parsear_fila(fila)
-        telefono_norm = resultado_parseo.get('telefono_norm', '')
-        nombre_original = resultado_parseo.get('nombre_original', '')
-        email_extraido = str(fila.get('email', '')).strip() # REGLA 3a: Extraer Email
-
-        if len(telefono_norm) < 10:
-            reporte["errores_criticos"] += 1
-            reporte["detalles"].append({"tipo": "ERROR", "data": fila, "motivo": "Teléfono mínimo no alcanzado"})
-            if not dry_run and admin_user:
-                LeadStaging.objects.create(
+        # Forzamos el dry_run=True para que el parser JAMÁS toque la base de datos
+        datos_parseados = parsear_fila(fila, dry_run=True)
+        
+        if not dry_run:
+            stagings_a_crear.append(
+                LeadStaging(
                     owner=admin_user,
                     datos_crudos=fila,
-                    datos_parseados=resultado_parseo,
-                    motivo_conflicto="Teléfono mínimo no alcanzado"
+                    datos_parseados=datos_parseados,
+                    motivo_conflicto="Ingesta Masiva: Pendiente de auditoría manual",
+                    estatus='PENDIENTE'
                 )
-            continue
+            )
 
-        # --- REGLA 2: CADENERO ANTI-DUPLICADOS ---
-        if CoreLead.objects.filter(phone_primary=telefono_norm).exists():
-            continue # Salto silencioso si ya existe en CoreLead
+        reporte["detalles"].append({
+            "tipo": "REVISION_MANUAL_MULTIPLE",
+            "data": fila,
+            "motivo": "Enviado a Aduana (Staging)"
+        })
 
-        tipo_entidad = resultado_parseo.get('tipo_entidad')
-        
-        if tipo_entidad == 'MULTIPLE':
-            reporte["siameses_revision_manual"] += 1
-            reporte["detalles"].append({"tipo": "REVISION_MANUAL_MULTIPLE", "data": fila, "motivo": "Nombres fusionados o con conectores"})
-            if not dry_run and admin_user:
-                LeadStaging.objects.create(
-                    owner=admin_user,
-                    datos_crudos=fila,
-                    datos_parseados=resultado_parseo,
-                    motivo_conflicto="Clasificado como MULTIPLE (Siameses)"
-                )
-            continue
-            
-        # Validación MDM Secundaria
-        especialidad_texto = str(fila.get('especialidad', '')).strip()
-        ubicacion_texto = str(fila.get('ubicacion', '')).strip()
-        
-        estatus_mdm, res_mdm = evaluar_duplicidad_estricta(
-            nombre_entrante=nombre_original,
-            telefono_entrante=telefono_norm,
-            especialidad_entrante=especialidad_texto,
-            ubicacion_entrante=ubicacion_texto,
-            modelo_lead=CoreLead
-        )
-        
-        if estatus_mdm == 'DUPLICADO':
-            reporte["siameses_revision_manual"] += 1
-            reporte["detalles"].append({"tipo": "REVISION_MANUAL_DUPLICADO", "data": fila, "motivo": f"Choque MDM o tel repetido - (Lead ID: {res_mdm.id})"})
-            if not dry_run and admin_user:
-                LeadStaging.objects.create(
-                    owner=admin_user,
-                    datos_crudos=fila,
-                    datos_parseados=resultado_parseo,
-                    motivo_conflicto=f"Posible duplicado en MDM contra Lead {res_mdm.id}"
-                )
-            continue
-
-        # --- REGLA 4: TRAMPA DE UBICACIÓN (STAGING) ---
-        ubicacion_obj = None
-        if ubicacion_texto:
-            ubicacion_obj = CatUbicacion.objects.filter(
-                Q(ciudad__iexact=ubicacion_texto) | Q(estado__iexact=ubicacion_texto)
-            ).filter(is_active=True).first()
-
-        if not ubicacion_obj:
-            if not dry_run and admin_user:
-                LeadStaging.objects.create(
-                    owner=admin_user,
-                    datos_crudos=fila,
-                    datos_parseados=resultado_parseo,
-                    motivo_conflicto=f"Ubicación no válida en catálogo: '{ubicacion_texto}'"
-                )
-            reporte["errores_criticos"] += 1
-            reporte["detalles"].append({"tipo": "ERROR", "data": fila, "motivo": f"Ubicación no válida: {ubicacion_texto}"})
-            continue # Manda al quirófano
-
-        # --- REGLA 3b: INYECCIÓN DE ESPECIALIDAD (CATÁLOGO) ---
-        especialidad_obj = None
-        if especialidad_texto:
-            if not dry_run: # Solo creamos el catalogo real si no es dry run
-                especialidad_obj, _ = CatEspecialidad.objects.get_or_create(
-                    nombre__iexact=especialidad_texto,
-                    defaults={'nombre': especialidad_texto.upper(), 'is_active': True}
-                )
-            else:
-                especialidad_obj = CatEspecialidad.objects.filter(nombre__iexact=especialidad_texto).first()
-
-        # Data Neutral para ambos casos
-        notas_historicas = {
-            "notas": [{
-                "tipo": "sistema",
-                "contenido": "Migración Histórica: Cronología original no disponible",
-                "usuario": admin_user.id if admin_user else None,
-                "fecha": timezone.now().isoformat()
-            }],
-            "columnas_excel_historicas": fila
-        }
-        
-        # Asignar owner de la ruleta
-        vendedor_asignado = next(ruleta_vendedores) if ruleta_vendedores else admin_user
-
-        if tipo_entidad == 'CORPORATIVO':
-            nombre_clinica = resultado_parseo.get('nombre_clinica', nombre_original)
-            if not dry_run and vendedor_asignado:
-                clinica_obj, _ = Clinica.objects.get_or_create(
-                    telefono_master=telefono_norm,
-                    defaults={'nombre': nombre_clinica}
-                )
-                CoreLead.objects.create(
-                    owner=vendedor_asignado,  # REGLA 5: Aplicación Round-Robin
-                    estatus='CLIENTE',
-                    phone_primary=telefono_norm,
-                    email=email_extraido,     # REGLA 3a: Email
-                    nombre_pila=nombre_clinica, 
-                    nombre=nombre_original,
-                    clinica=clinica_obj,
-                    especialidad_cat=especialidad_obj, # REGLA 3b: Especialidad Cat
-                    ubicacion=ubicacion_obj,  # REGLA 4: Ubicacion asegurada
-                    notas_variadas=notas_historicas
-                )
-            reporte["clinicas_identificadas"] += 1
-            reporte["detalles"].append({"tipo": "CORPORATIVO", "data": fila, "nombre_inyectado": nombre_clinica})
-            
-        elif tipo_entidad == 'INDIVIDUAL':
-            if not dry_run and vendedor_asignado:
-                CoreLead.objects.create(
-                    owner=vendedor_asignado,  # REGLA 5: Aplicación Round-Robin
-                    estatus='CLIENTE',
-                    phone_primary=telefono_norm,
-                    email=email_extraido,     # REGLA 3a: Email
-                    titulo_cortesia_id=resultado_parseo.get('titulo_id'),
-                    nombre_pila=resultado_parseo.get('nombre_pila'),
-                    apellido_paterno=resultado_parseo.get('apellido_paterno'),
-                    apellido_materno=resultado_parseo.get('apellido_materno'),
-                    nombre=nombre_original,
-                    especialidad_cat=especialidad_obj, # REGLA 3b: Especialidad Cat
-                    ubicacion=ubicacion_obj,  # REGLA 4: Ubicacion asegurada
-                    notas_variadas=notas_historicas
-                )
-            reporte["individuos_atomizados"] += 1
-            reporte["detalles"].append({
-                "tipo": "INDIVIDUAL", 
-                "data": fila, 
-                "pila": resultado_parseo.get('nombre_pila'),
-                "paterno": resultado_parseo.get('apellido_paterno'),
-                "materno": resultado_parseo.get('apellido_materno')
-            })
+    # Inyección masiva optimizada (solo se ejecuta si el usuario dio "Confirmar")
+    if not dry_run and stagings_a_crear:
+        LeadStaging.objects.bulk_create(stagings_a_crear, batch_size=500)
 
     return reporte

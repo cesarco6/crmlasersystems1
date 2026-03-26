@@ -19,15 +19,27 @@
                         <tr>
                             <th class="text-uppercase">Nombre</th>
                             <th class="text-uppercase">Dueño Actual</th>
-                            <th class="text-uppercase">Acciones</th>
+                            <th class="text-uppercase">Fase de Rescate</th>
+                            <th class="text-uppercase text-end">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for lead in leads %}
                         <tr>
-                            <td class="fw-bold text-body">{{ lead.nombre }}</td>
+                            <td class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</td>
                             <td class="text-muted">{{ lead.owner.username|title }}</td>
                             <td>
+                                {% if lead.estatus == 'NO_CIERRE' %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary">🚫 No Cierre Final</span>
+                                {% elif lead.plan|lower == 'descartado' %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger">🔴 Descartado Temprano</span>
+                                {% elif lead.estatus == 'EN_ESPERA' %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning">⏸️ En Espera</span>
+                                {% else %}
+                                    <span class="badge bg-light text-dark border">{{ lead.estatus }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
                                 <div class="d-flex align-items-center gap-2 flex-wrap">
                                     <!-- Botón Ver Detalles (Abre Modal) -->
                                     <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#modalLead{{ lead.id }}">
@@ -54,7 +66,7 @@
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="3" class="text-center py-4 text-muted">
+                            <td colspan="4" class="text-center py-4 text-muted">
                                 No hay leads en la bandeja de rescate actualmente.
                             </td>
                         </tr>
@@ -72,8 +84,16 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header border-bottom-0 pb-0">
                     <h5 class="modal-title fw-bold text-body">
-                        {{ lead.nombre }} 
-                        <span class="badge bg-secondary-subtle text-secondary ms-2">{{ lead.estatus }}</span>
+                        {{ lead.nombre_completo_mdm }} 
+                        {% if lead.estatus == 'NO_CIERRE' %}
+                            <span class="badge bg-secondary-subtle text-secondary border border-secondary ms-2">🚫 No Cierre Final</span>
+                        {% elif lead.plan|lower == 'descartado' %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger ms-2">🔴 Descartado Temprano</span>
+                        {% elif lead.estatus == 'EN_ESPERA' %}
+                            <span class="badge bg-warning-subtle text-warning border border-warning ms-2">⏸️ En Espera</span>
+                        {% else %}
+                            <span class="badge bg-light text-dark border ms-2">{{ lead.estatus }}</span>
+                        {% endif %}
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>

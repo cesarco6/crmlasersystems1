@@ -19,6 +19,8 @@ def default_notas_variadas():
 class Clinica(models.Model):
     nombre = models.CharField(max_length=200)
     telefono_master = models.CharField(max_length=15, unique=True)
+    # --- NUEVO CAMPO DE UBICACIÓN (OPCIÓN 2) ---
+    ubicacion = models.ForeignKey('users.CatUbicacion', on_delete=models.SET_NULL, null=True, blank=True, related_name='clinicas')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -39,7 +41,7 @@ class CoreLead(models.Model):
     # Identidad (UK y Datos Base)
     phone_primary = models.CharField(max_length=15)
     celular = models.CharField(max_length=15, blank=True)
-    nombre = models.CharField(max_length=100)
+    # nombre = models.CharField(max_length=100)
     
     # --- FASE 2: IDENTIDAD ATÓMICA ---
     titulo_cortesia = models.ForeignKey(CatTitulo, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
@@ -47,8 +49,8 @@ class CoreLead(models.Model):
     apellido_paterno = models.CharField(max_length=100, null=True, blank=True)
     apellido_materno = models.CharField(max_length=100, null=True, blank=True)
 
-    especialidad = models.CharField(max_length=50)
-    producto_interes = models.CharField(max_length=50)
+    # especialidad = models.CharField(max_length=50)
+    # producto_interes = models.CharField(max_length=50)
     # --- NUEVOS CAMPOS RELACIONALES (Catálogos Limpios) ---
     especialidad_cat = models.ForeignKey(CatEspecialidad, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
     producto_cat = models.ForeignKey(CatProducto, on_delete=models.SET_NULL, null=True, blank=True, related_name='leads')
@@ -62,27 +64,28 @@ class CoreLead(models.Model):
     plan = models.CharField(max_length=50, default='SEGUIMIENTO')
     # LO ÚNICO NUEVO QUE VAMOS A AGREGAR ES ESTO:
     next_action_date = models.DateField(null=True, blank=True, verbose_name="Fecha de Próximo Contacto")
+    es_historico = models.BooleanField(default=False)
     # Usamos el método default para que cada lead nuevo tenga la estructura limpia
     notas_variadas = models.JSONField(default=default_notas_variadas)
 
     @property
     def nombre_completo_mdm(self):
         """
-        Concatena de forma inteligente los campos atómicos para no romper el Frontend.
-        Si hay datos atómicos, los prioriza. Si no, usa el campo 'nombre' histórico.
+        Concatena estrictamente los campos atómicos (Fase 2).
+        Ya no depende del campo histórico 'nombre'.
         """
-        if self.nombre_pila or self.apellido_paterno:
-            partes = []
-            if self.titulo_cortesia:
-                partes.append(self.titulo_cortesia.nombre)
-            if self.nombre_pila:
-                partes.append(self.nombre_pila)
-            if self.apellido_paterno:
-                partes.append(self.apellido_paterno)
-            if self.apellido_materno:
-                partes.append(self.apellido_materno)
-            return " ".join(partes)
-        return self.nombre or ""
+        partes = []
+        if self.titulo_cortesia:
+            partes.append(self.titulo_cortesia.abreviatura)
+        if self.nombre_pila:
+            partes.append(self.nombre_pila)
+        if self.apellido_paterno:
+            partes.append(self.apellido_paterno)
+        if self.apellido_materno:
+            partes.append(self.apellido_materno)
+            
+        resultado = " ".join(partes).strip()
+        return resultado if resultado else "Sin Nombre Registrado"
 
     def save(self, *args, **kwargs):
         # Usamos _state.adding para saber si el registro ya existe en la DB
@@ -90,7 +93,8 @@ class CoreLead(models.Model):
             original = CoreLead.objects.get(pk=self.pk)
             # Candado de Integridad DDS 2.0 (Fase 2)
             if original.estatus != 'PROSPECTO':
-                campos_bloqueados = ['phone_primary', 'nombre', 'especialidad', 'producto_interes']
+                # Bloqueamos estrictamente los campos normalizados
+                campos_bloqueados = ['phone_primary', 'nombre_pila', 'apellido_paterno', 'especialidad_cat', 'producto_cat']
                 for campo in campos_bloqueados:
                     if getattr(self, campo) != getattr(original, campo):
                         raise ValidationError(f"Violación DDS: {campo} es inmutable.")
@@ -253,7 +257,7 @@ class VentaTransaccional(models.Model):
         verbose_name_plural = 'Ventas Transaccionales'
 
     def __str__(self):
-        return f"{self.producto.nombre} vendido a {self.lead.nombre}"
+        return f"{self.producto.nombre} vendido a {self.lead.nombre_completo_mdm}"
 
 
 class TrackingPostVenta(models.Model):
@@ -278,7 +282,7 @@ class TrackingPostVenta(models.Model):
         verbose_name_plural = 'Tracking Post-Venta'
 
     def __str__(self):
-        return f"Tracking PV: {self.lead.nombre}"
+        return f"Tracking PV: {self.lead.nombre_completo_mdm}"
 
 class Evento(models.Model):
     ESTATUS_CHOICES = [

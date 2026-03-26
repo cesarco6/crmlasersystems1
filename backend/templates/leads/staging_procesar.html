@@ -10,7 +10,7 @@
         <div>
             <h3 class="fw-bold mb-1">
                 <a href="{% url 'staging_list' %}" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
-                🛠️ Operando Registro (Quirófano)
+                🛠️ Operando Registro histórico
             </h3>
             <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Diagnóstico: {{ staging_lead.motivo_conflicto }}</span>
         </div>
@@ -80,33 +80,33 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold">Tipo de Entidad</label>
-                                <select class="form-select form-select-sm" name="tipo_entidad" required>
+                                <select class="form-select form-select-sm" name="tipo_entidad" id="tipo_entidad" required>
                                     <option value="INDIVIDUAL" {% if staging_lead.datos_parseados.tipo_entidad != 'CORPORATIVO' %}selected{% endif %}>👩‍⚕️ Individuo (Médico)</option>
                                     <option value="CORPORATIVO" {% if staging_lead.datos_parseados.tipo_entidad == 'CORPORATIVO' %}selected{% endif %}>🏥 Clínica/Corporativo</option>
                                 </select>
                             </div>
                         </div>
 
-                        <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">1. Identidad Atomizada (Fase 2)</h6>
+                        <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">1. Identidad Atomizada</h6>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-3">
+                            <div class="col-md-3" id="div_titulo">
                                 <label class="form-label small fw-bold">Título</label>
                                 <select class="form-select form-select-sm" name="titulo_cortesia">
                                     <option value="">(Ninguno)</option>
                                     {% for t in titulos_list %}
-                                        <option value="{{ t.id }}" {% if staging_lead.datos_parseados.titulo_id == t.id %}selected{% endif %}>{{ t.nombre }}</option>
+                                        <option value="{{ t.id }}" {% if staging_lead.datos_parseados.titulo_id == t.id %}selected{% endif %}>{{ t.abreviatura }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-9">
-                                <label class="form-label small fw-bold">Nombre de Pila *</label>
+                            <div class="col-md-9" id="div_nombre">
+                                <label class="form-label small fw-bold" id="label_nombre">Nombre de Pila *</label>
                                 <input type="text" class="form-control form-control-sm" name="nombre_pila" value="{{ staging_lead.datos_parseados.nombre_pila|default:'' }}" required>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="div_paterno">
                                 <label class="form-label small fw-bold">Ap. Paterno</label>
                                 <input type="text" class="form-control form-control-sm" name="apellido_paterno" value="{{ staging_lead.datos_parseados.apellido_paterno|default:'' }}">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="div_materno">
                                 <label class="form-label small fw-bold">Ap. Materno</label>
                                 <input type="text" class="form-control form-control-sm" name="apellido_materno" value="{{ staging_lead.datos_parseados.apellido_materno|default:'' }}">
                             </div>
@@ -127,12 +127,24 @@
                                 <label class="form-label small fw-bold">Email</label>
                                 <input type="email" class="form-control form-control-sm" name="email" value="{{ staging_lead.datos_crudos.email|default:'' }}">
                             </div>
+                            <div class="row g-3 mb-4 mt-1">
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold">Dirección Completa</label>
+                                    <input type="text" class="form-control form-control-sm" name="direccion_completa" value="{{ staging_lead.datos_crudos.direccion|default:'' }}" placeholder="Calle, Colonia, C.P.">
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-4 mt-1">
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold">Notas libres (Histórico)</label>
+                                    <textarea class="form-control form-control-sm" name="notas" rows="2" placeholder="Notas u observaciones">{{ staging_lead.datos_crudos.notas|default:'' }}</textarea>
+                                </div>
+                            </div>
                         </div>
 
                         <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">3. Clasificación Cruzada Estricta</h6>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Especialidad *</label>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Especialidad*</label>
                                 <select class="form-select form-select-sm" name="especialidad_id" required>
                                     <option value="">Selecciona...</option>
                                     {% for esp in especialidades_list %}
@@ -140,8 +152,8 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Ubicación (Región) *</label>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Ubicación*</label>
                                 <select class="form-select form-select-sm" name="ubicacion_id" required>
                                     <option value="">Selecciona...</option>
                                     {% for ub in ubicaciones_list %}
@@ -149,11 +161,20 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Producto*</label>
+                                <select class="form-select form-select-sm" name="producto_id" required>
+                                    <option value="">Selecciona...</option>
+                                    {% for prod in productos_list %}
+                                    <option value="{{ prod.id }}" {% if staging_lead.datos_crudos.producto == prod.nombre %}selected{% endif %}>{{ prod.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
 
                         <!-- Panel Inferior de Botones Flotantes -->
                         <div class="d-flex justify-content-between mt-5 pt-3 border-top">
-                            <button type="submit" class="btn btn-outline-danger fw-bold" onclick="document.getElementById('action-input').value='descartar'; this.innerText='Descartando...';">
+                            <button type="button" class="btn btn-outline-danger fw-bold" onclick="confirmarDescarte();">
                                 <i class="bi bi-trash"></i> Descartar (Basura)
                             </button>
                             
@@ -168,4 +189,29 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/staging_procesar.js' %}"></script>
+<script>
+function confirmarDescarte() {
+    Swal.fire({
+        title: '⚠️ ¿Descartar definitivamente?',
+        text: "Este registro y toda su información histórica serán desechados. Es una acción destructiva para el lead.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, desechar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.querySelector('form');
+            document.getElementById('action-input').value = 'descartar';
+            form.noValidate = true; // Salta validaciones required nativas
+            form.submit();
+        }
+    });
+}
+</script>
 {% endblock %}

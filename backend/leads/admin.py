@@ -4,7 +4,10 @@ from .models import CoreLead, FiscalProfile
 
 @admin.register(CoreLead)
 class CoreLeadAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'phone_primary', 'estatus', 'owner')
-    search_fields = ('nombre', 'phone_primary')
-    readonly_fields = ('id', 'notas_variadas') # El JSONB se ve pero se protege de edición manual rápida
-
+    # 1. En la tabla mostramos la propiedad calculada para que se vea bonito
+    list_display = ('nombre_completo_mdm', 'phone_primary', 'estatus', 'owner')
+    
+    # 2. En el buscador tenemos que poner los campos atómicos reales
+    search_fields = ('nombre_pila', 'apellido_paterno', 'apellido_materno', 'phone_primary')
+    
+    readonly_fields = ('id', 'notas_variadas')

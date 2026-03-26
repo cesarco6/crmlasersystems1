@@ -29,7 +29,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-10">
             <div class="card border-0 shadow-sm border-top border-warning border-4">
-                <div class="card-header bg-white pt-4 pb-2">
+                <div class="card-header bg-dark pt-4 pb-2">
                     <h5 class="fw-bold text-warning-emphasis mb-0"><i class="bi bi-rocket-takeoff"></i> Inyección Directa a Cartera (Fase: CLIENTE)</h5>
                 </div>
                 <div class="card-body p-4">
@@ -52,7 +52,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold">Tipo de Entidad *</label>
-                                <select class="form-select" name="tipo_entidad" required>
+                                <select class="form-select" name="tipo_entidad" id="tipo_entidad" required>
                                     <option value="INDIVIDUAL">👩‍⚕️ Individuo (Médico)</option>
                                     <option value="CORPORATIVO">🏥 Clínica/Corporativo</option>
                                 </select>
@@ -62,7 +62,7 @@
                         <!-- Identidad -->
                         <h6 class="fw-bold text-light mb-3 border-bottom pb-2">1. Identidad Atomizada (Fase 2)</h6>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-3">
+                            <div class="col-md-3" id="div_titulo">
                                 <label class="form-label small fw-bold">Título</label>
                                 <select class="form-select" name="titulo_cortesia">
                                     <option value="">(Ninguno)</option>
@@ -71,15 +71,15 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-9">
-                                <label class="form-label small fw-bold">Nombre de Pila / Razón Social *</label>
+                            <div class="col-md-9" id="div_nombre">
+                                <label class="form-label small fw-bold" id="label_nombre">Nombre de Pila / Razón Social *</label>
                                 <input type="text" class="form-control" name="nombre_pila" value="" required placeholder="Obligatorio">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="div_paterno">
                                 <label class="form-label small fw-bold">Ap. Paterno (Solo individuo)</label>
                                 <input type="text" class="form-control" name="apellido_paterno" value="" placeholder="Opcional">
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" id="div_materno">
                                 <label class="form-label small fw-bold">Ap. Materno (Solo individuo)</label>
                                 <input type="text" class="form-control" name="apellido_materno" value="" placeholder="Opcional">
                             </div>
@@ -106,7 +106,7 @@
                         <!-- Catalogos -->
                         <h6 class="fw-bold text-light mb-3 border-bottom pb-2">3. Clasificación Cruzada Estricta</h6>
                         <div class="row g-3 mb-4">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label class="form-label small fw-bold">Especialidad *</label>
                                 <select class="form-select" name="especialidad_id" required>
                                     <option value="">Selecciona...</option>
@@ -115,12 +115,21 @@
                                     {% endfor %}
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label small fw-bold">Ubicación (Región) *</label>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Ubicación*</label>
                                 <select class="form-select" name="ubicacion_id" required>
                                     <option value="">Selecciona...</option>
                                     {% for ub in ubicaciones_list %}
                                     <option value="{{ ub.id }}">{{ ub.ciudad }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Producto*</label>
+                                <select class="form-select" name="producto_id" required>
+                                    <option value="">Selecciona...</option>
+                                    {% for prod in productos_list %}
+                                    <option value="{{ prod.id }}">{{ prod.nombre }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -139,4 +148,7 @@
         </div>
     </div>
 </div>
+{% endblock %}
+{% block extra_js %}
+<script src="{% static 'js/staging_procesar.js' %}"></script>
 {% endblock %}

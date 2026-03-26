@@ -30,6 +30,8 @@ def obtener_metricas_director(filtros: dict) -> dict:
     if filtro_vendedor:
         qs = qs.filter(owner__username__iexact=filtro_vendedor)
 
+    qs_organico = qs.exclude(es_historico=True)
+
     # --- 3. EXTRAER OPCIONES ÚNICAS (DDS 2.0) ---
     lista_estados = CatUbicacion.objects.exclude(estado='').values_list('estado', flat=True).distinct().order_by('estado')
     lista_especialidades = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
@@ -42,7 +44,7 @@ def obtener_metricas_director(filtros: dict) -> dict:
     total_vendedores_metric = lista_vendedores.count()
 
     hace_7_dias = localtime(now()) - timedelta(days=7)
-    base_semana = qs.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
+    base_semana = qs_organico.filter(updated_at__gte=hace_7_dias).exclude(estatus='Histórico')
 
     total_trabajados_semana = base_semana.count()
     vendedores_activos = total_vendedores_metric
@@ -74,7 +76,7 @@ def obtener_metricas_director(filtros: dict) -> dict:
     q_venta = Q(estatus__iexact='cliente')
     q_no_cierre = Q(estatus__iexact='NO_CIERRE')
 
-    stats_vendedor = qs.values('owner__username').annotate(
+    stats_vendedor = qs_organico.values('owner__username').annotate(
         total_rechazos=Count('id', filter=q_rechazo),
         total_seguimientos=Count('id', filter=q_seguimiento),
         total_calificados=Count('id', filter=q_calificado),
@@ -83,7 +85,7 @@ def obtener_metricas_director(filtros: dict) -> dict:
     ).order_by('owner__username')
     v_labels, v_rech, v_seg, v_cal, v_ven, v_noc = procesar_agrupacion(stats_vendedor, 'owner__username')
 
-    stats_ubicacion = qs.values('ubicacion__estado').annotate(
+    stats_ubicacion = qs_organico.values('ubicacion__estado').annotate(
         total_rechazos=Count('id', filter=q_rechazo),
         total_seguimientos=Count('id', filter=q_seguimiento),
         total_calificados=Count('id', filter=q_calificado),
@@ -92,7 +94,7 @@ def obtener_metricas_director(filtros: dict) -> dict:
     ).order_by('ubicacion__estado')
     u_labels, u_rech, u_seg, u_cal, u_ven, u_noc = procesar_agrupacion(stats_ubicacion, 'ubicacion__estado')
 
-    stats_especialidad = qs.values('especialidad_cat__nombre').annotate(
+    stats_especialidad = qs_organico.values('especialidad_cat__nombre').annotate(
         total_rechazos=Count('id', filter=q_rechazo),
         total_seguimientos=Count('id', filter=q_seguimiento),
         total_calificados=Count('id', filter=q_calificado),
@@ -110,7 +112,7 @@ def obtener_metricas_director(filtros: dict) -> dict:
     else:
         fin_mes = inicio_mes.replace(month=inicio_mes.month + 1, day=1) - datetime.timedelta(days=1)
 
-    forecast_leads = qs.filter(
+    forecast_leads = qs_organico.filter(
         calificacion__in=[2, 3],
         next_action_date__gte=inicio_mes,
         next_action_date__lte=fin_mes
@@ -121,10 +123,10 @@ def obtener_metricas_director(filtros: dict) -> dict:
     ).select_related('owner', 'especialidad_cat', 'producto_cat').order_by('next_action_date')
 
     # --- 7. EMBUDO DE CONVERSIÓN (DONA) ---
-    dona_prospectos = qs.filter(estatus='PROSPECTO').count()
-    dona_leads_frios = qs.filter(estatus='LEAD').exclude(calificacion__in=[2, 3]).count()
-    dona_calificados = qs.filter(estatus='LEAD', calificacion__in=[2, 3]).count()
-    dona_clientes = qs.filter(estatus='CLIENTE').count()
+    dona_prospectos = qs_organico.filter(estatus='PROSPECTO').count()
+    dona_leads_frios = qs_organico.filter(estatus='LEAD').exclude(calificacion__in=[2, 3]).count()
+    dona_calificados = qs_organico.filter(estatus='LEAD', calificacion__in=[2, 3]).count()
+    dona_clientes = qs_organico.filter(estatus='CLIENTE').count()
     
     dona_data = [dona_prospectos, dona_leads_frios, dona_calificados, dona_clientes]
 

@@ -73,7 +73,7 @@
                     <tbody>
                         {% for lead in page_obj %}
                         <tr>
-                            <td class="fw-bold text-body">{{ lead.nombre }}</td>
+                            <td class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</td>
                             <td class="text-muted">{{ lead.phone_primary|default:"Sin registro" }}</td>
                             <td><span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.estatus }}</span></td>
                             <td class="text-center">
@@ -139,7 +139,7 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header border-bottom-0 pb-0">
                     <h5 class="modal-title fw-bold text-body">
-                        {{ lead.nombre }} 
+                        {{ lead.nombre_completo_mdm }} 
                         <span class="badge bg-secondary-subtle text-secondary ms-2">{{ lead.estatus }}</span>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -157,9 +157,12 @@
                             </ul>
                         </div>
                         <div class="col-md-6">
-                            <ul class="list-unstyled mb-0 text-sm">
-                                <li class="mb-1"><strong class="text-muted">Especialidad:</strong> {{ lead.especialidad_cat.nombre|default:lead.especialidad|default:"General" }}</li>
-                                <li><strong class="text-muted">Producto:</strong> {{ lead.producto_cat.nombre|default:lead.producto_interes|default:"Por Definir" }}</li>
+                                <li class="mb-1"><strong class="text-muted">Especialidad:</strong> 
+                                    {% if lead.especialidad_cat %} {{ lead.especialidad_cat.nombre }} {% else %} No registrada {% endif %}
+                                </li>
+                                <li><strong class="text-muted">Producto:</strong> 
+                                    {% if lead.producto_cat %} {{ lead.producto_cat.nombre }} {% else %} Por Definir {% endif %}
+                                </li>
                             </ul>
                         </div>
                     </div>

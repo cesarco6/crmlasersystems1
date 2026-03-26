@@ -172,7 +172,7 @@
                                     <td class="small text-muted">{{ op.fecha_venta|date:"d M Y" }}</td>
                                     <td>
                                         <a href="{% url 'ficha_trabajo' op.lead.id %}" class="text-decoration-none fw-bold text-info">
-                                            {{ op.lead.nombre|truncatechars:25 }}
+                                            {{ op.lead.nombre_completo_mdm|truncatechars:25 }}
                                         </a>
                                     </td>
                                     <td class="small text-body">{{ op.producto.nombre }}</td>

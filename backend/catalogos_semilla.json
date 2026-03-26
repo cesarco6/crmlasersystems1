@@ -1,0 +1,1189 @@
+[
+{
+    "model": "users.catubicacion",
+    "pk": 1,
+    "fields": {
+        "ciudad": "Querétaro",
+        "estado": "Querétaro",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 2,
+    "fields": {
+        "ciudad": "Monterrey",
+        "estado": "Nuevo Leon",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 3,
+    "fields": {
+        "ciudad": "CDMX",
+        "estado": "Ciudad de Mexico",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 4,
+    "fields": {
+        "ciudad": "Puebla",
+        "estado": "Puebla",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 5,
+    "fields": {
+        "ciudad": "Guadalajara",
+        "estado": "Jalisco",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 6,
+    "fields": {
+        "ciudad": "Tijuana",
+        "estado": "Baja California Norte",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 7,
+    "fields": {
+        "ciudad": "Bernal",
+        "estado": "Querétaro",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 8,
+    "fields": {
+        "ciudad": "Aguascalientes",
+        "estado": "Aguascalientes",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 9,
+    "fields": {
+        "ciudad": "Teocaltiche",
+        "estado": "Jalisco",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 10,
+    "fields": {
+        "ciudad": "Mexicali",
+        "estado": "Baja California Norte",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 11,
+    "fields": {
+        "ciudad": "Ensenada",
+        "estado": "Baja California Norte",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 12,
+    "fields": {
+        "ciudad": "La Paz",
+        "estado": "Baja California Sur",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 13,
+    "fields": {
+        "ciudad": "Los Cabos",
+        "estado": "Baja California Sur",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 14,
+    "fields": {
+        "ciudad": "Campeche",
+        "estado": "Campeche",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 15,
+    "fields": {
+        "ciudad": "Ciudad del Carmen",
+        "estado": "Campeche",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 16,
+    "fields": {
+        "ciudad": "Tuxtla Gutiérrez",
+        "estado": "Chiapas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 17,
+    "fields": {
+        "ciudad": "Tapachula",
+        "estado": "Chiapas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 18,
+    "fields": {
+        "ciudad": "San Cristóbal de las Casas",
+        "estado": "Chiapas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 19,
+    "fields": {
+        "ciudad": "Chihuahua",
+        "estado": "Chihuahua",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 20,
+    "fields": {
+        "ciudad": "Ciudad Juárez",
+        "estado": "Chihuahua",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 23,
+    "fields": {
+        "ciudad": "Saltillo",
+        "estado": "Coahuila",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 24,
+    "fields": {
+        "ciudad": "Torreón",
+        "estado": "Coahuila",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 25,
+    "fields": {
+        "ciudad": "Monclova",
+        "estado": "Coahuila",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 26,
+    "fields": {
+        "ciudad": "Colima",
+        "estado": "Colima",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 27,
+    "fields": {
+        "ciudad": "Manzanillo",
+        "estado": "Colima",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 28,
+    "fields": {
+        "ciudad": "Durango",
+        "estado": "Durango",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 29,
+    "fields": {
+        "ciudad": "Gómez Palacio",
+        "estado": "Durango",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 30,
+    "fields": {
+        "ciudad": "Toluca",
+        "estado": "Estado de Mexico",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 31,
+    "fields": {
+        "ciudad": "Naucalpan",
+        "estado": "Estado de Mexico",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 32,
+    "fields": {
+        "ciudad": "Tlalnepantla",
+        "estado": "Estado de Mexico",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 33,
+    "fields": {
+        "ciudad": "Ecatepec",
+        "estado": "Estado de Mexico",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 34,
+    "fields": {
+        "ciudad": "Metepec",
+        "estado": "Estado de Mexico",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 35,
+    "fields": {
+        "ciudad": "León",
+        "estado": "Guanajuato",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 36,
+    "fields": {
+        "ciudad": "Irapuato",
+        "estado": "Guanajuato",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 37,
+    "fields": {
+        "ciudad": "Celaya",
+        "estado": "Guanajuato",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 38,
+    "fields": {
+        "ciudad": "Guanajuato",
+        "estado": "Guanajuato",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 39,
+    "fields": {
+        "ciudad": "Salamanca",
+        "estado": "Guanajuato",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 40,
+    "fields": {
+        "ciudad": "Acapulco",
+        "estado": "Guerrero",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 41,
+    "fields": {
+        "ciudad": "Chilpancingo",
+        "estado": "Guerrero",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 42,
+    "fields": {
+        "ciudad": "Zihuatanejo",
+        "estado": "Guerrero",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 43,
+    "fields": {
+        "ciudad": "Pachuca",
+        "estado": "Hidalgo",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 44,
+    "fields": {
+        "ciudad": "Tulancingo",
+        "estado": "Hidalgo",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 45,
+    "fields": {
+        "ciudad": "Zapopan",
+        "estado": "Jalisco",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 46,
+    "fields": {
+        "ciudad": "Puerto Vallarta",
+        "estado": "Jalisco",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 47,
+    "fields": {
+        "ciudad": "Tlaquepaque",
+        "estado": "Jalisco",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 48,
+    "fields": {
+        "ciudad": "Morelia",
+        "estado": "Michoacán",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 49,
+    "fields": {
+        "ciudad": "Uruapan",
+        "estado": "Michoacán",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 50,
+    "fields": {
+        "ciudad": "Zamora",
+        "estado": "Michoacán",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 51,
+    "fields": {
+        "ciudad": "Cuernavaca",
+        "estado": "Morelos",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 52,
+    "fields": {
+        "ciudad": "Cuautla",
+        "estado": "Morelos",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 53,
+    "fields": {
+        "ciudad": "Tepic",
+        "estado": "Nayarit",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 54,
+    "fields": {
+        "ciudad": "Nuevo Vallarta",
+        "estado": "Nayarit",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 55,
+    "fields": {
+        "ciudad": "Monterrey",
+        "estado": "Nuevo Leon",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 56,
+    "fields": {
+        "ciudad": "San Pedro Garza García",
+        "estado": "Nuevo Leon",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 57,
+    "fields": {
+        "ciudad": "Guadalupe",
+        "estado": "Nuevo Leon",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 58,
+    "fields": {
+        "ciudad": "Apodaca",
+        "estado": "Nuevo Leon",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 59,
+    "fields": {
+        "ciudad": "Oaxaca",
+        "estado": "Oaxaca",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 60,
+    "fields": {
+        "ciudad": "Salina Cruz",
+        "estado": "Oaxaca",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 61,
+    "fields": {
+        "ciudad": "Huatulco",
+        "estado": "Oaxaca",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 62,
+    "fields": {
+        "ciudad": "Tehuacan",
+        "estado": "Puebla",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 63,
+    "fields": {
+        "ciudad": "Cholula",
+        "estado": "Puebla",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 64,
+    "fields": {
+        "ciudad": "San Juan del Río",
+        "estado": "Querétaro",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 65,
+    "fields": {
+        "ciudad": "Corregidora",
+        "estado": "Querétaro",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 66,
+    "fields": {
+        "ciudad": "Cancun",
+        "estado": "Quintana Roo",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 67,
+    "fields": {
+        "ciudad": "Playa del Carmen",
+        "estado": "Quintana Roo",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 68,
+    "fields": {
+        "ciudad": "Chetumal",
+        "estado": "Quintana Roo",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 69,
+    "fields": {
+        "ciudad": "Tulum",
+        "estado": "Quintana Roo",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 70,
+    "fields": {
+        "ciudad": "San Luis Potosí",
+        "estado": "San Luis Potosí",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 71,
+    "fields": {
+        "ciudad": "Ciudad Valles",
+        "estado": "San Luis Potosí",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 72,
+    "fields": {
+        "ciudad": "Culiacán",
+        "estado": "Sinaloa",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 73,
+    "fields": {
+        "ciudad": "Mazatlán",
+        "estado": "Sinaloa",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 74,
+    "fields": {
+        "ciudad": "Los Mochis",
+        "estado": "Sinaloa",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 75,
+    "fields": {
+        "ciudad": "Hermosillo",
+        "estado": "Sonora",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 76,
+    "fields": {
+        "ciudad": "Ciudad Obregón",
+        "estado": "Sonora",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 77,
+    "fields": {
+        "ciudad": "Nogales",
+        "estado": "Sonora",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 78,
+    "fields": {
+        "ciudad": "Villahermosa",
+        "estado": "Tabasco",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 79,
+    "fields": {
+        "ciudad": "Tampico",
+        "estado": "Tamaulipas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 80,
+    "fields": {
+        "ciudad": "Reynosa",
+        "estado": "Tamaulipas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 81,
+    "fields": {
+        "ciudad": "Nuevo Laredo",
+        "estado": "Tamaulipas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 82,
+    "fields": {
+        "ciudad": "Ciudad Victoria",
+        "estado": "Tamaulipas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 83,
+    "fields": {
+        "ciudad": "Tlaxcala",
+        "estado": "Tlaxcala",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 84,
+    "fields": {
+        "ciudad": "Veracruz",
+        "estado": "Veracruz",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 85,
+    "fields": {
+        "ciudad": "Xalapa",
+        "estado": "Veracruz",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 86,
+    "fields": {
+        "ciudad": "Coatzacoalcos",
+        "estado": "Veracruz",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 87,
+    "fields": {
+        "ciudad": "Boca del Río",
+        "estado": "Veracruz",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 88,
+    "fields": {
+        "ciudad": "Córdoba",
+        "estado": "Veracruz",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 89,
+    "fields": {
+        "ciudad": "Mérida",
+        "estado": "Yucatán",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 90,
+    "fields": {
+        "ciudad": "Valladolid",
+        "estado": "Yucatán",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 91,
+    "fields": {
+        "ciudad": "Zacatecas",
+        "estado": "Zacatecas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 92,
+    "fields": {
+        "ciudad": "Fresnillo",
+        "estado": "Zacatecas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 93,
+    "fields": {
+        "ciudad": "Jiutepec",
+        "estado": "Morelos",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 94,
+    "fields": {
+        "ciudad": "Acaxochitlán",
+        "estado": "Hidalgo",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 95,
+    "fields": {
+        "ciudad": "San Cristóbal de Las Casas",
+        "estado": "Chiapas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catubicacion",
+    "pk": 96,
+    "fields": {
+        "ciudad": "Tehuacán",
+        "estado": "Puebla",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 1,
+    "fields": {
+        "nombre": "Fisioterapia",
+        "alias": "fisioter",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 2,
+    "fields": {
+        "nombre": "Dentista",
+        "alias": "dentist",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 3,
+    "fields": {
+        "nombre": "Dermatólogo",
+        "alias": "dermatologo, dermatologa",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 4,
+    "fields": {
+        "nombre": "Odontologo",
+        "alias": "odontologo, odontologa",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 5,
+    "fields": {
+        "nombre": "Fisioterapeuta",
+        "alias": "fisioterapia",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 7,
+    "fields": {
+        "nombre": "Cirujano Plástico",
+        "alias": "cp",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 8,
+    "fields": {
+        "nombre": "Podologo",
+        "alias": "podologo, podologa",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 9,
+    "fields": {
+        "nombre": "Medicina del Deporte",
+        "alias": "md",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 10,
+    "fields": {
+        "nombre": "Ortopedista",
+        "alias": "ortopedia",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 11,
+    "fields": {
+        "nombre": "Cosmetóloga",
+        "alias": "cosmetologo, cosmetologa",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catespecialidad",
+    "pk": 12,
+    "fields": {
+        "nombre": "Veterinario",
+        "alias": "veterinario, veterinaria",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 1,
+    "fields": {
+        "nombre": "Laser IR Sport",
+        "familia": "EQUIPO",
+        "alias": "ir sport, ir fisio",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 2,
+    "fields": {
+        "nombre": "Laser IR Pet",
+        "familia": "EQUIPO",
+        "alias": "ir pet",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 3,
+    "fields": {
+        "nombre": "Laser IR Beauty",
+        "familia": "EQUIPO",
+        "alias": "ir beauty",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 4,
+    "fields": {
+        "nombre": "Laser IR Dental",
+        "familia": "EQUIPO",
+        "alias": "ir dental",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 5,
+    "fields": {
+        "nombre": "Laser IR Podológico",
+        "familia": "EQUIPO",
+        "alias": "ir pododologico, ir podol",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 6,
+    "fields": {
+        "nombre": "Laser Mini Sport",
+        "familia": "EQUIPO",
+        "alias": "mini sport",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 7,
+    "fields": {
+        "nombre": "Laser Mini Pet",
+        "familia": "EQUIPO",
+        "alias": "mini pet",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 8,
+    "fields": {
+        "nombre": "Laser Mini Beauty",
+        "familia": "EQUIPO",
+        "alias": "mini beauty",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 9,
+    "fields": {
+        "nombre": "Laser Mini Dental",
+        "familia": "EQUIPO",
+        "alias": "mini dental",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 10,
+    "fields": {
+        "nombre": "Laser Mini Podológico",
+        "familia": "EQUIPO",
+        "alias": "mini podologico, mini podol",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 11,
+    "fields": {
+        "nombre": "Cambio de Panel",
+        "familia": "ACCESORIO",
+        "alias": "panel",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 12,
+    "fields": {
+        "nombre": "Maletín Curpiel",
+        "familia": "ACCESORIO",
+        "alias": "maletin",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 13,
+    "fields": {
+        "nombre": "Lentes de Protección",
+        "familia": "ACCESORIO",
+        "alias": "lentes",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 14,
+    "fields": {
+        "nombre": "Fundas para Lentes",
+        "familia": "ACCESORIO",
+        "alias": "fundas",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 15,
+    "fields": {
+        "nombre": "Servicio de mantenimiento",
+        "familia": "SERVICIO",
+        "alias": "servicio, mantenimiento",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 16,
+    "fields": {
+        "nombre": "Taller",
+        "familia": "EVENTO",
+        "alias": "capacitación",
+        "is_active": true
+    }
+},
+{
+    "model": "users.catproducto",
+    "pk": 17,
+    "fields": {
+        "nombre": "Expo",
+        "familia": "EVENTO",
+        "alias": "exhibicion",
+        "is_active": true
+    }
+},
+{
+    "model": "users.cattitulo",
+    "pk": 1,
+    "fields": {
+        "nombre": "Doctor",
+        "abreviatura": "Dr.",
+        "is_active": true
+    }
+},
+{
+    "model": "users.cattitulo",
+    "pk": 2,
+    "fields": {
+        "nombre": "Doctora",
+        "abreviatura": "Dra.",
+        "is_active": true
+    }
+},
+{
+    "model": "users.cattitulo",
+    "pk": 3,
+    "fields": {
+        "nombre": "Médico Veterinario Zootecnista",
+        "abreviatura": "MVZ",
+        "is_active": true
+    }
+},
+{
+    "model": "users.cattitulo",
+    "pk": 4,
+    "fields": {
+        "nombre": "Licenciado en Fisioterapia",
+        "abreviatura": "LFT",
+        "is_active": true
+    }
+},
+{
+    "model": "users.cattitulo",
+    "pk": 5,
+    "fields": {
+        "nombre": "Podología",
+        "abreviatura": "PODO",
+        "is_active": true
+    }
+},
+{
+    "model": "users.cattitulo",
+    "pk": 6,
+    "fields": {
+        "nombre": "Cirujano Dentista",
+        "abreviatura": "CD",
+        "is_active": true
+    }
+},
+{
+    "model": "users.cattitulo",
+    "pk": 7,
+    "fields": {
+        "nombre": "Cirujano Plástico",
+        "abreviatura": "CP",
+        "is_active": true
+    }
+},
+{
+    "model": "users.cattitulo",
+    "pk": 8,
+    "fields": {
+        "nombre": "Corporativo",
+        "abreviatura": "Empresa",
+        "is_active": true
+    }
+}
+]

@@ -107,7 +107,7 @@
                         {% for lead in leads %}
                         <tr>
                             <td class="ps-4">
-                                <span class="fw-bold text-body">{{ lead.nombre }}</span>
+                                <span class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</span>
                                 <br><small class="text-muted">{{ lead.phone_primary }}</small>
                             </td>
                             <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
@@ -118,7 +118,7 @@
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ lead.estatus }}</span>
                                 {% endif %}
                             </td>
-                            <td class="text-body small">{{ lead.producto_interes }}</td>
+                            <td class="text-body small">{{ lead.producto_cat.nombre|default:"-" }}</td>
                             <td>
                                 {% if lead.calificacion == 3 %}
                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle">🔥 Alta</span>

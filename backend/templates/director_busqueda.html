@@ -32,7 +32,7 @@
                         {% if leads %}
                             {% for lead in leads %}
                             <tr>
-                                <td class="fw-bold text-body">{{ lead.nombre }}</td>
+                                <td class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</td>
                                 <td class="text-muted">{{ lead.phone_primary|default:"Sin registro" }}</td>
                                 <td>
                                     <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.estatus }}</span>
@@ -65,7 +65,7 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header border-bottom-0 pb-0">
                     <h5 class="modal-title fw-bold text-body">
-                        {{ lead.nombre }} 
+                        {{ lead.nombre_completo_mdm }} 
                         <span class="badge bg-secondary-subtle text-secondary ms-2">{{ lead.estatus }}</span>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>

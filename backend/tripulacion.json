@@ -1,0 +1,1835 @@
+[
+{
+    "model": "auth.user",
+    "pk": 1,
+    "fields": {
+        "password": "pbkdf2_sha256$720000$6SW8yj4Ff7nJQzuOUH2peI$CIc3c8HlElwPi9Qg9MtkeKWcSJHsYPDqNndRr7lcJeA=",
+        "last_login": null,
+        "is_superuser": true,
+        "username": "cesarco",
+        "first_name": "",
+        "last_name": "",
+        "email": "alfredocesarco@gmail.com",
+        "is_staff": true,
+        "is_active": false,
+        "date_joined": "2026-02-18T21:32:36.189Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 2,
+    "fields": {
+        "password": "pbkdf2_sha256$720000$1oTBBsUrLAjtdFMpyKLLiH$2WjVRzAIooR2KuT4+lBnA6Am5Lx0iB4NdunkutDriiU=",
+        "last_login": "2026-03-19T19:44:07.439Z",
+        "is_superuser": true,
+        "username": "tomax",
+        "first_name": "",
+        "last_name": "",
+        "email": "alfredocesarco@gmail.com",
+        "is_staff": true,
+        "is_active": true,
+        "date_joined": "2026-02-20T05:03:48.872Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 3,
+    "fields": {
+        "password": "pbkdf2_sha256$720000$FhZFqQ99UCKsjKe8b9IgRB$//i+MwIL4Ai8Y1xcOymoraYOQwOTgyz25iPwuZweLpg=",
+        "last_login": "2026-03-17T21:54:52.409Z",
+        "is_superuser": false,
+        "username": "oscarperez",
+        "first_name": "Oscar",
+        "last_name": "Perez",
+        "email": "oscarperez@lasersystems.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-02-22T17:30:54Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 4,
+    "fields": {
+        "password": "pbkdf2_sha256$720000$Hp1V5UollcV9IG469pktk3$ndtBJhuk9DXmhiTe1uSMXcvNJSn9e5meMK1/JikI8VU=",
+        "last_login": "2026-03-18T15:07:13.827Z",
+        "is_superuser": false,
+        "username": "almaolivares",
+        "first_name": "Maria Alma",
+        "last_name": "Olivares Rios",
+        "email": "olivalmarios@hotmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-02-22T17:36:17Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "auth.user",
+    "pk": 5,
+    "fields": {
+        "password": "pbkdf2_sha256$720000$TejNLcQa6ZA2kiDg0vi1OW$KyS3AIzScVlGzGeQCeigW6WB53ZoLkHJaEjFByF0Waw=",
+        "last_login": "2026-03-18T08:35:21.370Z",
+        "is_superuser": true,
+        "username": "licmarin",
+        "first_name": "Guillermo",
+        "last_name": "Marín",
+        "email": "memomarinlopez@gmail.com",
+        "is_staff": false,
+        "is_active": true,
+        "date_joined": "2026-02-24T16:53:02Z",
+        "groups": [],
+        "user_permissions": []
+    }
+},
+{
+    "model": "users.userprofile",
+    "pk": 1,
+    "fields": {
+        "user": 1,
+        "rol": "ADMIN",
+        "telefono": "(720) 457-2006",
+        "color_identidad": "#3498db",
+        "meta_clientes_mensual": 0,
+        "is_active": true
+    }
+},
+{
+    "model": "users.userprofile",
+    "pk": 2,
+    "fields": {
+        "user": 2,
+        "rol": "ADMIN",
+        "telefono": "(720) 457-2006",
+        "color_identidad": "#3498db",
+        "meta_clientes_mensual": 0,
+        "is_active": true
+    }
+},
+{
+    "model": "users.userprofile",
+    "pk": 3,
+    "fields": {
+        "user": 3,
+        "rol": "VENDEDOR",
+        "telefono": "4423538621",
+        "color_identidad": "#3498db",
+        "meta_clientes_mensual": 5,
+        "is_active": true
+    }
+},
+{
+    "model": "users.userprofile",
+    "pk": 4,
+    "fields": {
+        "user": 5,
+        "rol": "DIRECTOR",
+        "telefono": "4423368649",
+        "color_identidad": "#3498db",
+        "meta_clientes_mensual": 0,
+        "is_active": true
+    }
+},
+{
+    "model": "users.userprofile",
+    "pk": 5,
+    "fields": {
+        "user": 4,
+        "rol": "VENDEDOR",
+        "telefono": "",
+        "color_identidad": "#3498db",
+        "meta_clientes_mensual": 5,
+        "is_active": true
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 27,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 4,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 28,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 5,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 29,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 6,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 30,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 1,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 31,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 8,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 32,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 12,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 33,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 13,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 34,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 14,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 35,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 15,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 36,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 16,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 37,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 17,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 38,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 18,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 39,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 19,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 40,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 20,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 41,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 23,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 42,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 24,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 43,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 25,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 44,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 26,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 45,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 27,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 46,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 28,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 47,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 29,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 48,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 30,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 49,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 31,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 50,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 32,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 51,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 33,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 52,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 34,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 53,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 35,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 54,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 36,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 55,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 37,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 56,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 38,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 57,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 39,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 58,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 40,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 59,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 41,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 60,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 42,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 61,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 43,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 62,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 44,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 63,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 45,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 64,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 46,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 65,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 47,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 66,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 48,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 67,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 49,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 68,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 50,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 69,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 51,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 70,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 52,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 71,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 53,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 72,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 54,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 73,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 55,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 74,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 56,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 75,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 57,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 76,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 58,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 77,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 59,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 78,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 60,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 79,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 61,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 80,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 62,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 81,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 63,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 82,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 64,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 83,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 65,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 84,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 66,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 85,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 67,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 86,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 68,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 87,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 69,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 88,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 70,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 89,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 71,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 90,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 72,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 91,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 73,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 92,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 74,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 93,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 75,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 94,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 76,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 95,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 77,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 96,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 78,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 97,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 79,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 98,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 80,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 99,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 81,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 100,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 82,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 101,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 83,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 102,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 84,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 103,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 85,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 104,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 86,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 105,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 87,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 106,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 88,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 107,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 89,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 108,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 90,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 109,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 91,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 110,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 92,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 111,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 10,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 112,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 11,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 113,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 3,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 114,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 2,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 115,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 7,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 116,
+    "fields": {
+        "user_profile": 3,
+        "ubicacion": 9,
+        "fecha_asignacion": "2026-02-26T06:50:50.068Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 117,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 4,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 118,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 5,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 119,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 6,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 120,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 1,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 121,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 8,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 122,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 12,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 123,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 13,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 124,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 14,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 125,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 15,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 126,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 16,
+        "fecha_asignacion": "2026-02-26T06:51:26.352Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 127,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 17,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 128,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 18,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 129,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 19,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 130,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 20,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 131,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 23,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 132,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 24,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 133,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 25,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 134,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 26,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 135,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 27,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 136,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 28,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 137,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 29,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 138,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 30,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 139,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 31,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 140,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 32,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 141,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 33,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 142,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 34,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 143,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 35,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 144,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 36,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 145,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 37,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 146,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 38,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 147,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 39,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 148,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 40,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 149,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 41,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 150,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 42,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 151,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 43,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 152,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 44,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 153,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 45,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 154,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 46,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 155,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 47,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 156,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 48,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 157,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 49,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 158,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 50,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 159,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 51,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 160,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 52,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 161,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 53,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 162,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 54,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 163,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 55,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 164,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 56,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 165,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 57,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 166,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 58,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 167,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 59,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 168,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 60,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 169,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 61,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 170,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 62,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 171,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 63,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 172,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 64,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 173,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 65,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 174,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 66,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 175,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 67,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 176,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 68,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 177,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 69,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 178,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 70,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 179,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 71,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 180,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 72,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 181,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 73,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 182,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 74,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 183,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 75,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 184,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 76,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 185,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 77,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 186,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 78,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 187,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 79,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 188,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 80,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 189,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 81,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 190,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 82,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 191,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 83,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 192,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 84,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 193,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 85,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 194,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 86,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 195,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 87,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 196,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 88,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 197,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 89,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 198,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 90,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 199,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 91,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 200,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 92,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 201,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 10,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 202,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 11,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 203,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 3,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 204,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 2,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 205,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 7,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "users.asignacionterritorio",
+    "pk": 206,
+    "fields": {
+        "user_profile": 5,
+        "ubicacion": 9,
+        "fecha_asignacion": "2026-02-26T06:51:26.353Z"
+    }
+},
+{
+    "model": "leads.clinica",
+    "pk": 1,
+    "fields": {
+        "nombre": "Asociación Odontológica Xochimilco",
+        "telefono_master": "5552141030",
+        "created_at": "2026-03-15T02:20:42.923Z"
+    }
+},
+{
+    "model": "leads.clinica",
+    "pk": 2,
+    "fields": {
+        "nombre": "LUCECAS VETERINARIA",
+        "telefono_master": "8331382736",
+        "created_at": "2026-03-15T02:20:42.962Z"
+    }
+},
+{
+    "model": "leads.clinica",
+    "pk": 3,
+    "fields": {
+        "nombre": "Clínica Abylite- Abyrehb",
+        "telefono_master": "2222111470",
+        "created_at": "2026-03-15T02:20:42.976Z"
+    }
+},
+{
+    "model": "leads.clinica",
+    "pk": 4,
+    "fields": {
+        "nombre": "Clínica Integral Salud y Vida",
+        "telefono_master": "9932112889",
+        "created_at": "2026-03-15T02:20:42.990Z"
+    }
+},
+{
+    "model": "leads.clinica",
+    "pk": 5,
+    "fields": {
+        "nombre": "Grupo Médico Eira",
+        "telefono_master": "3338080209",
+        "created_at": "2026-03-15T02:20:42.998Z"
+    }
+},
+{
+    "model": "leads.clinica",
+    "pk": 6,
+    "fields": {
+        "nombre": "Centro de Especialidad en Rehabilitación y Terapia física",
+        "telefono_master": "7711070607",
+        "created_at": "2026-03-15T02:20:43.012Z"
+    }
+},
+{
+    "model": "leads.clinica",
+    "pk": 7,
+    "fields": {
+        "nombre": "",
+        "telefono_master": "5528677407",
+        "created_at": "2026-03-15T20:33:00.640Z"
+    }
+}
+]
