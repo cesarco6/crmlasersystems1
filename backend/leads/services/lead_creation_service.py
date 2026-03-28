@@ -67,7 +67,7 @@ def crear_prospecto_core(data: dict, user):
                 phone_primary=telefono_limpio,
                 celular=celular[:15],
                 email=email,
-                nombre=nombre_concatenado[:100], 
+                #nombre=nombre_concatenado[:100],                 
                 nombre_pila=nombre_concatenado[:100],
                 clinica=clinica_obj,
                 notas_variadas={"notas": [], "columnas_excel_historicas": {}}
@@ -82,7 +82,7 @@ def crear_prospecto_core(data: dict, user):
                 phone_primary=telefono_limpio,
                 celular=celular[:15],
                 email=email,
-                nombre=nombre_concatenado[:100],
+                #nombre=nombre_concatenado[:100],
                 titulo_cortesia=titulo_obj,
                 nombre_pila=nombre_pila[:100],
                 apellido_paterno=apellido_paterno[:100],

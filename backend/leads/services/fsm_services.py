@@ -8,67 +8,62 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
         lead = CoreLead.objects.get(id=lead_id)
         accion = data.get('accion')
         
-        # 1. ACTUALIZAR IDENTIDAD ATÓMICA
+     # 1. ACTUALIZAR IDENTIDAD ATÓMICA
         if accion in ['VALIDAR', 'GUARDAR']:
             tipo_entidad = data.get('tipo_entidad', 'INDIVIDUAL')
             
-            # Limpiamos primero por si venía de corporativo a individuo o viceversa
-            lead.nombre_pila = ''
-            lead.apellido_paterno = ''
-            lead.apellido_materno = ''
-            lead.titulo_cortesia_id = None
-            
-            if tipo_entidad == 'CORPORATIVO':
-                nombre_corp = str(data.get('nombre_pila', '')).strip()
-                if not nombre_corp:
-                     return {"success": False, "error": "La Razón Social es obligatoria.", "status_code": 400}
-                     
-                lead.nombre_pila = nombre_corp[:100]
-                lead.nombre = nombre_corp[:100]
-                # Buscar o crear la clínica si no la tiene
-                from leads.models import Clinica
-                clinica_obj, _ = Clinica.objects.get_or_create(
-                    telefono_master=lead.phone_primary,
-                    defaults={'nombre': nombre_corp}
-                )
-                lead.clinica = clinica_obj
+            # CANDADO DDS: Solo modificamos identidad si sigue en fase PROSPECTO
+            if lead.estatus == 'PROSPECTO':
+                if tipo_entidad == 'CORPORATIVO':
+                    nombre_corp = str(data.get('nombre_pila', '')).strip()
+                    if not nombre_corp:
+                         return {"success": False, "error": "La Razón Social es obligatoria.", "status_code": 400}
+                         
+                    lead.nombre_pila = nombre_corp[:100]
+                    lead.apellido_paterno = ''
+                    lead.apellido_materno = ''
+                    lead.titulo_cortesia_id = None
+                    lead.nombre = nombre_corp[:100]
+                    
+                    from leads.models import Clinica
+                    clinica_obj, _ = Clinica.objects.get_or_create(
+                        telefono_master=lead.phone_primary,
+                        defaults={'nombre': nombre_corp}
+                    )
+                    lead.clinica = clinica_obj
 
-            else:
-                titulo_id = data.get('titulo_cortesia')
-                nombre = str(data.get('nombre_pila', '')).strip()
-                paterno = str(data.get('apellido_paterno', '')).strip()
-                materno = str(data.get('apellido_materno', '')).strip()
+                else:
+                    titulo_id = data.get('titulo_cortesia')
+                    nombre = str(data.get('nombre_pila', '')).strip()
+                    paterno = str(data.get('apellido_paterno', '')).strip()
+                    materno = str(data.get('apellido_materno', '')).strip()
 
-                if not nombre or not paterno:
-                    return {"success": False, "error": "Nombre y Apellido Paterno son obligatorios en Individuos.", "status_code": 400}
+                    if not nombre or not paterno:
+                        return {"success": False, "error": "Nombre y Apellido Paterno son obligatorios en Individuos.", "status_code": 400}
 
-                lead.titulo_cortesia_id = titulo_id if titulo_id else None
-                lead.nombre_pila = nombre[:100]
-                lead.apellido_paterno = paterno[:100]
-                lead.apellido_materno = materno[:100]
-                
-                # Desvincular de clínica si cambió a individuo
-                lead.clinica = None
+                    lead.titulo_cortesia_id = titulo_id if titulo_id else None
+                    lead.nombre_pila = nombre[:100]
+                    lead.apellido_paterno = paterno[:100]
+                    lead.apellido_materno = materno[:100]
+                    lead.clinica = None
 
-                # Reconstruir Fallback MDM
-                from leads.models import CatTitulo
-                partes_nombre = []
-                if nombre: partes_nombre.append(nombre)
-                if paterno: partes_nombre.append(paterno)
-                if materno: partes_nombre.append(materno)
-                lead.nombre = " ".join(partes_nombre)[:100]
+                    partes_nombre = []
+                    if nombre: partes_nombre.append(nombre)
+                    if paterno: partes_nombre.append(paterno)
+                    if materno: partes_nombre.append(materno)
+                    lead.nombre = " ".join(partes_nombre)[:100]
+                    
+                # Actualizar catálogos (Solo en Prospecto)
+                nueva_esp_str = data.get('especialidad', '').strip()
+                nuevo_prod_str = data.get('producto', '').strip()
+                if nueva_esp_str or nuevo_prod_str:
+                    esp_obj, prod_obj = obtener_catalogos_limpios(nueva_esp_str, nuevo_prod_str)
+                    if nueva_esp_str: lead.especialidad_cat = esp_obj
+                    if nuevo_prod_str: lead.producto_cat = prod_obj
 
+            # Estos campos operativos SÍ pueden cambiar en cualquier fase
             lead.celular = str(data.get('celular', lead.celular)).strip()[:15]
             lead.email = str(data.get('email', lead.email)).strip()
-            
-            # --- ACTUALIZAR CATÁLOGOS (CANDADO ESTRICTO) ---
-            nueva_esp_str = data.get('especialidad', '').strip()
-            nuevo_prod_str = data.get('producto', '').strip()
-            
-            if nueva_esp_str or nuevo_prod_str:
-                esp_obj, prod_obj = obtener_catalogos_limpios(nueva_esp_str, nuevo_prod_str)
-                if nueva_esp_str: lead.especialidad_cat = esp_obj
-                if nuevo_prod_str: lead.producto_cat = prod_obj
         
         # 2. LA MÁQUINA DE ESTADOS
         if accion == 'VALIDAR':

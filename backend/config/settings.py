@@ -34,6 +34,13 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 # Comentamos tu configuración avanzada por hoy:
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',')
 
+# Declaración explícita para producción en Ubuntu Server
+#ALLOWED_HOSTS = [
+#    'crm-lasersystems.duckdns.org',
+#    'localhost',
+#    '127.0.0.1'
+#]
+
 # Si el dominio duckdns es fijo, lo ideal es permitirlo tanto en CORS como en CSRF
 CSRF_TRUSTED_ORIGINS = [
     'https://crm-lasersystems.duckdns.org',

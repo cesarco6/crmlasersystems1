@@ -7,7 +7,7 @@
     <div class="modal-box modal-box--wide">
         {# ===== HEADER ===== #}
         <div class="card-header d-flex justify-content-between align-items-center mb-4">
-            <h3 class="m-0 text-light fs-5">✏️ Editar y Validar Prospecto</h3>
+            <h3 class="m-0 text-light fs-5">✏️ E d i t a r</h3>
             <span onclick="cerrarModal('modal-editar')"
                   class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
         </div>
@@ -16,25 +16,23 @@
         <div class="card-body">
             <form id="form-editar">
 
-                {# --- Fila 1: Toggle Tipo de Entidad (solo Fase 1) --- #}
-                {% if lead.estatus == 'PROSPECTO' %}
+               {# --- Fila 1: Toggle Tipo de Entidad (SIEMPRE VISIBLE, BLOQUEADO TRAS FASE 1) --- #}
                 <div class="row mb-3">
                     <div class="col-12">
                         <label class="form-label text-secondary fw-bold small d-block">
                             Tipo de Entidad (Enlazado MDM)
                         </label>
                         <div class="btn-group w-100" role="group">
-                            <input type="radio" class="btn-check" name="tipo_entidad"
-                                   id="tipo_individuo" value="INDIVIDUAL"
-                                   autocomplete="off" checked
+                                <input type="radio" class="btn-check" name="tipo_entidad" id="tipo_individuo" value="INDIVIDUAL" autocomplete="off" 
+                                   {% if not lead.clinica %}checked{% endif %} 
+                                   {% if lead.estatus != 'PROSPECTO' %}disabled{% endif %}
                                    onchange="toggleTipoEntidad()">
                             <label class="btn btn-outline-secondary btn-sm" for="tipo_individuo">
                                 👩‍⚕️ Individuo (Médico)
                             </label>
-
-                            <input type="radio" class="btn-check" name="tipo_entidad"
-                                   id="tipo_corporativo" value="CORPORATIVO"
-                                   autocomplete="off"
+                            <input type="radio" class="btn-check" name="tipo_entidad" id="tipo_corporativo" value="CORPORATIVO" autocomplete="off" 
+                                   {% if lead.clinica %}checked{% endif %} 
+                                   {% if lead.estatus != 'PROSPECTO' %}disabled{% endif %}
                                    onchange="toggleTipoEntidad()">
                             <label class="btn btn-outline-secondary btn-sm" for="tipo_corporativo">
                                 🏥 Clínica / Corporativo
@@ -42,25 +40,30 @@
                         </div>
                     </div>
                 </div>
-                {% endif %}
 
                 {# --- Fila 2: Identidad Atómica --- #}
                 {# Mobile-First: col-12 (100% en móvil), col-md-* en desktop #}
                 <div class="row mb-3">
                     <div class="col-12 col-md-2 mb-2 mb-md-0" id="col-edit-titulo">
                         <label class="form-label text-secondary fw-bold small">Título</label>
-                        <select id="edit-titulo"
-                                class="form-select form-select-sm bg-dark text-light border-secondary"
-                                {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
-                            <option value="">-- Título --</option>
-                            {% for titulo in titulos_list %}
-                                <option value="{{ titulo.id }}"
+                        {% if lead.estatus == 'PROSPECTO' %}
+                            <select id="edit-titulo" class="form-select form-select-sm bg-dark text-light border-secondary">
+                                <option value="">-- Título --</option>
+                                {% for titulo in titulos_list %}
+                                    <option value="{{ titulo.id }}"
                                     {% if titulo.id == lead.titulo_cortesia_id %}selected{% endif %}>
                                     {{ titulo.abreviatura }}
                                 </option>
                             {% endfor %}
                         </select>
-                    </div>
+                        {% else %}
+                            <!-- Renderizado en texto plano para lectura limpia -->
+                            <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary text-center"
+                                value="{{ lead.titulo_cortesia.abreviatura|default:'--' }}" readonly>
+                            <!-- Input oculto para mantener el ID y que JavaScript no arroje errores -->
+                            <input type="hidden" id="edit-titulo" value="{{ lead.titulo_cortesia_id|default:'' }}">
+                        {% endif %}
+</div>
                     <div class="col-12 col-md-4 mb-2 mb-md-0" id="col-edit-nombre">
                         <label class="form-label text-secondary fw-bold small">Nombre *</label>
                         <input type="text" id="edit-nombre-pila"
