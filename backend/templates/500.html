@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>500 - Error Interno | CRM Laser Systems</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/images/favicon.png">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <style>
+        body {
+            background-color: #121212;
+            background-image: radial-gradient(circle at 50% 50%, rgba(220, 53, 69, 0.1) 0%, rgba(18, 18, 18, 1) 100%);
+            color: #f8f9fa;
+            font-family: system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow-x: hidden;
+        }
+        
+        .glass-card {
+            background: rgba(33, 37, 41, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 650px;
+            width: 90%;
+            box-shadow: 0 25px 50px -12px rgba(220, 53, 69, 0.25);
+            position: relative;
+            z-index: 10;
+            transform: translateY(-20px);
+        }
+        
+        .glow-icon {
+            font-size: 5rem;
+            line-height: 1;
+            text-shadow: 0 0 40px rgba(220, 53, 69, 0.8);
+            color: #dc3545;
+            margin-bottom: 1.5rem;
+            animation: pulse-icon 2s infinite ease-in-out;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(220, 53, 69, 0.4);
+            letter-spacing: -1px;
+        }
+        
+        @keyframes pulse-icon {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; text-shadow: 0 0 60px rgba(220, 53, 69, 1); }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        .btn-hover-scale {
+            transition: all 0.2s ease;
+        }
+        .btn-hover-scale:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(220, 53, 69, 0.3);
+        }
+
+        /* Technical background lines */
+        .tech-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: 50px 50px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="tech-bg"></div>
+    
+    <div class="glass-card text-center">
+        <div class=" glow-icon">
+            <i class="bi bi-x-octagon-fill"></i>
+        </div>
+        
+        <h1 class="display-3 fw-bold text-danger mb-2 glow-text">Error 500</h1>
+        <h3 class="mb-4 text-white-50 fw-light">Falla en el Núcleo del Sistema</h3>
+        
+        <p class="lead mb-4 text-light opacity-75">Hemos detectado una anomalía crítica en la capa de procesamiento. La transacción no pudo completarse debido a un error interno.</p>
+        
+        <div class="alert bg-dark bg-opacity-50 border-danger border-opacity-50 text-start mb-5 d-flex align-items-center rounded-3 p-3">
+            <div class="fs-3 text-warning me-3">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+                <strong class="d-block text-white mb-1">Diagnóstico Automático:</strong>
+                <span class="text-white-50 small">El equipo de ingeniería de Laser Systems ha sido notificado automáticamente a través de los registros del servidor. Por favor, intenta de nuevo en unos momentos o regresa al panel inicial.</span>
+            </div>
+        </div>
+
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <button onclick="window.location.reload()" class="btn btn-outline-danger btn-lg px-4 rounded-pill btn-hover-scale fw-bold">
+                <i class="bi bi-arrow-clockwise me-2"></i> Reintentar Conexión
+            </button>
+            <a href="/" class="btn btn-danger btn-lg px-4 rounded-pill shadow-lg btn-hover-scale fw-bold">
+                <i class="bi bi-house-door-fill me-2"></i> Dashboard Seguro
+            </a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

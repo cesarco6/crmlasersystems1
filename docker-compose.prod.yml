@@ -1,0 +1,54 @@
+services:
+  web:
+    build: .
+    working_dir: /app/backend
+    container_name: crm_ls_prod
+    # Usamos Gunicorn para concurrencia en produccion
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --threads 2 --timeout 60
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "127.0.0.1:8000:8000"
+    volumes:
+      - .:/app
+      - ./backend/staticfiles:/app/backend/staticfiles
+      - ./backend/media:/app/backend/media
+    depends_on:
+      - db
+      - redis
+
+  # Servicio de tareas en segundo plano (Django Q)
+  qcluster:
+    build: .
+    working_dir: /app/backend
+    container_name: crm_ls_qcluster
+    command: python manage.py qcluster
+    restart: unless-stopped
+    env_file:
+      - .env
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:16-alpine
+    container_name: crm_ls_db
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    container_name: crm_ls_redis
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:

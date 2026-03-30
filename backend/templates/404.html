@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}404 - Página no encontrada | CRM Laser Systems{% endblock %}
+
+{% block content %}
+<div class="container-fluid d-flex flex-column justify-content-center align-items-center text-center" style="min-height: calc(100vh - 150px); background: radial-gradient(circle at center, rgba(26,29,36,0) 0%, rgba(0,0,0,0.2) 100%);">
+    <div class="card bg-dark text-light border-0 shadow-lg p-5" style="border-radius: 20px; background: rgba(33, 37, 41, 0.7) !important; backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1) !important; max-width: 600px; transform: translateY(-20px);">
+        <div class="mb-3" style="font-size: 5rem; line-height: 1; text-shadow: 0 0 30px rgba(13, 110, 253, 0.6);">
+            <i class="bi bi-search text-primary"></i>
+        </div>
+        <h1 class="display-1 fw-bold text-primary mb-0 glow-text">404</h1>
+        <h2 class="mb-4 text-white-50">Sector Desconocido</h2>
+        <p class="lead mb-5 text-light opacity-75">Parece que te has desviado en el CRM. La página o prospecto que buscas no existe, o la URL no es válida.</p>
+        
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <button onclick="window.history.back()" class="btn btn-outline-light btn-lg px-4 rounded-pill transition-all hover-scale">
+                <i class="bi bi-arrow-left me-2"></i> Regresar
+            </button>
+            <a href="/" class="btn btn-primary btn-lg px-4 rounded-pill shadow-lg hover-scale" style="box-shadow: 0 4px 15px rgba(13, 110, 253, 0.4) !important;">
+                <i class="bi bi-house-door me-2"></i> Ir al Dashboard
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-scale { transition: transform 0.2s ease; }
+    .hover-scale:hover { transform: scale(1.05); }
+    .glow-text { text-shadow: 0 0 20px rgba(13, 110, 253, 0.5); }
+</style>
+{% endblock %}
