@@ -1,0 +1,127 @@
+/* static/css/crm-mobile.css */
+/* Adaptaciones visuales Mobile-First para CRM Laser Systems */
+/* Viewport objetivo: 360x749px */
+
+@media (max-width: 767px) {
+    /* ==========================================================
+       0. AJUSTES MACRO GLOBALES (TODAS LAS VISTAS)
+       ========================================================== */
+    /* Reducir el padding lateral en móviles para todas las pantallas */
+    .container-fluid,
+    .px-4 {
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
+    }
+
+    /* ==========================================================
+       1. TRANSFORMACIÓN DE TABLA A TARJETAS (DASHBOARD AGENTE)
+       ========================================================== */
+    /* Forzar a la tabla a comportarse como bloques */
+    .table-ers, 
+    .table-ers thead, 
+    .table-ers tbody, 
+    .table-ers th, 
+    .table-ers td, 
+    .table-ers tr {
+        display: block;
+        width: 100%;
+    }
+
+    /* Ocultar el encabezado de la tabla para visualización de tarjeta */
+    .table-ers thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+
+    /* Estilos base para la tarjeta (tr) */
+    .table-ers tbody tr {
+        margin-bottom: 1rem;
+        background-color: var(--bs-body-bg);
+        border: 1px solid var(--bs-border-color) !important;
+        border-radius: 0.5rem;
+        padding: 1rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+
+    /* Ocultar columnas no críticas 
+       Col 2: Última Acción
+       Col 4: Producto
+       Col 6: Ciudad
+    */
+    .table-ers tbody td:nth-child(2),
+    .table-ers tbody td:nth-child(4),
+    .table-ers tbody td:nth-child(6) {
+        display: none !important;
+    }
+
+    /* Estilos para celdas visibles */
+    .table-ers tbody td {
+        border: none !important;
+        padding: 0.25rem 0 !important;
+        position: relative;
+        text-align: left !important;
+    }
+
+    /* Ajustar el botón Gestionar al ancho total (w-100) y hacer touch target generoso */
+    .table-ers tbody td:last-child {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem !important;
+        border-top: 1px solid var(--bs-border-color-translucent) !important;
+    }
+
+    .table-ers tbody td a.btn {
+        width: 100%;
+        min-height: 44px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-size: 1.1rem;
+    }
+
+    /* ==========================================================
+       2. AJUSTES DE MODALES Y ERGONOMÍA TÁCTIL
+       ========================================================== */
+    .modal-box,
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 10px !important;
+        border-radius: 0.75rem;
+    }
+
+    /* Mejorar el target touch de los inputs y selects para mobile */
+    input.form-control,
+    select.form-select,
+    textarea.form-control {
+        min-height: 44px;
+        font-size: 16px; /* Previene el zoom automático en iOS Safari */
+    }
+
+    /* ==========================================================
+       3. AJUSTE DE KPIS TOP (DASHBOARD DIRECTOR)
+       ========================================================== */
+    /* Apilar tarjetas de métricas en Fidelización que usan col-6 nativo de Bootstrap */
+    .director-kpis .col-6,
+    .row.g-2 .col-6.col-md-3,
+    .row.g-3 .col-sm-6,
+    .row.g-3 .col-md-6 {
+        width: 100% !important;
+        flex: 0 0 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Contenedores de gráficas: asegurar el alto y evitar overflow-x */
+    .chart-bar-container,
+    .chart-bar-container-md {
+        min-height: 300px;
+        width: 100%;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+    
+    /* Asegurar que los canvas no desborden */
+    canvas {
+        max-width: 100% !important;
+    }
+}
