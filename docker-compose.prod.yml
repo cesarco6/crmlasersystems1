@@ -52,3 +52,10 @@ services:
 volumes:
   postgres_data:
   redis_data:
+
+# Ejemplo para la DB en docker-compose.prod.yml
+healthcheck:
+  test: ["CMD-SHELL", "pg_isready -U crm_user -d crm_ls"]
+  interval: 10s
+  timeout: 5s
+  retries: 3

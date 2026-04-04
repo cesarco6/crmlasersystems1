@@ -947,11 +947,17 @@ def actualizar_lead_fsm(request, pk):
                 lead_id=pk, tipo__in=['estancamiento', 'reactivacion'], leida=False
             ).update(leida=True)
 
-            return JsonResponse({
-                "status": resultado.get("status", "success"), # Soporte para status="deleted"
+            response_data = {
+                "status": resultado.get("status", "success"),
                 "mensaje": resultado.get("mensaje"),
                 "nuevo_estatus": resultado.get("nuevo_estatus")
-            })
+            }
+            if "datos_procesados" in resultado:
+                response_data["datos_procesados"] = resultado["datos_procesados"]
+            if "url_descarga" in resultado:
+                response_data["url_descarga"] = resultado["url_descarga"]
+
+            return JsonResponse(response_data)
         else:
             return JsonResponse({"error": resultado.get("error")}, status=resultado.get("status_code", 400))
 

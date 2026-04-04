@@ -212,36 +212,59 @@ function ejecutarRitual(accion, btn = null) {
     ejecutarFetchActualizar(data, btn);
 }
 
+function toggleFormatoPedido() {
+    const isChecked = $('#switch-pedido').is(':checked');
+    
+    if (isChecked) {
+        $('#bloque-facturacion').collapse('show');
+    } else {
+        $('#bloque-facturacion').collapse('hide');
+    }
+}
+
 function guardarCierreVenta(btn = null) {
     const leadId = getLeadId();
     const csrfToken = getCsrfToken();
     
-    const rfc = document.getElementById('venta-rfc').value.trim().toUpperCase();
-    const razonSocial = document.getElementById('venta-razon').value.trim();
-    const regimen = document.getElementById('venta-regimen').value;
+    const isPedidoOn = $('#switch-pedido').is(':checked');
+    
+    const folioPedido = document.getElementById('venta-folio').value.trim();
 
     // Validación Estricta
-    if (!rfc || rfc.length < 12) {
-        Swal.fire('Falta Información', 'El RFC es obligatorio y debe tener al menos 12 caracteres.', 'warning');
+    if (!folioPedido) {
+        Swal.fire('Falta Información', 'El Folio de Pedido es obligatorio.', 'warning');
         return;
     }
-    if (!razonSocial) {
-        Swal.fire('Falta Información', 'La Razón Social es obligatoria para la facturación.', 'warning');
-        return;
-    }
-    if (!regimen) {
-        Swal.fire('Falta Información', 'Debes seleccionar el Régimen Fiscal.', 'warning');
-        return;
-    }
-
-    const origText = disableButton(btn, 'Cerrando venta...');
 
     const data = {
         accion: 'CERRAR_VENTA',
-        rfc: rfc,
-        razon_social: razonSocial,
-        regimen_fiscal: regimen
+        pre_llenar_pedido: isPedidoOn,
+        folio_pedido: folioPedido
     };
+
+    if (isPedidoOn) {
+        const rfc = document.getElementById('venta-rfc').value.trim().toUpperCase();
+        const razonSocial = document.getElementById('venta-razon').value.trim();
+
+        if (!rfc || rfc.length < 12) {
+            Swal.fire('Falta Información', 'El RFC es obligatorio y debe tener al menos 12 caracteres.', 'warning');
+            return;
+        }
+        if (!razonSocial) {
+            Swal.fire('Falta Información', 'La Razón Social es obligatoria para la facturación.', 'warning');
+            return;
+        }
+
+        data.rfc = rfc;
+        data.razon_social = razonSocial;
+        data.calle = document.getElementById('venta-calle').value.trim();
+        data.colonia = document.getElementById('venta-colonia').value.trim();
+        data.ciudad = document.getElementById('venta-ciudad').value.trim();
+        data.estado = document.getElementById('venta-estado').value.trim();
+        data.cp = document.getElementById('venta-cp').value.trim();
+    }
+
+    const origText = disableButton(btn, 'Cerrando venta...');
 
     fetch(`/api/lead/${leadId}/actualizar/`, {
         method: 'POST',
@@ -261,7 +284,12 @@ function guardarCierreVenta(btn = null) {
                 confirmButtonColor: '#28a745'
             }).then(() => {
                 cerrarModal('modal-cerrar-venta');
-                location.reload(); 
+                
+                if (result.url_descarga) {
+                    // window.open(result.url_descarga, '_blank'); // Descarga automática deshabilitada
+                }
+                
+                setTimeout(() => { location.reload(); }, 300);
             });
         } else { 
             enableButton(btn, origText);

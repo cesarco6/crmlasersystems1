@@ -64,6 +64,11 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
             # Estos campos operativos SÍ pueden cambiar en cualquier fase
             lead.celular = str(data.get('celular', lead.celular)).strip()[:15]
             lead.email = str(data.get('email', lead.email)).strip()
+            
+            # Recibir la dirección del modal principal
+            direccion_nueva = data.get('direccion')
+            if direccion_nueva is not None:
+                lead.direccion_completa = str(direccion_nueva).strip()[:255]
         
         # 2. LA MÁQUINA DE ESTADOS
         if accion == 'VALIDAR':
@@ -145,19 +150,50 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
             })
 
         elif accion == 'CERRAR_VENTA':
-            rfc_val = data.get('rfc', '').strip().upper()
-            razon_val = data.get('razon_social', '').strip().upper()
-            regimen_val = data.get('regimen_fiscal', '').strip()
+            pre_llenar_pedido = data.get('pre_llenar_pedido', False)
+            folio_pedido = data.get('folio_pedido', '').strip()
             
-            if not rfc_val or not razon_val or not regimen_val:
-                return {"success": False, "error": "Faltan datos fiscales obligatorios para cerrar la venta.", "status_code": 400}
-            
+            if pre_llenar_pedido:
+                rfc_val = data.get('rfc', '').strip().upper()
+                razon_val = data.get('razon_social', '').strip().upper()
+                regimen_val = '616' # Valor por defecto obligatorio
+                
+                calle_fact = data.get('calle', '').strip()
+                colonia_fact = data.get('colonia', '').strip()
+                ciudad_fact = data.get('ciudad', '').strip()
+                estado_fact = data.get('estado', '').strip()
+                cp_fact = data.get('cp', '').strip()
+                
+                direccion_envio = data.get('direccion_envio', '').strip()
+                if direccion_envio:
+                    lead.direccion_completa = direccion_envio
+            else:
+                rfc_val = 'XAXX010101000'
+                razon_val = lead.nombre_completo_mdm.upper()
+                regimen_val = '616'
+                
+                calle_fact = 'PENDIENTE'
+                colonia_fact = 'PENDIENTE'
+                ciudad_fact = 'PENDIENTE'
+                estado_fact = 'PENDIENTE'
+                cp_fact = 'PENDIENTE'
+                
+                direccion_envio = lead.direccion_completa # Conservar la de corelead si existe
+
             from leads.models import FiscalProfile
-            perfil, created = FiscalProfile.objects.get_or_create(lead=lead)
-            perfil.rfc = rfc_val
-            perfil.razon_social = razon_val
-            perfil.regimen_fiscal = regimen_val
-            perfil.save()
+            perfil, created = FiscalProfile.objects.update_or_create(
+                lead=lead,
+                defaults={
+                    'rfc': rfc_val,
+                    'razon_social': razon_val,
+                    'regimen_fiscal': regimen_val,
+                    'calle': calle_fact,
+                    'colonia': colonia_fact,
+                    'ciudad': ciudad_fact,
+                    'estado': estado_fact,
+                    'cp': cp_fact,
+                }
+            )
 
             lead.perfil_fiscal = perfil
 
@@ -166,6 +202,29 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
             except Exception as e:
                 return {"success": False, "error": str(e), "status_code": 400}
             
+            # Diccionario con todos los datos procesados
+            datos_procesados = {
+                "folio_pedido": folio_pedido,
+                "direccion_envio": direccion_envio,
+                "rfc": rfc_val,
+                "razon_social": razon_val,
+                "regimen_fiscal": regimen_val,
+                "calle": calle_fact,
+                "colonia": colonia_fact,
+                "ciudad": ciudad_fact,
+                "estado": estado_fact,
+                "codigo_postal": cp_fact
+            }
+            
+            # --- INTEGRACIÓN: AUTOGENERACIÓN DE WORD CON DOCXTPL ---
+            url_descarga = None
+            try:
+                from leads.services.document_services import generar_formato_pedido
+                url_descarga = generar_formato_pedido(lead, datos_procesados, folio_pedido)
+            except Exception as e:
+                # Evita bloquear una venta DB exitosa solo porque el formato falló o la plantilla no existe
+                print(f"Aviso DOCXTPL: Falla silenciosa generando el formato. {e}")
+                
             timestamp = localtime(now()).strftime("%Y-%m-%d %H:%M")
             
             if not isinstance(lead.notas_variadas, dict):
@@ -173,13 +232,25 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
             if "notas" not in lead.notas_variadas:
                 lead.notas_variadas["notas"] = []
                 
+            texto_nota = f"🏆 ¡VENTA CERRADA! Folio Pedido: {folio_pedido} | RFC: {rfc_val}. El prospecto se ha convertido oficialmente en CLIENTE."
+            if url_descarga:
+                texto_nota += f' | 📄 <a href="{url_descarga}" target="_blank" class="fw-bold text-decoration-none">Descargar Formato de Pedido</a>'
+                
             lead.notas_variadas["notas"].append({
                 "fecha": timestamp,
                 "tipo": "sistema",
-                "contenido": f"🏆 ¡VENTA CERRADA! RFC capturado: {rfc_val}. El prospecto se ha convertido oficialmente en CLIENTE."
+                "contenido": texto_nota
             })
             lead.save()
-            return {"success": True, "status": "success", "mensaje": "¡Venta cerrada con éxito!", "nuevo_estatus": lead.estatus}
+            
+            return {
+                "success": True, 
+                "status": "success", 
+                "mensaje": "¡Venta cerrada con éxito!", 
+                "nuevo_estatus": lead.estatus,
+                "datos_procesados": datos_procesados,
+                "url_descarga": url_descarga
+            }
 
         elif accion == 'DESECHAR':
              try:

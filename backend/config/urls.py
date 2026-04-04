@@ -69,3 +69,9 @@ urlpatterns = [
     path('api/alerta/<int:alerta_id>/atender/', leads_views.api_atender_alerta, name='api_atender_alerta'),
 
 ]
+
+from django.conf import settings
+from django.conf.urls.static import static
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

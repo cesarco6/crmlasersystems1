@@ -20,42 +20,72 @@
             </div>
 
             <form id="form-cerrar-venta">
-                {# --- Fila 1: RFC y Razón Social --- #}
-                {# Mobile-First: col-12 (100% en móvil), col-md-6 en desktop #}
+                {# --- Switch Vía Completa --- #}
+                <div class="form-check form-switch mb-4 p-3 bg-black bg-opacity-25 border border-secondary rounded">
+                    <input class="form-check-input fs-5 ms-0 me-3 mt-1" type="checkbox" role="switch" id="switch-pedido" onchange="toggleFormatoPedido()">
+                    <label class="form-check-label text-warning fw-bold mt-1" for="switch-pedido">
+                        ¿Deseas llenar los Datos de facturación?
+                    </label>
+                </div>
+
+                {# --- Fila 0: Folio --- #}
                 <div class="row mb-3">
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
-                        <label class="form-label text-secondary fw-bold small">R.F.C. *</label>
-                        <input type="text" id="venta-rfc"
-                               class="form-control form-control-sm bg-dark text-light border-secondary text-uppercase"
-                               placeholder="Ej. XAXX010101000" maxlength="13" required>
-                    </div>
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
-                        <label class="form-label text-secondary fw-bold small">Razón Social *</label>
-                        <input type="text" id="venta-razon"
-                               class="form-control form-control-sm bg-dark text-light border-secondary text-uppercase"
-                               placeholder="Nombre completo o Empresa" required>
+                    <div class="col-12">
+                        <label class="form-label text-secondary fw-bold small">Folio de Pedido *</label>
+                        <input type="text" id="venta-folio"
+                               class="form-control form-control-sm bg-dark text-light border-secondary fw-bold text-uppercase"
+                               placeholder="Ej. PED-2023-001" required>
                     </div>
                 </div>
 
-                {# --- Fila 2: Régimen Fiscal --- #}
-                <div class="row mb-4">
-                    <div class="col-12">
-                        <label class="form-label text-secondary fw-bold small">Régimen Fiscal *</label>
-                        <select id="venta-regimen"
-                                class="form-select form-select-sm bg-dark text-light border-secondary"
-                                required>
-                            <option value="">-- Selecciona el Régimen --</option>
-                            <option value="601">601 - General de Ley Personas Morales</option>
-                            <option value="603">603 - Personas Morales con Fines no Lucrativos</option>
-                            <option value="605">605 - Sueldos y Salarios e Ingresos Asimilados a Salarios</option>
-                            <option value="606">606 - Arrendamiento</option>
-                            <option value="608">608 - Demás ingresos</option>
-                            <option value="612">612 - Personas Físicas con Actividades Empresariales y Profesionales</option>
-                            <option value="616">616 - Sin obligaciones fiscales</option>
-                            <option value="621">621 - Incorporación Fiscal</option>
-                            <option value="622">622 - Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras</option>
-                            <option value="626">626 - Régimen Simplificado de Confianza (RESICO)</option>
-                        </select>
+                {# --- Bloque Facturación (Oculto por defecto) --- #}
+                <div class="collapse mb-4" id="bloque-facturacion">
+                    {# --- Fila 1: RFC y Razón Social --- #}
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6 mb-2 mb-md-0">
+                            <label class="form-label text-secondary fw-bold small">R.F.C. *</label>
+                            <input type="text" id="venta-rfc"
+                                   class="form-control form-control-sm bg-dark text-light border-secondary text-uppercase"
+                                   placeholder="Ej. XAXX010101000" maxlength="13">
+                        </div>
+                        <div class="col-12 col-md-6 mb-2 mb-md-0">
+                            <label class="form-label text-secondary fw-bold small">Razón Social *</label>
+                            <input type="text" id="venta-razon"
+                                   class="form-control form-control-sm bg-dark text-light border-secondary text-uppercase"
+                                   placeholder="Nombre completo o Empresa">
+                        </div>
+                    </div>
+
+                    <div class="card bg-black bg-opacity-25 border-secondary">
+                        <div class="card-header border-secondary text-success fw-bold small py-2">
+                            <i class="bi bi-receipt me-1"></i> Domicilio Fiscal (Facturación)
+                        </div>
+                        <div class="card-body p-2">
+                            <div class="row g-2 mb-2">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-secondary fw-bold small mb-1">Calle y Número</label>
+                                    <input type="text" id="venta-calle" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label text-secondary fw-bold small mb-1">Colonia</label>
+                                    <input type="text" id="venta-colonia" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                            </div>
+                            <div class="row g-2">
+                                <div class="col-12 col-md-5">
+                                    <label class="form-label text-secondary fw-bold small mb-1">Ciudad/Delegación</label>
+                                    <input type="text" id="venta-ciudad" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                                <div class="col-12 col-md-4">
+                                    <label class="form-label text-secondary fw-bold small mb-1">Estado</label>
+                                    <input type="text" id="venta-estado" class="form-control form-control-sm bg-dark text-light border-secondary">
+                                </div>
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label text-secondary fw-bold small mb-1">C.P.</label>
+                                    <input type="text" id="venta-cp" class="form-control form-control-sm bg-dark text-light border-secondary" maxlength="5">
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

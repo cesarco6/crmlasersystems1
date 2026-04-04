@@ -232,15 +232,15 @@
                             {% if nota.tipo == 'sistema' %}
                                 <div class="bg-body border border-info border-opacity-25 p-2 rounded shadow-sm border-start border-info border-4">
                                     <div class="d-flex justify-content-between mb-1">
-                                        <strong class="small text-info text-uppercase fw-bold">🤖 Sistema</strong>
+                                        <strong class="small text-info text-uppercase fw-bold">🤖 Sistema <span class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0 }}]</span></strong>
                                         <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span>
                                     </div>
-                                    <span class="small text-body">{{ nota.contenido }}</span>
+                                    <span class="small text-body">{{ nota.contenido|safe }}</span>
                                 </div>
                             {% else %}
                                 <div class="bg-body border border-success border-opacity-25 p-2 rounded shadow-sm border-start border-success border-4">
                                     <div class="d-flex justify-content-between mb-1">
-                                        <strong class="small text-success text-uppercase fw-bold">👤 Vendedor</strong>
+                                        <strong class="small text-success text-uppercase fw-bold">👤 Vendedor <span class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0 }}]</span></strong>
                                         <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span>
                                     </div>
                                     <span class="small text-body">{{ nota.contenido }}</span>
