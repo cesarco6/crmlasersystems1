@@ -39,6 +39,8 @@ def generar_formato_pedido(lead, datos_fiscales, folio_pedido):
         'celular': lead.phone_primary or lead.celular or '',
         'email': lead.email or '',
         'direccion_completa': lead.direccion_completa or '',
+        'cl_ciudad': lead.ubicacion.ciudad if lead.ubicacion else '',
+        'cl_estado': lead.ubicacion.estado if lead.ubicacion else '',
         'check_domicilio': 'X',  # Regla de checkbox activo por defecto solicitada
         'vendedor_nombre': lead.owner.get_full_name() if lead.owner.get_full_name() else lead.owner.username,
     }
@@ -49,26 +51,26 @@ def generar_formato_pedido(lead, datos_fiscales, folio_pedido):
     if rfc == 'XAXX010101000' or not rfc:
         # Vía Rápida / Comodín SAT: Ocultar datos fiscales en el documento
         contexto.update({
-            'razon_social': 'PENDIENTE',
-            'rfc': '',
-            'calle': '',
-            'colonia': '',
-            'ciudad': '',
-            'estado': '',
-            'codigo_postal': '',
-            'regimen_fiscal': ''  # Para que no se imprima el '616' a la vista
+            'fact_razon_social': 'PENDIENTE',
+            'fact_rfc': '',
+            'fact_calle': '',
+            'fact_colonia': '',
+            'fact_ciudad': '',
+            'fact_estado': '',
+            'fact_codigo_postal': '',
+            'fact_regimen_fiscal': ''
         })
     else:
         # Vía Completa: RFC Real
         contexto.update({
-            'razon_social': datos_fiscales.get('razon_social', ''),
-            'rfc': rfc,
-            'calle': datos_fiscales.get('calle', ''),
-            'colonia': datos_fiscales.get('colonia', ''),
-            'ciudad': datos_fiscales.get('ciudad', ''),
-            'estado': datos_fiscales.get('estado', ''),
-            'codigo_postal': datos_fiscales.get('codigo_postal', ''),
-            'regimen_fiscal': datos_fiscales.get('regimen_fiscal', '')
+            'fact_razon_social': datos_fiscales.get('razon_social', ''),
+            'fact_rfc': rfc,
+            'fact_calle': datos_fiscales.get('calle', ''),
+            'fact_colonia': datos_fiscales.get('colonia', ''),
+            'fact_ciudad': datos_fiscales.get('ciudad', ''),
+            'fact_estado': datos_fiscales.get('estado', ''),
+            'fact_codigo_postal': datos_fiscales.get('codigo_postal', ''),
+            'fact_regimen_fiscal': datos_fiscales.get('regimen_fiscal', '')
         })
 
     # 4. Inyección del Contexto vía docxtpl

@@ -222,6 +222,25 @@ function toggleFormatoPedido() {
     }
 }
 
+function copiarDireccionLead() {
+    const dRazon = document.getElementById('venta-razon');
+    const dCalle = document.getElementById('venta-calle');
+    const dCiudad = document.getElementById('venta-ciudad');
+    const dEstado = document.getElementById('venta-estado');
+    
+    if ($('#switch-copiar-direccion').is(':checked')) {
+        dRazon.value = document.getElementById('hidden-lead-nombre').value;
+        dCalle.value = document.getElementById('hidden-lead-direccion').value;
+        dCiudad.value = document.getElementById('hidden-lead-ciudad').value;
+        dEstado.value = document.getElementById('hidden-lead-estado').value;
+    } else {
+        dRazon.value = '';
+        dCalle.value = '';
+        dCiudad.value = '';
+        dEstado.value = '';
+    }
+}
+
 function guardarCierreVenta(btn = null) {
     const leadId = getLeadId();
     const csrfToken = getCsrfToken();
