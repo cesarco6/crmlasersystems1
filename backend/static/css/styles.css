@@ -1436,7 +1436,7 @@ body {
 }
 .btn-login:hover {
         background-color: var(--secondary);
-        border: 1px solid var(--ers-secondary);
+        border: 2px solid var(--ers-primary);
     }
 
 .login-footer {
