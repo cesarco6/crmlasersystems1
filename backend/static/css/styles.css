@@ -13,7 +13,7 @@
 :root {
     /* Light Mode Default (Standard BS5 fallback) */
     --ers-bg-main: #f4f6f9;
-    --ers-bg-card: #ffffff;
+    --ers-bg-card: #fffffa;
     --ers-border: #dee2e6;
     --ers-text-primary: #1e293b;
     --ers-text-muted: #64748b;
@@ -1337,8 +1337,7 @@ body {
         justify-content: center;
         align-items: center;
         min-height: 80vh;
-        /*background-color: var(--ers-bg-main);*/
-        font-family: 'Ubuntu', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #4571b8        
     }
     .login-container {
         width: 100%;
@@ -1358,7 +1357,7 @@ body {
     }
 
     .login-header img {
-        max-width: 85px;
+        max-width: 75px;
         margin-bottom: 1rem;
         border: 2px solid #9f1239;
         border-radius: 5%;
@@ -1403,11 +1402,11 @@ body {
     /* Added login page styles */
 .form-group input,
 .form-group select {
-  width: 100%;
+  
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 5px;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: var(--text);
   background-color: var(--surface);
   transition: all 0.2s;
@@ -1424,26 +1423,46 @@ body {
 
 .btn-login {
   background-color: var(--ers-primary);
-  color: white;
-  border: none;
+  color: rgb(255, 255, 255);
+  border: 1px solid var(--ers-bg-card);
   padding: 0.875rem;
   border-radius: 5px;
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
   margin-top: 0.5rem;
 }
-.btn-login:hover {
-        background-color: var(--secondary);
-        border: 2px solid var(--ers-primary);
-    }
 
 .login-footer {
   text-align: center;
   margin-top: 1.5rem;
 }
 
+.btn-login:hover {
+  background-color: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+  border: 1px solid var(--ers-primary);
+  color: rgb(255, 255, 255);
+}
+
+.login-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+}
+
+.forgot-link {
+  color: var(--primary);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.forgot-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
 
 /* ==========================================================================
    WELCOME OVERLAY & SKELETON LOADING
