@@ -8,8 +8,8 @@
     <div class="row mb-4">
         <div class="col-12 d-flex justify-content-between align-items-center">
             <div>
-                <h2 class="fw-bold text-danger">Staging</h2>
-                <p class="text-muted">Desentrañando registros de la migración histórica.</p>
+                <h2 class="fw-bold text-danger">Staging Area</h2>
+                <p class="text-muted">Reorganizando registros de la migración histórica.</p>
             </div>
             <div>
                 <span class="badge bg-warning text-dark fs-5 p-3">
@@ -28,11 +28,11 @@
         {% endfor %}
     {% endif %}
 
-    <div class="card shadow-sm border-0">
+    <div class="card card-ers shadow-sm">
         <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
+                <table class="table table-hover table-ers align-middle mb-0">
+                    <thead>
                         <tr>
                             <th class="ps-4">Fecha Subida</th>
                             <th>Diagnóstico (Motivo)</th>
@@ -54,7 +54,7 @@
                             </td>
                             <td>{{ lead.owner.username|default:"Sistema" }}</td>
                             <td class="text-end pe-4">
-                                <a href="{% url 'staging_procesar' pk=lead.pk %}" class="btn btn-sm btn-primary">
+                                <a href="{% url 'staging_procesar' pk=lead.pk %}" class="btn btn-sm btn-outline-primary fw-bold">
                                     <i class="bi bi-bandaid"></i> Operar Registro
                                 </a>
                             </td>

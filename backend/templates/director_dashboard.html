@@ -47,7 +47,7 @@
         </div>
         
         <div class="col-xl col-md-4 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100 bg-body">
+            <div class="card shadow-sm border-0 border-start border-primary border-4 h-100">
                 <div class="card-body p-3">
                     <div class="text-body-secondary fw-bold text-uppercase kpi-title">Volumen de Trabajo</div>
                     <div class="d-flex align-items-center mt-2">
@@ -59,7 +59,7 @@
         </div>
 
         <div class="col-xl col-md-4 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-danger border-4 h-100 bg-body">
+            <div class="card shadow-sm border-0 border-start border-danger border-4 h-100">
                 <div class="card-body p-3">
                     <div class="text-body-secondary fw-bold text-uppercase kpi-title">Tasa de Calidad</div>
                     <div class="d-flex align-items-center mt-2">
@@ -71,7 +71,7 @@
         </div>
 
         <div class="col-xl col-md-4 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-warning border-4 h-100 bg-body">
+            <div class="card shadow-sm border-0 border-start border-warning border-4 h-100">
                 <div class="card-body p-3">
                     <div class="text-body-secondary fw-bold text-uppercase kpi-title">Tasa de Prospección</div>
                     <div class="d-flex align-items-center mt-2">
@@ -83,7 +83,7 @@
         </div>
 
         <div class="col-xl col-md-4 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-secondary border-4 h-100 bg-body">
+            <div class="card shadow-sm border-0 border-start border-secondary border-4 h-100">
                 <div class="card-body p-3">
                     <div class="text-body-secondary fw-bold text-uppercase kpi-title">Oportunidades No Cerradas</div>
                     <div class="d-flex align-items-center mt-2">
@@ -95,7 +95,7 @@
         </div>
 
         <div class="col-xl col-md-4 col-sm-6">
-            <div class="card shadow-sm border-0 border-start border-success border-4 h-100 bg-body">
+            <div class="card shadow-sm border-0 border-start border-success border-4 h-100">
                 <div class="card-body p-3">
                     <div class="text-body-secondary fw-bold text-uppercase kpi-title">Índice de Venta</div>
                     <div class="d-flex align-items-center mt-2">
@@ -193,7 +193,7 @@
 
     <div class="row g-4 mb-4">
         <div class="col-12">
-            <div class="card shadow-sm border-0 h-100 bg-body">
+            <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
                     <h6 class="card-title fw-bold text-body text-uppercase">� Comparativa por Fuerza de Ventas</h6>
                 </div>
@@ -206,7 +206,7 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 bg-body">
+            <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
                     <h6 class="card-title fw-bold text-body text-uppercase">📍 Rendimiento por Estado</h6>
                 </div>
@@ -219,7 +219,7 @@
         </div>
 
         <div class="col-md-6">
-            <div class="card shadow-sm border-0 h-100 bg-body">
+            <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
                     <h6 class="card-title fw-bold text-body text-uppercase">⚕️ Rendimiento por Especialidad Médica</h6>
                 </div>
@@ -233,7 +233,7 @@
     </div>
     <div class="row mt-4 mb-4">
         <div class="col-md-6 mx-auto">
-            <div class="card shadow-sm border-0 h-100 bg-body">
+            <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 text-center">
                     <h6 class="card-title fw-bold text-body text-uppercase">🎯 Embudo de Conversión Global</h6>
                 </div>
@@ -248,7 +248,7 @@
     <!-- FORECAST MENSUAL (TABLA) -->
     <div class="row mt-4 mb-4">
         <div class="col-12">
-            <div class="card shadow-sm border-0 h-100 bg-body">
+            <div class="card shadow-sm border-0 h-100">
                 <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0">
                     <h6 class="card-title fw-bold text-body text-uppercase">📅 Forecast Mensual (Cierres Proyectados)</h6>
                 </div>
@@ -309,9 +309,9 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // --- 1. Obtener colores dinámicos del tema ---
-        const style = getComputedStyle(document.body);
-        const textColor = style.getPropertyValue('--bs-body-color').trim() || '#3f4254';
-        const gridColor = style.getPropertyValue('--bs-border-color').trim() || 'rgba(0,0,0,0.1)';
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const textColor = isDark ? '#e4e6ef' : '#3f4254';
+        const gridColor = isDark ? '#2b2b40' : 'rgba(0,0,0,0.1)';
 
         // Colores corporativos estándar
         const colorRechazo = '#f1416c';    // Danger

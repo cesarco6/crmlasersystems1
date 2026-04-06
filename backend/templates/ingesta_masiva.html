@@ -37,35 +37,35 @@
 <section class="module active" id="view-module">
     <div class="module-header d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="fw-bold text-info">📤 Ingesta Masiva de Prospectos (Quirófano)</h2>
+            <h2 class="fw-bold text-success">📤 Ingesta Masiva de Prospectos (Quirófano)</h2>
             <p>Sube tu archivo Excel (.xlsx) o CSV curado para validarlos y asignarlos a tu cartera.</p>
         </div>
     </div>
 
     <!-- SECCIÓN DE CARGA INICIAL -->
-    <div class="card" id="upload-section" style="max-width: 650px; margin: 0 auto; text-align: center; padding: 40px;">
-        <div style="border: 2px dashed var(--border-color, #3a3a4e); padding: 30px; border-radius: 10px; background: var(--bg-primary, #151521);">
-            <h3 style="margin-bottom: 20px;">Estructura del Archivo (Excel/CSV)</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 15px; font-size: 0.95rem;">
+    <div class="card p-3 p-md-5 mx-auto text-center" id="upload-section" style="max-width: 650px;">
+        <div class="upload-dropzone">
+            <h3 class="mb-4">Estructura del Archivo (Excel/CSV)</h3>
+            <p class="text-secondary mb-3 fs-6">
                 Adecuado al estándar <strong>DDS (Data Dictionary Strict)</strong>:
             </p>
-            <div style="text-align: left; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
-                <p class="text-warning mb-2" style="color: #ffc107;"><strong>⚠️ 4 Columnas Obligatorias:</strong></p>
-                <ul class="mb-3" style="color: #e0e0e0; list-style-type: none; padding-left: 10px;">
-                    <li><code style="color:#ffb86c">nombre_completo</code>: Individuo (con apellidos) o Corporativo.</li>
-                    <li><code style="color:#ffb86c">telefono</code>: Número principal de contacto.</li>
-                    <li><code style="color:#ffb86c">especialidad</code>: Se emparejará o unirá al catálogo MDM.</li>
-                    <li><code style="color:#ffb86c">ubicacion</code>: Ciudad de residencia o registro base.</li>
+            <div class="upload-structure shadow-sm">
+                <p class="text-warning fw-bold mb-2">⚠️ 4 Columnas Obligatorias:</p>
+                <ul class="mb-3 list-unstyled ps-2 text-body">
+                    <li><code class="text-primary fw-bold">nombre_completo</code>: Individuo (con apellidos) o Corporativo.</li>
+                    <li><code class="text-primary fw-bold">telefono</code>: Número principal de contacto.</li>
+                    <li><code class="text-primary fw-bold">especialidad</code>: Se emparejará o unirá al catálogo MDM.</li>
+                    <li><code class="text-primary fw-bold">ubicacion</code>: Ciudad de residencia o registro base.</li>
                 </ul>
-                <p class="text-info mb-2" style="color: #8be9fd;"><strong>ℹ️ Columnas Opcionales:</strong></p>
-                <ul class="mb-0" style="color: #a8a8b3; list-style-type: none; padding-left: 10px; font-size: 0.85rem;">
-                    <li><code style="color:#bd93f9">titulo</code> (Dr., Dra., MVZ, etc.), <code style="color:#bd93f9">celular</code>, <code style="color:#bd93f9">email</code>, <code style="color:#bd93f9">direccion_completa</code>, <code style="color:#bd93f9">producto</code>, <code style="color:#bd93f9">notas</code>.</li>
+                <p class="text-info fw-bold mb-2">ℹ️ Columnas Opcionales:</p>
+                <ul class="mb-0 list-unstyled ps-2 text-body-secondary small">
+                    <li><code class="text-primary">titulo</code> (Dr., Dra., MVZ, etc.), <code class="text-primary">celular</code>, <code class="text-primary">email</code>, <code class="text-primary">direccion_completa</code>, <code class="text-primary">producto</code>, <code class="text-primary">notas</code>.</li>
                 </ul>
             </div>
             
-            <input type="file" id="archivo-excel" accept=".xlsx, .xls, .csv" style="display: none;" onchange="procesarArchivo()">
-            <button class="btn btn-secondary px-4 py-2" id="btn-seleccionar" onclick="document.getElementById('archivo-excel').click()">📂 Seleccionar Archivo para Analizar</button>
-            <p id="nombre-archivo" style="margin-top: 15px; color: #4facfe; font-weight: bold;"></p>
+            <input type="file" id="archivo-excel" accept=".xlsx, .xls, .csv" class="d-none" onchange="procesarArchivo()">
+            <button class="btn btn-secondary px-4 py-2 mt-2" id="btn-seleccionar" onclick="document.getElementById('archivo-excel').click()">📂 Seleccionar Archivo para Analizar</button>
+            <p id="nombre-archivo" class="mt-3 fw-bold text-primary"></p>
         </div>
     </div>
 

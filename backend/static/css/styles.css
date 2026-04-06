@@ -12,9 +12,9 @@
 
 :root {
     /* Light Mode Default (Standard BS5 fallback) */
-    --ers-bg-main: #f4f6f9;
-    --ers-bg-card: #fffffa;
-    --ers-border: #dee2e6;
+    --ers-bg-main: #e2e6f0; /* Grado más oscuro para resaltar los bloques/tarjetas blancos */
+    --ers-bg-card: #ffffff;
+    --ers-border: #cbd3e1; /* Borde más enfatizado en Light Mode */
     --ers-text-primary: #1e293b;
     --ers-text-muted: #64748b;
     
@@ -82,6 +82,45 @@
     text-transform: uppercase;
     font-size: 0.75rem;
     letter-spacing: 0.05rem;
+}
+
+/* Global Geometry for Templates and Modals */
+.card, .modal-content {
+    border: 1px solid var(--ers-border) !important;
+    border-radius: 5px !important;
+}
+
+/* UI Elements - Removed inline styles */
+.btn-theme-toggle {
+    padding: 0.2rem 0.5rem;
+    transition: 0.3s;
+}
+
+.badge-notification {
+    font-size: 0.75rem;
+    transform: translate(-30%, -30%) !important;
+}
+
+/* Upload (Quirófano) Component */
+.upload-dropzone {
+    border: 2px dashed var(--ers-border);
+    padding: 30px;
+    border-radius: 10px;
+    background-color: var(--ers-bg-main);
+    transition: 0.3s ease;
+}
+
+.upload-structure {
+    text-align: left;
+    background-color: rgba(0, 0, 0, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 0.9rem;
+}
+
+[data-bs-theme="dark"] .upload-structure {
+    background-color: rgba(0, 0, 0, 0.2);
 }
 
 /* Base modifications */

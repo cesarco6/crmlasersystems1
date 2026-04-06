@@ -16,8 +16,13 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.2">
     <link rel="stylesheet" href="{% static 'css/crm-mobile.css' %}?v=1.1">
-
     {% block extra_css %}{% endblock %}
+
+    <!-- Escudo Anti-Flash (FOUC) del Tema Crítico -->
+    <script>
+        const savedTheme = localStorage.getItem('crm-theme') || 'dark';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    </script>
 </head>
 
 <body>
@@ -51,12 +56,17 @@
         <div class="header-container d-flex justify-content-between align-items-center">
             
             <!-- Botón Menú Móvil (Hamburguesa) -->
-            <button class="mobile-menu-toggle d-lg-none bg-transparent border-0 text-light fs-3" id="mobileMenuToggle">
+            <button class="mobile-menu-toggle d-lg-none bg-transparent border-0 text-body fs-3" id="mobileMenuToggle">
                 <i class="bi bi-list"></i>
             </button>
 
             <!-- Acciones Derecha -->
             <div class="d-flex align-items-center gap-3 ms-auto">
+                <!-- Theme Toggle Button -->
+                <button class="btn btn-outline-secondary d-flex align-items-center border-0 fs-5 btn-theme-toggle" id="themeToggleBtn" onclick="toggleCrmTheme()" title="Cambiar Tema">
+                    <i class="bi bi-moon-stars-fill text-body" id="themeIcon"></i>
+                </button>
+
                 {% if user.is_authenticated %}  
                     <!-- Dropdown Alertas -->
                      {% if not user.is_superuser %}
@@ -65,7 +75,7 @@
                             <i class="bi bi-bell text-warning fs-5"></i> 
                             
                             {% if notificaciones_no_leidas > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary px-2 border border-dark" style="font-size: 0.75rem; transform: translate(-30%, -30%) !important;">
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary px-2 border border-dark badge-notification">
                                 {{ notificaciones_no_leidas }}
                             </span>
                             {% endif %}
@@ -105,7 +115,7 @@
 
                     <!-- Usuario -->
                     <span class="text-secondary small ms-2">
-                        👤 Hola, <strong class="text-light">{{ user.first_name|title }}</strong>
+                        👤 Hola, <strong class="text-body">{{ user.first_name|title }}</strong>
                         {% if user.is_superuser %}
                             <span class="badge bg-success text-dark ms-1">Admin</span>
                         {% endif %}
@@ -141,6 +151,17 @@
     <!-- Script Responsivo del Layout -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar Icono de Tema Correctamente
+            const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+            const themeIcon = document.getElementById('themeIcon');
+            if(themeIcon) {
+                if (currentTheme === 'dark') {
+                    themeIcon.className = 'bi bi-moon-stars-fill text-body';
+                } else {
+                    themeIcon.className = 'bi bi-brightness-high-fill text-warning';
+                }
+            }
+
             const mobileMenuToggle = document.getElementById('mobileMenuToggle');
             const sidebar = document.getElementById('sidebar');
 
@@ -217,6 +238,42 @@
                 .catch(() => Swal.fire('Error de Conexión', 'No se pudo comunicar con el servidor.', 'error'));
             }
         });
+    }
+    function toggleCrmTheme() {
+        const htmlTag = document.documentElement;
+        const currentTheme = htmlTag.getAttribute('data-bs-theme');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        
+        // Aplicar y Guardar
+        htmlTag.setAttribute('data-bs-theme', newTheme);
+        localStorage.setItem('crm-theme', newTheme);
+        
+        // Cambiar el icono
+        const icon = document.getElementById('themeIcon');
+        if (newTheme === 'dark') {
+            icon.className = 'bi bi-moon-stars-fill text-body';
+        } else {
+            icon.className = 'bi bi-brightness-high-fill text-warning';
+        }
+        
+        // Repintar gráficas automáticamente si existen (Dashboard)
+        if (typeof Chart !== 'undefined') {
+            const chartText = newTheme === 'dark' ? '#e4e6ef' : '#3f4254';
+            const chartGrid = newTheme === 'dark' ? '#2b2b40' : 'rgba(0,0,0,0.1)';
+            Object.values(Chart.instances).forEach(chart => {
+                if (chart.options.plugins && chart.options.plugins.legend) {
+                    chart.options.plugins.legend.labels.color = chartText;
+                }
+                if (chart.options.scales) {
+                    if (chart.options.scales.x) chart.options.scales.x.ticks.color = chartText;
+                    if (chart.options.scales.y) {
+                        chart.options.scales.y.ticks.color = chartText;
+                        chart.options.scales.y.grid.color = chartGrid;
+                    }
+                }
+                chart.update();
+            });
+        }
     }
     </script>
 </body>

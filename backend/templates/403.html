@@ -5,19 +5,19 @@
 
 {% block content %}
 <div class="container-fluid d-flex flex-column justify-content-center align-items-center text-center" style="min-height: calc(100vh - 150px); background: radial-gradient(circle at center, rgba(33,37,41,0) 0%, rgba(0,0,0,0.3) 100%);">
-    <div class="card bg-dark text-light border-0 shadow-lg p-5" style="border-radius: 20px; background: rgba(33, 37, 41, 0.8) !important; backdrop-filter: blur(15px); border: 1px solid rgba(255, 193, 7, 0.2) !important; max-width: 600px; transform: translateY(-20px);">
+    <div class="card bg-body text-body border-0 shadow-lg p-5" style="border-radius: 20px; backdrop-filter: blur(15px); border: 1px solid var(--ers-border) !important; max-width: 600px; transform: translateY(-20px);">
         
         <div class="mb-4 text-warning glow-icon" style="font-size: 5rem; line-height: 1;">
             <i class="bi bi-shield-lock-fill"></i>
         </div>
         
         <h1 class="display-3 fw-bold text-warning mb-3 glow-text" style="letter-spacing: -2px;">Acceso Restringido</h1>
-        <h3 class="mb-4 text-white-50">Código 403</h3>
+        <h3 class="mb-4 text-body-secondary">Código 403</h3>
         
-        <p class="lead mb-5 text-light opacity-75">Tu rol actual no interactúa con esta terminal del sistema. Si crees que se trata de un error de asignación de perfil, contacta a la Dirección Comercial.</p>
+        <p class="lead mb-5 text-body opacity-75">Tu rol actual no interactúa con esta terminal del sistema. Si crees que se trata de un error de asignación de perfil, contacta a la Dirección Comercial.</p>
         
         <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-            <button onclick="window.history.back()" class="btn btn-outline-light btn-lg px-4 rounded-pill transition-all hover-scale">
+            <button onclick="window.history.back()" class="btn btn-outline-secondary btn-lg px-4 rounded-pill transition-all hover-scale">
                 <i class="bi bi-arrow-left me-2"></i> Volver a Zona Segura
             </button>
             <a href="/" class="btn btn-warning text-dark fw-bold btn-lg px-4 rounded-pill shadow-lg hover-scale effect-pulse" style="box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3) !important;">
