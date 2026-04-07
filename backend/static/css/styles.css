@@ -12,11 +12,11 @@
 
 :root {
     /* Light Mode Default (Standard BS5 fallback) */
-    --ers-bg-main: #e2e6f0; /* Grado más oscuro para resaltar los bloques/tarjetas blancos */
-    --ers-bg-card: #ffffff;
-    --ers-border: #cbd3e1; /* Borde más enfatizado en Light Mode */
-    --ers-text-primary: #1e293b;
-    --ers-text-muted: #64748b;
+    --ers-bg-main: #f0f2f5; /* Gris tenue y elegante para el cuerpo general, descansa la vista */
+    --ers-bg-card: #fbfbfb; /* Blanco atenuado "hueso" / gris ultra suave, no es #ffffff puro */
+    --ers-border: #e4e6ef; /* Borde más enfatizado en Light Mode */
+    --ers-text-primary: #181c32;
+    --ers-text-muted: #a1a5b7;
     
     /* Global Accents */
     --ers-primary: #009ef7;
@@ -30,6 +30,14 @@
     --border: var(--ers-border);
     --text: var(--ers-text-primary);
     --text-secondary: var(--ers-text-muted);
+
+    /* BS5 Overrides to let native components inherit the light theme */
+    --bs-body-bg: var(--ers-bg-main);
+    --bs-body-color: var(--ers-text-primary);
+    --bs-card-bg: var(--ers-bg-card);
+    --bs-border-color: var(--ers-border);
+    --bs-tertiary-bg: var(--ers-bg-card);
+    --bs-secondary-color: var(--ers-text-muted);
 }
 /* ==========================================================================
    METRONIC DARK THEME (Bootstrap 5.3 Integration)

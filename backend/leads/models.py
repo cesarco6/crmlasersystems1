@@ -174,6 +174,12 @@ class LeadStaging(models.Model):
     
     estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='PENDIENTE')
     
+    ORIGEN_CHOICES = [
+        ('HISTORICO', 'Histórico / Dirección'),
+        ('AGENTE', 'Operación Diaria Agentes'),
+    ]
+    origen = models.CharField(max_length=20, choices=ORIGEN_CHOICES, default='HISTORICO')
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

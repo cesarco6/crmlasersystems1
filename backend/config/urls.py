@@ -20,7 +20,7 @@ from django.views.generic import RedirectView
 from leads import views as leads_views
 
 # 1. Agregamos "procesar_alta_manual" a la lista de importaciones
-from leads.views import DashboardAgenteView, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra
+from leads.views import DashboardAgenteView, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra, AgenteStagingListView, AgenteStagingProcesarView
 from users.views import panel_territorios, custom_login_view, custom_logout_view, api_territorios_vendedor
 
 urlpatterns = [
@@ -35,10 +35,14 @@ urlpatterns = [
     path('director/territorios/', panel_territorios, name='director_territorios'),
     path('api/director/territorios/<int:vendedor_id>/', api_territorios_vendedor, name='api_territorios_vendedor'),
 
-    # Quirófano (Staging)
+    # Quirófano (Staging) - DIrector
     path('director/staging/', ListaStagingView.as_view(), name='staging_list'),
     path('director/staging/<uuid:pk>/procesar/', ProcesarStagingView.as_view(), name='staging_procesar'),
     path('director/ingesta-express/', IngestaHistoricaExpressView.as_view(), name='ingesta_express'),
+
+    # Quirófano (Staging) - Agente
+    path('agente/staging/', AgenteStagingListView.as_view(), name='agente_staging_list'),
+    path('agente/staging/<uuid:pk>/procesar/', AgenteStagingProcesarView.as_view(), name='agente_staging_procesar'),
 
     # Buscador Global Omnipotente - Director
     path('director/buscar/', leads_views.director_busqueda_view, name='director_busqueda'),

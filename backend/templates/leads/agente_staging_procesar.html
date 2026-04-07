@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Operando Registro - Quirófano Vendedor{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header Rápido -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <a href="{% url 'agente_staging_list' %}" class="text-decoration-none text-muted me-2"><i class="bi bi-arrow-left"></i></a>
+                🛠️ Curando tu Prospecto
+            </h3>
+            <span class="text-danger fw-bold"><i class="bi bi-exclamation-triangle-fill"></i> Diagnóstico: {{ staging_lead.motivo_conflicto }}</span>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-warning text-dark px-3 py-2 fs-6 mb-2">Restantes en Quirófano: {{ restantes }}</span>
+        </div>
+    </div>
+
+    <!-- Alertas -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- PANTALLA DIVIDIDA: IZQUIERDA (CRUDA) -->
+        <div class="col-lg-5">
+            <div class="card h-100 border-0 shadow-sm bg-light">
+                <div class="card-header bg-secondary text-white fw-bold py-3">
+                    <i class="bi bi-file-earmark-excel"></i> Archivo Original (Solo Lectura)
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-4">Así venía exactamente este prospecto en tu Excel de ingesta.</p>
+                    
+                    <div class="list-group list-group-flush rounded shadow-sm">
+                        {% for key, value in staging_lead.datos_crudos.items %}
+                            {% if value %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap bg-white">
+                                <span class="fw-bold text-uppercase" style="font-size: 0.8rem; color:var(--text-secondary);">{{ key|title }}</span>
+                                <span class="text-dark bg-light px-2 py-1 rounded">{{ value }}</span>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA DIVIDIDA: DERECHA (FORMULARIO QUIRÚRGICO) -->
+        <div class="col-lg-7">
+            <div class="card border-0 shadow-sm h-100 border-top border-success border-4">
+                <div class="card-header bg-white pt-4 pb-2">
+                    <h5 class="fw-bold text-success mb-0"><i class="bi bi-bandaid"></i> Formulario de Curación Manual</h5>
+                    <p class="text-muted small">Corta, ajusta y dale formato correcto antes de inyectar el prospecto a tu embudo.</p>
+                </div>
+                <div class="card-body p-4">
+                    
+                    <form method="POST" action="{% url 'agente_staging_procesar' staging_lead.id %}">
+                        {% csrf_token %}
+                        <!-- Botón Maestro Oculto -->
+                        <input type="hidden" name="action" id="action-input" value="guardar">
+
+                        <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">0. Tipo de Prospecto</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Tipo de Entidad</label>
+                                <select class="form-select form-select-sm border-success border-2" name="tipo_entidad" id="tipo_entidad" required>
+                                    <option value="INDIVIDUAL" {% if staging_lead.datos_parseados.tipo_entidad != 'CORPORATIVO' %}selected{% endif %}>👩‍⚕️ Individuo (Médico / Persona)</option>
+                                    <option value="CORPORATIVO" {% if staging_lead.datos_parseados.tipo_entidad == 'CORPORATIVO' %}selected{% endif %}>🏥 Clínica / Corporativo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">1. Identidad Atomizada</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-3" id="div_titulo">
+                                <label class="form-label small fw-bold">Título</label>
+                                <select class="form-select form-select-sm" name="titulo_cortesia">
+                                    <option value="">(Ninguno)</option>
+                                    {% for t in titulos_list %}
+                                        <option value="{{ t.id }}" {% if staging_lead.datos_parseados.titulo_id == t.id %}selected{% endif %}>{{ t.abreviatura }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-9" id="div_nombre">
+                                <label class="form-label small fw-bold" id="label_nombre">Nombre (Solo nombres) *</label>
+                                <input type="text" class="form-control form-control-sm border-success" name="nombre_pila" value="{{ staging_lead.datos_parseados.nombre_pila|default:'' }}" required>
+                            </div>
+                            <div class="col-md-6" id="div_paterno">
+                                <label class="form-label small fw-bold">Ap. Paterno</label>
+                                <input type="text" class="form-control form-control-sm" name="apellido_paterno" value="{{ staging_lead.datos_parseados.apellido_paterno|default:'' }}">
+                            </div>
+                            <div class="col-md-6" id="div_materno">
+                                <label class="form-label small fw-bold">Ap. Materno</label>
+                                <input type="text" class="form-control form-control-sm" name="apellido_materno" value="{{ staging_lead.datos_parseados.apellido_materno|default:'' }}">
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">2. Contacto Inteligente</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Teléfono Principal *</label>
+                                <input type="text" class="form-control form-control-sm border-danger border-2" name="telefono" value="{{ staging_lead.datos_parseados.telefono_norm|default:'' }}" required>
+                                <small class="text-danger" style="font-size: 0.70rem;">Se usa para cotejar duplicados exactos.</small>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Celular / Whats</label>
+                                <input type="text" class="form-control form-control-sm" name="celular" value="{{ staging_lead.datos_crudos.celular|default:'' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold">Email</label>
+                                <input type="email" class="form-control form-control-sm" name="email" value="{{ staging_lead.datos_crudos.email|default:'' }}">
+                            </div>
+                            <div class="row g-3 mb-4 mt-1">
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold">Dirección Completa</label>
+                                    <input type="text" class="form-control form-control-sm" name="direccion_completa" value="{{ staging_lead.datos_crudos.direccion|default:staging_lead.datos_crudos.direcion_completa|default:staging_lead.datos_crudos.direccion_completa|default:'' }}" placeholder="Calle, Colonia, C.P.">
+                                </div>
+                            </div>
+                            <div class="row g-3 mb-4 mt-1">
+                                <div class="col-md-12">
+                                    <label class="form-label small fw-bold">Notas libres</label>
+                                    <textarea class="form-control form-control-sm" name="notas" rows="2" placeholder="Notas u observaciones">{{ staging_lead.datos_crudos.notas|default:'' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-muted mb-3 border-bottom pb-2">3. Clasificación MDM y Catálogos</h6>
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Especialidad*</label>
+                                <select class="form-select form-select-sm" name="especialidad_id" required>
+                                    <option value="">Selecciona...</option>
+                                    {% for esp in especialidades_list %}
+                                    <option value="{{ esp.id }}" {% if staging_lead.datos_crudos.especialidad == esp.nombre %}selected{% endif %}>{{ esp.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold">Ubicación*</label>
+                                <select class="form-select form-select-sm" name="ubicacion_id" required>
+                                    <option value="">Selecciona...</option>
+                                    {% for ub in ubicaciones_list %}
+                                    <option value="{{ ub.id }}" {% if staging_lead.datos_crudos.ubicacion == ub.ciudad %}selected{% endif %}>{{ ub.ciudad }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <!--<div class="col-md-4">
+                                <label class="form-label small fw-bold">Producto</label>
+                                <select class="form-select form-select-sm" name="producto_id">
+                                    <option value="">Selecciona...</option>
+                                    {% for prod in productos_list %}
+                                    <option value="{{ prod.id }}" {% if staging_lead.datos_crudos.producto == prod.nombre %}selected{% endif %}>{{ prod.nombre }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>-->
+                        </div>
+
+                        <!-- Panel Inferior de Botones Flotantes -->
+                        <div class="d-flex justify-content-between mt-5 pt-3 border-top">
+                            <button type="button" class="btn btn-outline-danger fw-bold" onclick="confirmarDescarte();">
+                                <i class="bi bi-trash"></i> Descartar
+                            </button>
+                            
+                            <button type="submit" class="btn btn-success fw-bold px-4" onclick="document.getElementById('action-input').value='guardar'; this.innerText='Inyectando e Imprimiendo...';">
+                                ✅ Curar e Inyectar a Cartera
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/staging_procesar.js' %}"></script>
+<script>
+function confirmarDescarte() {
+    Swal.fire({
+        title: '⚠️ ¿Descartar definitivamente?',
+        text: "Este prospecto será desechado de tu Quirófano.",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, desechar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const form = document.querySelector('form');
+            document.getElementById('action-input').value = 'descartar';
+            form.noValidate = true; // Salta validaciones required nativas
+            form.submit();
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -293,12 +293,12 @@ class ListaStagingView(LoginRequiredMixin, ListView):
     paginate_by = 50
 
     def get_queryset(self):
-        # Solo mostrar los pendientes, ordenados por los más antiguos primero
-        return LeadStaging.objects.filter(estatus='PENDIENTE').order_by('created_at')
+        # Solo mostrar los pendientes históricos
+        return LeadStaging.objects.filter(estatus='PENDIENTE', origen='HISTORICO').order_by('created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['total_pendientes'] = LeadStaging.objects.filter(estatus='PENDIENTE').count()
+        context['total_pendientes'] = LeadStaging.objects.filter(estatus='PENDIENTE', origen='HISTORICO').count()
         return context
 
 @method_decorator(role_required(['DIRECTOR', 'ADMIN']), name='dispatch')
@@ -316,8 +316,8 @@ class ProcesarStagingView(LoginRequiredMixin, DetailView):
         context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).order_by('ciudad')
         context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
         context['productos_list'] = CatProducto.objects.filter(is_active=True, familia='EQUIPO').order_by('nombre')
-        # Buscamos cuántos quedan para el badge superior
-        context['restantes'] = LeadStaging.objects.filter(estatus='PENDIENTE').count()
+        # Buscamos cuántos quedan para el badge superior (Históricos)
+        context['restantes'] = LeadStaging.objects.filter(estatus='PENDIENTE', origen='HISTORICO').count()
         return context
 
     def post(self, request, *args, **kwargs):
@@ -757,7 +757,7 @@ def procesar_ingesta_masiva(request):
 
         from .parser_service import parsear_fila
         from leads.services.common_services import obtener_catalogos_limpios
-        from .models import Clinica
+        from .models import Clinica, LeadStaging
 
         inserted_count = 0
 
@@ -765,132 +765,19 @@ def procesar_ingesta_masiva(request):
             if not isinstance(lead_data, dict):
                 continue
             
-            is_dry_run = (action == "simulate")
-            parsed_data = parsear_fila(lead_data, dry_run=is_dry_run)
+            parsed_data = parsear_fila(lead_data)
             
-            row_status = "OK"
-            row_errors = []
+            LeadStaging.objects.create(
+                owner=request.user,
+                datos_crudos=lead_data,
+                datos_parseados=parsed_data,
+                motivo_conflicto="Ingesta Masiva Vendedor (Curación Obligatoria)",
+                estatus='PENDIENTE',
+                origen='AGENTE'
+            )
+            inserted_count += 1
 
-            # 1. Validaciones Core
-            if parsed_data["tipo_entidad"] == "MULTIPLE":
-                row_status = "ERROR"
-                row_errors.append("Múltiples médicos detectados en una sola fila (Siameses).")
-            
-            telefono = parsed_data["telefono_norm"]
-            if not telefono:
-                row_status = "ERROR"
-                row_errors.append("Falta teléfono principal (Obligatorio).")
-            
-            nombre_raw = parsed_data["nombre_original"]
-            nombre_norm = normalizar_texto(nombre_raw)
-            if not nombre_norm:
-                row_status = "ERROR"
-                row_errors.append("Falta campo nombre_completo (Obligatorio).")
-
-            especialidad = str(lead_data.get('especialidad', '')).strip()
-            if not especialidad:
-                row_status = "ERROR"
-                row_errors.append("Falta campo especialidad (Obligatorio).")
-
-            ciudad_excel = str(lead_data.get('ubicacion', '')).strip()
-            ciudad_norm = normalizar_texto(ciudad_excel)
-            ubicacion_obj = None
-            
-            if not ciudad_norm:
-                row_status = "ERROR"
-                row_errors.append("Falta campo ubicacion (Obligatorio).")
-            else:
-                ubicacion_obj = mapa_ciudades.get(ciudad_norm)
-                if not ubicacion_obj:
-                    row_status = "ERROR"
-                    row_errors.append(f"Ciudad no reconocida en catálogo: '{ciudad_excel}'.")
-
-            # 2. Validaciones MDM (Duplicidad y Colisiones)
-            lead_existente = None
-            if telefono:
-                lead_existente = CoreLead.objects.filter(phone_primary=telefono[:15]).first()
-                if lead_existente:
-                    if lead_existente.nombre.lower().replace('dr.', '').replace('dr ', '').replace('dra.', '').replace('dra ', '').strip() != nombre_norm:
-                        row_status = "WARNING" if row_status == "OK" else row_status
-                        row_errors.append(f"El teléfono le pertenece a '{lead_existente.nombre}'. Se insertará como Clínica/Persona adjunta.")
-                    else:
-                        if lead_existente.estatus == 'CLIENTE':
-                            row_status = "ERROR"
-                            row_errors.append("Este prospecto YA existe y es CLIENTE activo.")
-                        elif lead_existente.estatus == 'NO_CIERRE' and localtime(now()) - lead_existente.updated_at > timedelta(days=365):
-                            row_status = "WARNING" if row_status == "OK" else row_status
-                            row_errors.append("Prospecto inactivo por >1 año. Será reactivado y robado a tu cartera.")
-                        else:
-                            row_status = "ERROR"
-                            row_errors.append(f"Duplicado exacto. Ya le pertenece al vendedor '{lead_existente.owner.username}'.")
-
-            # Si es simulación, guardamos el resultado visual y continuamos
-            if action == "simulate":
-                preview_results.append({
-                    "id": idx,
-                    "raw": lead_data,
-                    "parsed": parsed_data,
-                    "status": row_status,
-                    "errors": row_errors
-                })
-                continue
-            
-            # -------------------------------------------------------------------------
-            # COMMIT: Inserción Real DB (Solo si no hay ERROR)
-            # -------------------------------------------------------------------------
-            if row_status == "ERROR":
-                continue 
-                
-            val_direccion = str(lead_data.get('direccion_completa', '')).strip()
-            val_celular = str(lead_data.get('celular', '')).strip()
-            val_email = str(lead_data.get('email', '')).strip()
-            producto_interes = str(lead_data.get('producto', '')).strip()
-            notas_variadas_val = str(lead_data.get('notas', '')).strip()
-
-            notas_json = {"notas": [], "columnas_excel_historicas": {}}
-            if notas_variadas_val:
-                notas_json["notas"].append({
-                    "tipo": "contacto", 
-                    "contenido": notas_variadas_val, 
-                    "fecha": localtime(now()).strftime("%Y-%m-%d %H:%M")
-                })
-
-            esp_obj, prod_obj = obtener_catalogos_limpios(especialidad, producto_interes)
-
-            if parsed_data["tipo_entidad"] == "CORPORATIVO":
-                Clinica.objects.get_or_create(
-                    telefono_master=telefono,
-                    defaults={"nombre": parsed_data["nombre_clinica"]}
-                )
-                
-            if not lead_existente or (lead_existente and lead_existente.nombre.lower().replace('dr.', '').replace('dr ', '').replace('dra.', '').replace('dra ', '').strip() != nombre_norm):
-                CoreLead.objects.create(
-                    owner=request.user,
-                    ubicacion_id=ubicacion_obj.id,
-                    estatus='PROSPECTO',
-                    phone_primary=telefono[:15], celular=val_celular[:15], email=val_email,
-                    direccion_completa=val_direccion[:255], nombre=nombre_raw[:100],
-                    titulo_cortesia_id=parsed_data.get("titulo_id"), nombre_pila=parsed_data.get("nombre_pila"),
-                    apellido_paterno=parsed_data.get("apellido_paterno"), apellido_materno=parsed_data.get("apellido_materno"),
-                    especialidad_cat=esp_obj, producto_cat=prod_obj, notas_variadas=notas_json,
-                )
-                inserted_count += 1
-            else:
-                if lead_existente.estatus == 'NO_CIERRE' and localtime(now()) - lead_existente.updated_at > timedelta(days=365):
-                    lead_existente.estatus = 'PROSPECTO'
-                    lead_existente.owner = request.user
-                    lead_existente.notas_variadas.setdefault("notas", []).append({
-                        "tipo": "sistema", 
-                        "contenido": f"Reactivado mediante Staging Vendedor {localtime(now()).strftime('%Y-%m-%d')}",
-                        "fecha": localtime(now()).strftime('%Y-%m-%d %H:%M')
-                    })
-                    lead_existente.save(update_fields=['estatus', 'owner', 'notas_variadas', 'updated_at'])
-                    inserted_count += 1
-
-        if action == "simulate":
-            return JsonResponse({'status': 'success', 'preview': preview_results, 'total': len(preview_results)})
-        else:
-            return JsonResponse({'status': 'success', 'inserted': inserted_count})
+        return JsonResponse({'status': 'success', 'inserted': inserted_count})
 
     except json.JSONDecodeError:
         return JsonResponse({"error": "JSON Inválido enviado en la petición."}, status=400)
@@ -1622,3 +1509,139 @@ def api_marcar_hito_postventa(request, lead_id):
         return JsonResponse({"error": "JSON inválido."}, status=400)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+
+
+class AgenteStagingListView(LoginRequiredMixin, ListView):
+    model = LeadStaging
+    template_name = 'leads/agente_staging_list.html'
+    context_object_name = 'leads_staging'
+    paginate_by = 50
+
+    def get_queryset(self):
+        return LeadStaging.objects.filter(owner=self.request.user, estatus='PENDIENTE', origen='AGENTE').order_by('created_at')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total_pendientes'] = LeadStaging.objects.filter(owner=self.request.user, estatus='PENDIENTE', origen='AGENTE').count()
+        return context
+
+class AgenteStagingProcesarView(LoginRequiredMixin, DetailView):
+    model = LeadStaging
+    template_name = 'leads/agente_staging_procesar.html'
+    context_object_name = 'staging_lead'
+
+    def get_queryset(self):
+        return LeadStaging.objects.filter(owner=self.request.user, estatus='PENDIENTE', origen='AGENTE')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).order_by('nombre')
+        context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).order_by('ciudad')
+        context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
+        context['productos_list'] = CatProducto.objects.filter(is_active=True, familia='EQUIPO').order_by('nombre')
+        context['restantes'] = LeadStaging.objects.filter(owner=self.request.user, estatus='PENDIENTE', origen='AGENTE').count()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        staging_lead = self.get_object()
+        action = request.POST.get('action')
+
+        if action == 'descartar':
+            staging_lead.estatus = 'DESCARTADO'
+            staging_lead.save()
+            messages.info(request, "Registro descartado y eliminado de tu Quirófano.")
+            return redirect('agente_staging_list')
+
+        elif action == 'guardar':
+            tipo_entidad = request.POST.get('tipo_entidad', 'INDIVIDUAL')
+            especialidad_id = request.POST.get('especialidad_id')
+            ubicacion_id = request.POST.get('ubicacion_id')
+            producto_id = request.POST.get('producto_id')
+
+            telefono = str(request.POST.get('telefono', '')).strip()
+            celular = str(request.POST.get('celular', '')).strip()
+            email = str(request.POST.get('email', '')).strip()
+            direccion = str(request.POST.get('direccion_completa', '')).strip()
+
+            titulo_id = request.POST.get('titulo_cortesia')
+            nombre_pila = str(request.POST.get('nombre_pila', '')).strip()
+            apellido_paterno = str(request.POST.get('apellido_paterno', '')).strip()
+            apellido_materno = str(request.POST.get('apellido_materno', '')).strip()
+
+            notas_originales = str(request.POST.get('notas', staging_lead.datos_crudos.get('notas', ''))).strip()
+
+            titulo_obj = CatTitulo.objects.filter(id=titulo_id).first() if titulo_id else None
+            especialidad_obj = CatEspecialidad.objects.filter(id=especialidad_id).first()
+            ubicacion_obj = CatUbicacion.objects.filter(id=ubicacion_id).first()
+            producto_obj = CatProducto.objects.filter(id=producto_id).first() if producto_id else None
+
+            if not all([especialidad_obj, ubicacion_obj]):
+                messages.error(request, "Especialidad y Ubicación son campos obligatorios.")
+                return redirect('agente_staging_procesar', pk=staging_lead.pk)
+
+            datos_dict = {
+                'tipo_entidad': tipo_entidad, 'nombre_pila': nombre_pila,
+                'apellido_paterno': apellido_paterno, 'apellido_materno': apellido_materno,
+                'telefono': telefono, 'especialidad_obj': especialidad_obj, 'ubicacion_obj': ubicacion_obj
+            }
+
+            try:
+                from leads.services.mdm_service import resolver_identidad
+                instancia_mdm, telefono_alternativo = resolver_identidad(datos_dict)
+            except ValueError as e:
+                messages.error(request, str(e))
+                return redirect('agente_staging_procesar', pk=staging_lead.pk)
+
+            texto_nota = f"[QUIRÓFANO] Validado por Vendedor. Notas: {notas_originales}"
+            if telefono_alternativo:
+                texto_nota += f" | MDM: Inyección con teléfono alternativo: {telefono_alternativo}"
+
+            notas_historicas = {
+                "notas": [{"tipo": "sistema", "contenido": texto_nota, "fecha": localtime(now()).isoformat(), "usuario": request.user.id}],
+                "columnas_excel_crudas": staging_lead.datos_crudos
+            }
+
+            try:
+                if tipo_entidad == 'CORPORATIVO':
+                    from .models import Clinica
+                    CoreLead.objects.create(
+                        owner=request.user, ubicacion=ubicacion_obj, estatus='PROSPECTO',  
+                        phone_primary=telefono if not telefono_alternativo else instancia_mdm.telefono_master,
+                        celular=celular[:15], email=email, direccion_completa=direccion[:255],
+                        nombre_pila=nombre_pila[:100], clinica=instancia_mdm,
+                        especialidad_cat=especialidad_obj, producto_cat=producto_obj,
+                        notas_variadas=notas_historicas,
+                    )
+                    messages.success(request, f"¡Agregado exitosamente a Corporativo '{instancia_mdm.nombre_clinica if hasattr(instancia_mdm, 'nombre_clinica') else instancia_mdm.nombre}'!")
+                else: 
+                    if instancia_mdm is not None:
+                        if not isinstance(instancia_mdm.notas_variadas, dict):
+                            instancia_mdm.notas_variadas = {"notas": [], "columnas_excel_crudas": {}}
+                        if "notas" not in instancia_mdm.notas_variadas:
+                            instancia_mdm.notas_variadas["notas"] = []
+                        
+                        instancia_mdm.notas_variadas["notas"].append({
+                            "tipo": "sistema", "contenido": f"MDM Quirófano Agente: Fusión confirmada. Notas: {notas_originales}",
+                            "fecha": localtime(now()).isoformat(), "usuario": request.user.id
+                        })
+                        instancia_mdm.save()
+                        messages.success(request, f"Prospecto fusionado con el registro MDM existente.")
+                    else:
+                        CoreLead.objects.create(
+                            owner=request.user, ubicacion=ubicacion_obj, estatus='PROSPECTO',
+                            phone_primary=telefono if not telefono_alternativo else telefono_alternativo,
+                            celular=celular[:15], email=email, direccion_completa=direccion[:255],
+                            titulo_cortesia=titulo_obj, nombre_pila=nombre_pila[:100],
+                            apellido_paterno=apellido_paterno[:100], apellido_materno=apellido_materno[:100],
+                            especialidad_cat=especialidad_obj, producto_cat=producto_obj,
+                            notas_variadas=notas_historicas,
+                        )
+                        messages.success(request, f"Lead Inyectado Formalmente de Quirófano a tu Pipeline Transaccional.")
+
+                staging_lead.estatus = 'RESUELTO'
+                staging_lead.save()
+                return redirect('agente_staging_list')
+
+            except Exception as e:
+                messages.error(request, f"Error de DB: {str(e)}")
+                return redirect('agente_staging_procesar', pk=staging_lead.pk)

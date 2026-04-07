@@ -37,7 +37,7 @@
 <section class="module active" id="view-module">
     <div class="module-header d-flex justify-content-between align-items-center">
         <div>
-            <h2 class="fw-bold text-success">📤 Ingesta Masiva de Prospectos (Quirófano)</h2>
+            <h2 class="fw-bold text-success">📤 Ingesta Masiva de Prospectos</h2>
             <p>Sube tu archivo Excel (.xlsx) o CSV curado para validarlos y asignarlos a tu cartera.</p>
         </div>
     </div>
@@ -59,7 +59,7 @@
                 </ul>
                 <p class="text-info fw-bold mb-2">ℹ️ Columnas Opcionales:</p>
                 <ul class="mb-0 list-unstyled ps-2 text-body-secondary small">
-                    <li><code class="text-primary">titulo</code> (Dr., Dra., MVZ, etc.), <code class="text-primary">celular</code>, <code class="text-primary">email</code>, <code class="text-primary">direccion_completa</code>, <code class="text-primary">producto</code>, <code class="text-primary">notas</code>.</li>
+                    <li><code class="text-primary">titulo</code> (Dr., Dra., MVZ, etc.), <code class="text-primary">celular</code>, <code class="text-primary">email</code>, <code class="text-primary">direcion_completa</code>, <code class="text-primary">producto</code>, <code class="text-primary">notas</code>.</li>
                 </ul>
             </div>
             
@@ -69,44 +69,6 @@
         </div>
     </div>
 
-    <!-- SECCIÓN DE STAGING INTERACTIVO -->
-    <div class="card mt-4" id="staging-section" style="display: none;">
-        <div class="card-header border-bottom d-flex justify-content-between align-items-center bg-body">
-            <h5 class="fw-bold m-0 text-body">🩺 Quirófano de Revisión</h5>
-            <div>
-                <span class="badge bg-danger ms-2" id="badge-errores">0 Errores</span>
-                <span class="badge bg-warning text-dark ms-2" id="badge-advertencias">0 Alertas</span>
-                <span class="badge bg-success ms-2" id="badge-ok">0 OK</span>
-            </div>
-        </div>
-        <div class="card-body">
-            <p class="text-body-secondary small mb-3">
-                Corrige los campos en <strong class="text-danger">rojo</strong> directamente en la tabla. 
-                Si necesitas crear un nuevo catálogo (Ciudad/Especialidad), solo tecléalo. No se puede inyectar hasta corregir todos los errores. Las advertencias amarillas (colisiones MDM) se permiten.
-            </p>
-            <div class="table-responsive">
-                <table id="staging-table" class="table table-hover table-ers align-middle" width="100%">
-                    <thead>
-                        <tr>
-                            <th>Estatus</th>
-                            <th>Diagnóstico MDM</th>
-                            <th>Nombre Completo</th>
-                            <th>Teléfono</th>
-                            <th>Especialidad</th>
-                            <th>Ubicación (Ciudad)</th>
-                            <th>Descartar</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Rows generadas via JS -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <div class="card-footer bg-body border-top d-flex justify-content-between align-items-center">
-            <button class="btn btn-outline-danger btn-sm" onclick="cancelarIngesta()">✖ Cancelar Todo</button>
-            <button id="btn-commit" class="btn btn-success" disabled onclick="confirmarInyeccion()">✅ Confirmar Inyección Curada</button>
-        </div>
     </div>
 </section>
 
@@ -161,167 +123,43 @@
 
                 rawData = jsonFinal;
 
-                // 1. Simulación (Dry-Run Phase) enviando action="simulate"
+                // Enviar TODO al backend para que lo meta a LeadStaging
                 fetch("{% url 'api_ingesta_masiva' %}", {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-                    body: JSON.stringify({ action: "simulate", leads: rawData })
+                    // IMPORTANTE: Enviamos como commit todas las filas extraídas del Excel
+                    body: JSON.stringify({ action: "commit", leads: jsonFinal })
                 })
                 .then(response => response.json())
                 .then(result => {
                     if (result.status === 'success') {
-                        previewData = result.preview;
-                        renderStagingTable();
+                        Swal.fire({
+                            title: '¡Excel Transferido!',
+                            text: `Se pasaron ${result.inserted} registros a tu Quirófano para que los valides.`,
+                            icon: 'success',
+                            confirmButtonText: 'Ir a mi Quirófano',
+                            confirmButtonColor: '#28a745',
+                            allowOutsideClick: false
+                        }).then(() => {
+                            window.location.href = "{% url 'agente_staging_list' %}"; // Crearemos esta ruta
+                        });
                     } else {
-                        Swal.fire('Error MDM', result.error, 'error');
+                        Swal.fire('Error del Servidor', result.error, 'error');
                         reiniciarBoton(btn);
                     }
                 })
                 .catch(error => {
-                    Swal.fire('Red Error', 'No hay conexión con la Aduana Central', 'error');
+                    Swal.fire('Error de Conexión', 'Fallo al procesar el archivo o ruta no definida.', 'error');
                     reiniciarBoton(btn);
                 });
 
             } catch (err) {
-                Swal.fire('Formato Error', 'El excel está corrupto.', 'error');
+                Swal.fire('Formato Error', 'El excel está corrupto o no se pudo leer.', 'error');
                 reiniciarBoton(btn);
             }
         };
 
         reader.readAsArrayBuffer(input.files[0]);
-    }
-
-    function renderStagingTable() {
-        $('#upload-section').hide();
-        $('#staging-section').fadeIn();
-
-        if(table) table.destroy();
-        
-        const tbody = document.querySelector('#staging-table tbody');
-        tbody.innerHTML = '';
-
-        let errCount = 0; let warnCount = 0; let okCount = 0;
-
-        previewData.forEach((row) => {
-            const tr = document.createElement('tr');
-            
-            // Asignar fondo por semáforo
-            if (row.status === 'ERROR') { tr.classList.add('row-error'); errCount++; }
-            else if (row.status === 'WARNING') { tr.classList.add('row-warning'); warnCount++; }
-            else { tr.classList.add('row-ok'); okCount++; }
-            
-            // Generar diagnosticos HTML
-            let errorHtml = '<ul class="error-list">';
-            row.errors.forEach(e => { errorHtml += `<li>${e}</li>`; });
-            errorHtml += '</ul>';
-
-            let warnClass = row.status === 'WARNING' ? 'warning-list' : 'error-list';
-
-            // HTML Interno
-            tr.innerHTML = `
-                <td class="fw-bold">${row.status === 'ERROR' ? '❌ ERROR' : (row.status === 'WARNING' ? '⚠️ ALERTA' : '✅ OK')}</td>
-                <td><ul class="${warnClass}">${row.errors.map(e=>`<li>${e}</li>`).join('')}</ul></td>
-                <td>
-                    <input type="text" class="cell-input" data-idx="${row.id}" data-col="nombre_completo" value="${row.raw.nombre || row.raw.nombre_completo || row.raw.nombre_original || ''}" onchange="actualizarDato(this)">
-                </td>
-                <td>
-                    <input type="text" class="cell-input" data-idx="${row.id}" data-col="telefono" value="${row.raw.telefono || ''}" onchange="actualizarDato(this)">
-                </td>
-                <td>
-                    <input type="text" list="dl-especialidades" class="cell-input" data-idx="${row.id}" data-col="especialidad" value="${row.raw.especialidad || ''}" onchange="actualizarDato(this)">
-                </td>
-                <td>
-                    <input type="text" list="dl-ubicaciones" class="cell-input" data-idx="${row.id}" data-col="ubicacion" value="${row.raw.ubicacion || ''}" onchange="actualizarDato(this)">
-                </td>
-                <td class="text-center">
-                    <button class="btn btn-sm btn-outline-secondary" onclick="descartarFila(${row.id}, this)" title="Ignorar esta fila definitivamente">🗑</button>
-                </td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-        // Actualizar Badges
-        document.getElementById('badge-errores').innerText = `${errCount} Errores`;
-        document.getElementById('badge-advertencias').innerText = `${warnCount} Alertas`;
-        document.getElementById('badge-ok').innerText = `${okCount} OK`;
-
-        // Bloqueo Inteligente de Commit
-        document.getElementById('btn-commit').disabled = (errCount > 0);
-
-        table = $('#staging-table').DataTable({
-            language: { url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json" },
-            pageLength: 25,
-            responsive: true,
-            ordering: false // Desactivamos ordenamiento para que los inputs no salten de vista
-        });
-    }
-
-    function actualizarDato(inputElement) {
-        const idx = parseInt(inputElement.getAttribute('data-idx'));
-        const col = inputElement.getAttribute('data-col');
-        
-        // Encontrar la fila fuente en rawData y actualizar
-        if(rawData[idx] !== undefined) {
-             rawData[idx][col] = inputElement.value;
-        }
-
-        // Para evitar problemas de sincronicidad compleja en JS, cuando un vendedor
-        // arregla celdas rojas, puede apretar un boton de "Re-validar" o 
-        // disparamos automáticamente la simulación de nuevo para asegurar que su corrección es 100% válida.
-        reSimularCarga(); 
-    }
-
-    function descartarFila(idx, btnRow) {
-        // Marcamos la fila en nulo para el commit
-        rawData[idx] = null;
-        reSimularCarga();
-    }
-
-    function reSimularCarga() {
-        const validUncurred = rawData.filter(d => d !== null);
-        
-        fetch("{% url 'api_ingesta_masiva' %}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ action: "simulate", leads: validUncurred })
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.status === 'success') {
-                previewData = result.preview;
-                
-                // Actualizamos rawData filtrado
-                rawData = validUncurred;
-                
-                renderStagingTable();
-            }
-        });
-    }
-
-    function confirmarInyeccion() {
-        const cleanData = rawData.filter(d => d !== null);
-        const btn = document.getElementById('btn-commit');
-        btn.disabled = true;
-        btn.innerText = "💉 Inyectando...";
-
-        fetch("{% url 'api_ingesta_masiva' %}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ action: "commit", leads: cleanData })
-        })
-        .then(res => res.json())
-        .then(result => {
-            if (result.status === 'success') {
-                Swal.fire('¡Ingesta Exitosa!', `Se han inyectado/actualizado ${result.inserted} registros en el CRM.`, 'success')
-                .then(() => {
-                    window.location.href = "{% url 'dashboard_agente' %}";
-                });
-            } else {
-                Swal.fire('Error al inyectar', result.error, 'error');
-                btn.disabled = false;
-                btn.innerText = "✅ Confirmar Inyección Curada";
-            }
-        });
     }
 
     function cancelarIngesta() {
