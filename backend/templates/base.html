@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.3">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.4">
     <link rel="stylesheet" href="{% static 'css/crm-mobile.css' %}?v=1.1">
     {% block extra_css %}{% endblock %}
 
@@ -47,6 +47,7 @@
                 <li class="menu-title text-uppercase text-muted fw-bold mb-2 mt-3 px-3">Operación Ventas</li>
                 <li><a class="leftmenu" href="{% url 'dashboard_agente' %}">🎯 Mi Dashboard</a></li>
                 <li><a class="leftmenu" href="{% url 'ingesta_masiva' %}">📥 Carga de Prospectos</a></li>
+                <li><a class="leftmenu" href="{% url 'agente_staging_list' %}">🏥 Mi Quirófano</a></li>
             {% endif %}
         </ul>
     </aside>

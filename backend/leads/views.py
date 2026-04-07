@@ -353,9 +353,9 @@ class ProcesarStagingView(LoginRequiredMixin, DetailView):
 
             # --- OBTENER OBJETOS DE CATÁLOGOS ---
             titulo_obj = CatTitulo.objects.filter(id=titulo_id).first() if titulo_id else None
-            especialidad_obj = CatEspecialidad.objects.filter(id=especialidad_id).first()
-            ubicacion_obj = CatUbicacion.objects.filter(id=ubicacion_id).first()
-            producto_obj = CatProducto.objects.filter(id=producto_id).first()
+            especialidad_obj = CatEspecialidad.objects.filter(id=especialidad_id).first() if especialidad_id else None
+            ubicacion_obj = CatUbicacion.objects.filter(id=ubicacion_id).first() if ubicacion_id else None
+            producto_obj = CatProducto.objects.filter(id=producto_id).first() if producto_id else None
 
             if not all([especialidad_obj, ubicacion_obj, producto_obj]):
                 messages.error(request, "Especialidad, Ubicación y Producto de Interés son campos obligatorios.")
@@ -527,9 +527,9 @@ class IngestaHistoricaExpressView(LoginRequiredMixin, View):
 
         # Validación de campos y catálogos obligatorios
         titulo_obj = CatTitulo.objects.filter(id=titulo_id).first() if titulo_id else None
-        especialidad_obj = CatEspecialidad.objects.filter(id=especialidad_id).first()
-        ubicacion_obj = CatUbicacion.objects.filter(id=ubicacion_id).first()
-        producto_obj = CatProducto.objects.filter(id=producto_id).first()
+        especialidad_obj = CatEspecialidad.objects.filter(id=especialidad_id).first() if especialidad_id else None
+        ubicacion_obj = CatUbicacion.objects.filter(id=ubicacion_id).first() if ubicacion_id else None
+        producto_obj = CatProducto.objects.filter(id=producto_id).first() if producto_id else None
 
         if not all([especialidad_obj, ubicacion_obj, producto_obj]):
             messages.error(request, "Especialidad, Ubicación y Producto de Interés son campos obligatorios.")
@@ -1571,8 +1571,8 @@ class AgenteStagingProcesarView(LoginRequiredMixin, DetailView):
             notas_originales = str(request.POST.get('notas', staging_lead.datos_crudos.get('notas', ''))).strip()
 
             titulo_obj = CatTitulo.objects.filter(id=titulo_id).first() if titulo_id else None
-            especialidad_obj = CatEspecialidad.objects.filter(id=especialidad_id).first()
-            ubicacion_obj = CatUbicacion.objects.filter(id=ubicacion_id).first()
+            especialidad_obj = CatEspecialidad.objects.filter(id=especialidad_id).first() if especialidad_id else None
+            ubicacion_obj = CatUbicacion.objects.filter(id=ubicacion_id).first() if ubicacion_id else None
             producto_obj = CatProducto.objects.filter(id=producto_id).first() if producto_id else None
 
             if not all([especialidad_obj, ubicacion_obj]):
