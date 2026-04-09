@@ -12,7 +12,7 @@
 <section class="container-fluid px-2 px-md-4 py-3">
     
     <!-- Encabezado -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-2">
         <div>
             <h2 class="fw-bold text-body mb-0">🎯Dashboard Vendedor</h2>
             <p class="text-muted small">Panel operativo de ventas</p>
@@ -23,9 +23,9 @@
     </div>
 
     <!-- 1. Tarjetas de Estadísticas (Stats Nativos) -->
-    <div class="row g-3 mb-4">
+    <div class="row g-4 mb-0">
         <div class="col-md-3">
-            <div class="card card-ers h-100 border-start border-primary border-4 shadow-sm">
+            <div class="card card-ers border-start border-primary border-4 shadow-sm">
                 <div class="card-body d-flex align-items-center gap-3">
                     <div class="fs-1">💼</div>
                     <div>
@@ -35,54 +35,57 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- 2. Filtros y Búsqueda -->
-    <div class="filters mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-        <div class="d-flex flex-wrap gap-2">
-            <a href="?filtro=activos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-               class="btn btn-sm {% if filtro_actual == 'activos' or not filtro_actual %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-               📋 Todos
-            </a>
-            <a href="?filtro=frescos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-               class="btn btn-sm {% if filtro_actual == 'frescos' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-               🔵 Nuevos
-            </a>
-            <a href="?filtro=hoy{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-               class="btn btn-sm {% if filtro_actual == 'hoy' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-               🟡 Para Hoy
-            </a>
-            <a href="?filtro=urgentes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-               class="btn btn-sm {% if filtro_actual == 'urgentes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-               🔴 Urgentes
-            </a>
-            <a href="?filtro=campanas{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-               class="btn btn-sm {% if filtro_actual == 'campanas' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-               🎟️ Campañas
-            </a>
-            <a href="?filtro=clientes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-               class="btn btn-sm {% if filtro_actual == 'clientes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-               🏆 Mis Clientes
-            </a>
-        </div>
-
-        <form method="GET" class="d-flex w-100 min-w-300px mt-2 mt-md-0" style="max-width: 400px;">
-            {% if filtro_actual %}
-                <input type="hidden" name="filtro" value="{{ filtro_actual }}">
-            {% endif %}
-            <div class="input-group shadow-sm">
-                <span class="input-group-text bg-body border-secondary border-end-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" name="q" class="form-control bg-body border-secondary border-start-0 ps-0 text-body shadow-none" 
-                       placeholder="Buscar nombre, tel, correo..." value="{{ busqueda_actual|default:'' }}">
-                <button type="submit" class="btn btn-primary fw-bold px-3">Buscar</button>
-                {% if busqueda_actual %}
-                    <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}" class="btn btn-outline-secondary border-secondary bg-body d-flex align-items-center justify-content-center" title="Limpiar búsqueda">
-                        <i class="bi bi-x-lg"></i>
+        <div class="col-md-9">
+            <!-- 2. Filtros y Búsqueda -->
+            <div class="filters mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="?filtro=activos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                    class="btn btn-sm {% if filtro_actual == 'activos' or not filtro_actual %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                    📋 Todos
                     </a>
-                {% endif %}
+                    <a href="?filtro=frescos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                        class="btn btn-sm {% if filtro_actual == 'frescos' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                        🔵 Nuevos
+                    </a>
+                    <a href="?filtro=hoy{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                        class="btn btn-sm {% if filtro_actual == 'hoy' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                        🟡 Para Hoy
+                    </a>
+                    <a href="?filtro=urgentes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                        class="btn btn-sm {% if filtro_actual == 'urgentes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                        🔴 Urgentes
+                    </a>
+                    <a href="?filtro=campanas{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                        class="btn btn-sm {% if filtro_actual == 'campanas' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                        🎟️ Campañas
+                    </a>
+                    <a href="?filtro=clientes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                        class="btn btn-sm {% if filtro_actual == 'clientes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                        🏆 Mis Clientes
+                    </a>
+                </div>
+
+                <!--<form method="GET" class="d-flex w-100 min-w-300px mt-2 mt-md-0" style="max-width: 400px;">
+                    {% if filtro_actual %}
+                        <input type="hidden" name="filtro" value="{{ filtro_actual }}">
+                    {% endif %}
+                    <div class="input-group shadow-sm">
+                        <span class="input-group-text bg-body border-secondary border-end-0"><i class="bi bi-search text-muted"></i></span>
+                        <input type="text" name="q" class="form-control bg-body border-secondary border-start-0 ps-0 text-body shadow-none" 
+                        placeholder="Buscar nombre, tel, correo..." value="{{ busqueda_actual|default:'' }}">
+                        <button type="submit" class="btn btn-primary fw-bold px-3">Buscar</button>
+                        {% if busqueda_actual %}
+                            <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}" class="btn btn-outline-secondary border-secondary bg-body d-flex align-items-center justify-content-center" title="Limpiar búsqueda">
+                                <i class="bi bi-x-lg"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </form> -->
             </div>
-        </form>
+        </div>
     </div>
+
+    
 
     <!-- 3. La Tabla de Leads en formato nativo -->
     <div class="card card-ers shadow-sm mb-4 border-0">
