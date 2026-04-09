@@ -7,7 +7,7 @@
     <div class="modal-box modal-box--medium">
         {# ===== HEADER ===== #}
         <div class="card-header d-flex justify-content-between align-items-center">
-            <h3 class="m-0 text-light fs-5">🎯 Registrar Oportunidad 360°</h3>
+            <h3 class="m-0  fs-5">🎯 Registrar Oportunidad 360°</h3>
             <span onclick="cerrarModal('modal-venta-extra')"
                   class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
         </div>
@@ -22,7 +22,7 @@
                         Tipo de Oportunidad *
                     </label>
                     <select id="select-tipo-extra"
-                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            class="form-select form-select-sm   "
                             onchange="filtrarProductos360()" required>
                         <option value="">-- Selecciona el Tipo --</option>
                         <option value="ACCESORIO">💰 Venta Adicional (Cross-Sell)</option>
@@ -39,7 +39,7 @@
                         Producto/Servicio *
                     </label>
                     <select id="extra-producto"
-                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            class="form-select form-select-sm   "
                             disabled required>
                         <option value="">-- Selecciona primero el Tipo --</option>
                         {% for prod in productos_list %}
@@ -60,7 +60,7 @@
                 <div class="col-12">
                     <label class="form-label text-secondary mb-2 d-block small">Estatus *</label>
                     <select id="extra-estatus"
-                            class="form-select form-select-sm bg-dark text-light border-secondary"
+                            class="form-select form-select-sm   "
                             required>
                         <option value="PENDIENTE">🟡 Pendiente (Por contactar)</option>
                         <option value="EN_GESTION">🔵 En Gestión (Contactado / Negociando)</option>
@@ -74,7 +74,7 @@
             <div class="row mb-2">
                 <div class="col-12">
                     <label class="form-label text-secondary mb-2 d-block small">Respuestas Rápidas</label>
-                    <select class="form-select form-select-sm bg-dark text-light border-secondary"
+                    <select class="form-select form-select-sm   "
                             onchange="insertarRespuestaRapida(this, 'extra-notas')">
                         <option value="">-- Selecciona --</option>
                         <option value="Manda a buzón">Manda a buzón</option>
@@ -93,7 +93,7 @@
                 <div class="col-12">
                     <label class="form-label text-secondary mb-2 d-block small">Notas (Obligatorias) *</label>
                     <textarea id="extra-notas"
-                              class="form-control form-control-sm bg-dark text-light border-secondary"
+                              class="form-control form-control-sm   "
                               rows="3"
                               placeholder="Escribe las migas de pan para el seguimiento..."
                               required></textarea>

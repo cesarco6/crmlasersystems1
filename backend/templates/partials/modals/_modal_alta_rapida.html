@@ -9,7 +9,7 @@
         <div class="card-header border-bottom mb-3 pb-2 d-flex justify-content-between align-items-center">
             <h3 class="m-0">👤 Alta Rápida</h3>
             <span onclick="document.getElementById('modal-alta').style.display='none'"
-                  class="modal-close-btn text-light fw-bold h4 m-0">&times;</span>
+                  class="modal-close-btn  fw-bold h4 m-0">&times;</span>
         </div>
 
         {# ===== BODY ===== #}
@@ -19,7 +19,7 @@
                 {# --- Fila 1: Toggle Tipo de Entidad --- #}
                 <div class="row mb-3">
                     <div class="col-12">
-                        <label class="form-label fw-bold text-light d-block">
+                        <label class="form-label fw-bold  d-block">
                             Tipo de Entidad (Enlazado MDM)
                         </label>
                         <div class="btn-group w-100" role="group">
@@ -46,9 +46,9 @@
                 {# Mobile-First: col-12 (100% en móvil), col-md-* en desktop #}
                 <div class="row mb-3">
                     <div class="col-12 col-md-2 mb-2 mb-md-0" id="col-alta-titulo">
-                        <label class="form-label fw-bold text-light">Título</label>
+                        <label class="form-label fw-bold ">Título</label>
                         <select id="alta-titulo"
-                                class="form-select form-select-sm bg-dark text-light border-secondary">
+                                class="form-select form-select-sm   ">
                             <option value="">--</option>
                             {% for titulo in titulos_list %}
                                 <option value="{{ titulo.id }}">{{ titulo.abreviatura }}</option>
@@ -56,23 +56,23 @@
                         </select>
                     </div>
                     <div class="col-12 col-md-4 mb-2 mb-md-0" id="col-alta-nombre-pila">
-                        <label class="form-label fw-bold text-light">Nombre(s) *</label>
+                        <label class="form-label fw-bold ">Nombre(s) *</label>
                         <input type="text" id="alta-nombre-pila" required
                                minlength="2" maxlength="100"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                placeholder="Ej. Juan">
                     </div>
                     <div class="col-12 col-md-3 mb-2 mb-md-0" id="col-alta-paterno">
-                        <label class="form-label fw-bold text-light">A. Paterno *</label>
+                        <label class="form-label fw-bold ">A. Paterno *</label>
                         <input type="text" id="alta-apellido-paterno" required
                                minlength="2" maxlength="100"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                placeholder="Ej. Pérez">
                     </div>
                     <div class="col-12 col-md-3 mb-2 mb-md-0" id="col-alta-materno">
-                        <label class="form-label fw-bold text-light">A. Materno</label>
+                        <label class="form-label fw-bold ">A. Materno</label>
                         <input type="text" id="alta-apellido-materno" maxlength="100"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                placeholder="Ej. Gómez">
                     </div>
                 </div>
@@ -80,22 +80,22 @@
                 {# --- Fila 3: Contacto --- #}
                 <div class="row mb-3">
                     <div class="col-12 col-md-4 mb-2 mb-md-0">
-                        <label class="form-label fw-bold text-light">Teléfono *</label>
+                        <label class="form-label fw-bold ">Teléfono *</label>
                         <input type="tel" id="alta-telefono" required
                                pattern="[0-9]{10,15}"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                placeholder="Ej. 4421234567">
                     </div>
                     <div class="col-12 col-md-4 mb-2 mb-md-0">
-                        <label class="form-label fw-bold text-light">Celular WA</label>
+                        <label class="form-label fw-bold ">Celular WA</label>
                         <input type="tel" id="alta-celular"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                placeholder="Ej. 4421112233">
                     </div>
                     <div class="col-12 col-md-4 mb-2 mb-md-0">
-                        <label class="form-label fw-bold text-light">Correo E</label>
+                        <label class="form-label fw-bold ">Correo E</label>
                         <input type="email" id="alta-email"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                placeholder="doctor@clinica.com">
                     </div>
                 </div>
@@ -103,9 +103,9 @@
                 {# --- Fila 4: Catálogos --- #}
                 <div class="row mb-3">
                     <div class="col-12 col-md-6 mb-2 mb-md-0">
-                        <label class="form-label fw-bold text-light">Especialidad *</label>
+                        <label class="form-label fw-bold ">Especialidad *</label>
                         <select id="alta-especialidad"
-                                class="form-select form-select-sm bg-dark text-light border-secondary"
+                                class="form-select form-select-sm   "
                                 required>
                             <option value="">-- Selecciona Especialidad --</option>
                             {% for esp in especialidades_list %}
@@ -114,9 +114,9 @@
                         </select>
                     </div>
                     <div class="col-12 col-md-6 mb-2 mb-md-0">
-                        <label class="form-label fw-bold text-light">Ubicación (Ciudad) *</label>
+                        <label class="form-label fw-bold ">Ubicación (Ciudad) *</label>
                         <select id="alta-ubicacion"
-                                class="form-select form-select-sm bg-dark text-light border-secondary"
+                                class="form-select form-select-sm   "
                                 required>
                             <option value="">-- Selecciona Ciudad --</option>
                             {% for ubi in ubicaciones_list %}

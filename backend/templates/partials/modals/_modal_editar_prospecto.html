@@ -7,7 +7,7 @@
     <div class="modal-box modal-box--wide">
         {# ===== HEADER ===== #}
         <div class="card-header d-flex justify-content-between align-items-center mb-4">
-            <h3 class="m-0 text-light fs-5">✏️ E d i t a r</h3>
+            <h3 class="m-0  fs-5">✏️ E d i t a r</h3>
             <span onclick="cerrarModal('modal-editar')"
                   class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
         </div>
@@ -47,7 +47,7 @@
                     <div class="col-12 col-md-2 mb-2 mb-md-0" id="col-edit-titulo">
                         <label class="form-label text-secondary fw-bold small">Título</label>
                         {% if lead.estatus == 'PROSPECTO' %}
-                            <select id="edit-titulo" class="form-select form-select-sm bg-dark text-light border-secondary">
+                            <select id="edit-titulo" class="form-select form-select-sm   ">
                                 <option value="">-- Título --</option>
                                 {% for titulo in titulos_list %}
                                     <option value="{{ titulo.id }}"
@@ -58,7 +58,7 @@
                         </select>
                         {% else %}
                             <!-- Renderizado en texto plano para lectura limpia -->
-                            <input type="text" class="form-control form-control-sm bg-dark text-light border-secondary text-center"
+                            <input type="text" class="form-control form-control-sm    text-center"
                                 value="{{ lead.titulo_cortesia.abreviatura|default:'--' }}" readonly>
                             <!-- Input oculto para mantener el ID y que JavaScript no arroje errores -->
                             <input type="hidden" id="edit-titulo" value="{{ lead.titulo_cortesia_id|default:'' }}">
@@ -67,21 +67,21 @@
                     <div class="col-12 col-md-4 mb-2 mb-md-0" id="col-edit-nombre">
                         <label class="form-label text-secondary fw-bold small">Nombre *</label>
                         <input type="text" id="edit-nombre-pila"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                value="{{ lead.nombre_pila|default:'' }}" required
                                {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                     </div>
                     <div class="col-12 col-md-3 mb-2 mb-md-0" id="col-edit-paterno">
                         <label class="form-label text-secondary fw-bold small">A. Paterno *</label>
                         <input type="text" id="edit-paterno"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                value="{{ lead.apellido_paterno|default:'' }}" required
                                {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                     </div>
                     <div class="col-12 col-md-3 mb-2 mb-md-0" id="col-edit-materno">
                         <label class="form-label text-secondary fw-bold small">A. Materno</label>
                         <input type="text" id="edit-materno"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                value="{{ lead.apellido_materno|default:'' }}"
                                {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                     </div>
@@ -92,14 +92,14 @@
                     <div class="col-12 col-md-6 mb-2 mb-md-0">
                         <label class="form-label text-secondary fw-bold small">Teléfono*</label>
                         <input type="text" id="edit-telefono"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                value="{{ lead.phone_primary }}" required
                                {% if lead.estatus != 'PROSPECTO' %}readonly title="Inmutable tras Fase 1"{% endif %}>
                     </div>
                     <div class="col-12 col-md-6 mb-2 mb-md-0">
                         <label class="form-label text-secondary fw-bold small">Celular (WhatsApp)</label>
                         <input type="text" id="edit-celular"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                value="{{ lead.celular|default:'' }}">
                     </div>
                 </div>
@@ -109,13 +109,13 @@
                     <div class="col-12 col-md-6 mb-2 mb-md-0">
                         <label class="form-label text-secondary fw-bold small">Correo Electrónico</label>
                         <input type="email" id="edit-email"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                value="{{ lead.email|default:'' }}">
                     </div>
                     <div class="col-12 col-md-6 mb-2 mb-md-0">
                         <label class="form-label text-secondary fw-bold small">Dirección Completa</label>
                         <input type="text" id="edit-direccion"
-                               class="form-control form-control-sm bg-dark text-light border-secondary"
+                               class="form-control form-control-sm   "
                                value="{{ lead.direccion_completa|default:'' }}">
                     </div>
                 </div>
@@ -125,7 +125,7 @@
                     <div class="col-12 col-md-6 mb-2 mb-md-0">
                         <label class="form-label text-secondary fw-bold small">Especialidad</label>
                         <select id="edit-especialidad"
-                                class="form-select form-select-sm bg-dark text-light border-secondary"
+                                class="form-select form-select-sm   "
                                 {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
                             <option value="">-- Selecciona Especialidad --</option>
                             {% for esp in especialidades_list %}
@@ -139,7 +139,7 @@
                     <div class="col-12 col-md-6 mb-2 mb-md-0">
                         <label class="form-label text-secondary fw-bold small">Producto LS</label>
                         <select id="edit-producto"
-                                class="form-select form-select-sm bg-dark text-light border-secondary"
+                                class="form-select form-select-sm   "
                                 {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
                             {% for prod in productos_list %}
                                 {% if prod.familia == 'EQUIPO' %}
@@ -154,7 +154,7 @@
                 </div>
 
                 {# --- Barra de Acciones --- #}
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center bg-dark bg-opacity-50 p-3 rounded gap-3 mt-4">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center   p-3 rounded gap-3 mt-4">
                     {% if lead.estatus == 'PROSPECTO' %}
                         <button type="button"
                                 class="btn btn-outline-danger btn-sm w-100 w-md-auto"

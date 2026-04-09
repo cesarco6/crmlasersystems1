@@ -7,7 +7,7 @@
     <div class="modal-box modal-box--small">
         {# ===== HEADER ===== #}
         <div class="card-header d-flex justify-content-between align-items-center mb-4">
-            <h3 class="m-0 text-light fs-5">⭐ Calificar Prospecto</h3>
+            <h3 class="m-0  fs-5">⭐ Calificar Prospecto</h3>
             <span onclick="cerrarModal('modal-calificar')"
                   class="modal-close-btn text-secondary fs-4 btn-close-custom">&times;</span>
         </div>
@@ -18,7 +18,7 @@
                 <div class="col-12">
                     <label class="form-label text-secondary mb-2 d-block small">Nivel de interés:</label>
                     <select id="select-calificacion"
-                            class="form-select form-select-sm bg-dark text-light border-secondary">
+                            class="form-select form-select-sm   ">
                         <option value="Alta" {% if lead.calificacion == 'Alta' %}selected{% endif %}>
                             🔥 Alta (Muy interesado)
                         </option>
