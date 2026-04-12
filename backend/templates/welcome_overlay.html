@@ -1,39 +1,53 @@
+{% load static %}
 <div id="welcome-overlay" class="welcome-overlay">
-    <div class="welcome-content">
-        <div class="welcome-spinner"></div>
+    <div class="welcome-content">        
+        <img src="{% static 'images/LOGO-QUANTUM-logochico.webp' %}" alt="Logo LS" class="img-fluid welcome-logo">
         <h2 class="welcome-title">Bienvenido, {{ request.user.first_name|title|default:"Compañero" }}</h2>
         <p class="welcome-subtitle text-ers-muted">Inicializando tu área de trabajo en tiempo real...</p>
+        <div class="welcome-spinner"></div>
     </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
-    const overlay = document.getElementById('welcome-overlay');
-    
-    // Si la llave existe en sessionStorage, significa que el usuario ya vio el Splash Layout durante esta rutina
-    if (sessionStorage.getItem('welcomeShown_ers')) {
-        // Cortina desaparece instantáneamente
-        overlay.style.display = 'none';
+    try {
+        const overlay = document.getElementById('welcome-overlay');
         
-        // Simular carga de datos ("Skeleton Loading") muy rápida, sin bloquear vista
-        document.body.classList.add('skeleton-active');
-        setTimeout(() => {
+        // Función garantizada para remover la cortina y el modo esqueleto
+        const clearSkeletonAndOverlay = () => {
             document.body.classList.remove('skeleton-active');
-        }, 600);
-        
-    } else {
-        // Es la primera vez que inicia sesión hoy o carga la página maestra
-        sessionStorage.setItem('welcomeShown_ers', 'true');
-        document.body.classList.add('skeleton-active');
-        
-        // El telón dura 3s visible, luego se hace fadeout suavemente
-        setTimeout(() => {
-            overlay.classList.add('fade-out');
+            if (overlay) overlay.style.display = 'none';
+        };
+
+        // Si la llave existe en sessionStorage, significa que el usuario ya vio el Splash Layout
+        if (sessionStorage.getItem('welcomeShown_ers')) {
+            // Cortina desaparece instantáneamente
+            if (overlay) overlay.style.display = 'none';
+            
+            // Simular carga de datos ("Skeleton Loading") muy rápida, sin bloquear vista
+            document.body.classList.add('skeleton-active');
+            setTimeout(clearSkeletonAndOverlay, 600);
+            
+        } else {
+            // Es la primera vez que inicia sesión hoy o carga la página maestra
+            sessionStorage.setItem('welcomeShown_ers', 'true');
+            document.body.classList.add('skeleton-active');
+            
+            // El telón dura 3s visible, luego se hace fadeout suavemente
             setTimeout(() => {
-                overlay.style.display = 'none';
-                document.body.classList.remove('skeleton-active');
-            }, 600); // 600ms que dura la transición opacity en CSS
-        }, 3000);
+                if (overlay) overlay.classList.add('fade-out');
+                setTimeout(clearSkeletonAndOverlay, 600);
+            }, 3000);
+        }
+
+        // Failsafe incondicional: por si hay errores en JS que anulen los setTimeouts
+        setTimeout(clearSkeletonAndOverlay, 5000);
+    } catch (e) {
+        // En caso de cualquier choque violento de JS abortar el splash modal
+        document.body.classList.remove('skeleton-active');
+        const overlay = document.getElementById('welcome-overlay');
+        if (overlay) overlay.style.display = 'none';
+        console.error("Error en welcome_overlay:", e);
     }
 });
 </script>

@@ -40,7 +40,9 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         if busqueda:
             # Si hay búsqueda, rompemos las reglas y buscamos en TODA su cartera histórica
             qs = qs.filter(
-                Q(nombre__icontains=busqueda) |
+                Q(nombre_pila__icontains=busqueda) |
+                Q(apellido_paterno__icontains=busqueda) |
+                Q(apellido_materno__icontains=busqueda) |
                 Q(phone_primary__icontains=busqueda) |
                 Q(celular__icontains=busqueda) |
                 Q(email__icontains=busqueda) |
@@ -1144,7 +1146,9 @@ def director_busqueda_view(request):
     
     if q:
         leads = CoreLead.objects.filter(
-            Q(nombre__icontains=q) |
+            Q(nombre_pila__icontains=q) |
+            Q(apellido_paterno__icontains=q) |
+            Q(apellido_materno__icontains=q) |
             Q(phone_primary__icontains=q) |
             Q(celular__icontains=q) |
             Q(email__icontains=q)
@@ -1173,7 +1177,9 @@ def director_directorio_view(request):
     
     if q:
         leads = leads.filter(
-            Q(nombre__icontains=q) |
+            Q(nombre_pila__icontains=q) |
+            Q(apellido_paterno__icontains=q) |
+            Q(apellido_materno__icontains=q) |
             Q(phone_primary__icontains=q)
         )
     if vendedor_id:

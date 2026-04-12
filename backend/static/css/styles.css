@@ -1551,6 +1551,16 @@ body {
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
+
+.welcome-logo {
+    max-width: 100px;
+    margin-bottom: 1rem;
+    border: 2px solid #9f1239;
+    border-radius: 5%;
+    background-color: azure;
+    animation: fadeInUp 0.8s ease forwards;
+}
+
 @keyframes fadeInUp {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
@@ -1576,6 +1586,7 @@ body {
     background-size: 200% 100%;
     animation: shimmerPulse 1.2s infinite linear;
     z-index: 10;
+    pointer-events: none;
 }
 @keyframes shimmerPulse {
     0% { background-position: -200% 0; }
