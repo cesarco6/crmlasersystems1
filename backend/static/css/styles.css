@@ -141,6 +141,43 @@ body {
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
+/* Header Icons Action Buttons */
+.icon-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 39px;
+    height: 39px;
+    border: 1px solid var(--ers-border) !important;
+    border-radius: 8px;
+    font-size: 1.0rem;
+    transition: all 0.25s ease;
+    background-color: transparent;
+    color: var(--ers-text-primary);
+    padding: 0 !important;
+}
+
+.icon-action-btn:hover {
+    background-color: var(--ers-border);
+}
+
+.icon-action-btn.active-alert {
+    border-color: var(--ers-primary) !important;
+    background-color: rgba(0, 158, 247, 0.08); 
+    color: var(--ers-primary) !important;
+    animation: alertPulse 2s infinite;
+}
+
+.icon-action-btn.active-alert i {
+    color: var(--ers-primary) !important;
+}
+
+@keyframes alertPulse {
+    0% { box-shadow: 0 0 0 0 rgba(0, 158, 247, 0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(0, 158, 247, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0, 158, 247, 0); }
+}
+
 /* Header */
 .header {
   background-color: var(--surface);
@@ -197,6 +234,19 @@ body {
 
 .theme-toggle:hover {
   background-color: var(--border);
+}
+
+.logo-menu {
+  width: 100px;
+  border: 2px solid #9f1239;
+  border-radius: 5%;
+  background-color: azure;
+}
+
+@media (max-width: 520px) {
+  .logo-menu {
+    display: none !important;
+  }
 }
 
 /* Sidebar */
@@ -1591,4 +1641,25 @@ body {
 @keyframes shimmerPulse {
     0% { background-position: -200% 0; }
     100% { background-position: 200% 0; }
+}
+
+/* ==========================================================================
+   ULTRA MOBILE ADJUSTMENTS (< 415px)
+   ========================================================================== */
+@media (max-width: 415px) {
+  /* Reducir el gap entre los botones de la derecha */
+  .header-container .d-flex.align-items-center.gap-3 {
+    gap: 0.5rem !important;
+  }
+  
+  /* Ocultar el saludo "Hola, Usuario Admin" porque ocupa demasiado espacio horizontal */
+  .header-container .text-secondary.small.ms-2 {
+    display: none !important;
+  }
+  
+  /* Reducir el padding de los botones de acción para ganar espacio clave */
+  .btn-theme-toggle, .header-container .btn-outline-primary {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.85rem !important;
+  }
 }
