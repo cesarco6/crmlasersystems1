@@ -1,6 +1,12 @@
 // backend/static/js/ficha_trabajo.js
 
 // Funciones para Modales
+/**
+ * Opens a modal window sets its display to flex.
+ * Fixes UI rendering for the 'edit' modal if the entity type requires it.
+ *
+ * @param {string} id - The DOM ID of the modal container.
+ */
 function abrirModal(id) {
     const el = document.getElementById(id);
     if (!el) return;
@@ -48,6 +54,13 @@ function getDashboardUrl() {
     return document.getElementById('dashboard_url_hidden').value;
 }
 
+/**
+ * Executes an asynchronous POST request to update a Lead's state/data.
+ * Manages UI loading states and handles the SweetAlert2 feedback modal.
+ *
+ * @param {Object} data - The JSON payload containing action keys and lead data.
+ * @param {HTMLButtonElement} [btn=null] - The DOM button that triggered the action, for loading states.
+ */
 function ejecutarFetchActualizar(data, btn = null) {
     const leadId = getLeadId();
     const csrfToken = getCsrfToken();
@@ -128,6 +141,13 @@ function toggleTipoEntidad() {
     }
 }
 
+/**
+ * Prepares and packages Lead data into a JSON object to be sent to the backend.
+ * Checks form validity and handles confirmation modals for destructive actions (DESECHAR).
+ *
+ * @param {string} accion - Action code matching the Django FSM services (e.g., GUARDAR, DESCARTAR).
+ * @param {HTMLButtonElement} [btn=null] - The trigger button DOM element.
+ */
 function ejecutarRitual(accion, btn = null) {
     // --- ESCUDO ESTRICTO: No dejar guardar en blanco ---
     if (accion === 'GUARDAR' || accion === 'VALIDAR') {
@@ -241,6 +261,12 @@ function copiarDireccionLead() {
     }
 }
 
+/**
+ * Converts a Prospecto/Lead into a CLIENTE by fulfilling Phase 3 requirements.
+ * Enforces strict tax and delivery information if the "Pedido" switch is activated.
+ *
+ * @param {HTMLButtonElement} [btn=null] - The submitted closure button.
+ */
 function guardarCierreVenta(btn = null) {
     const leadId = getLeadId();
     const csrfToken = getCsrfToken();
@@ -385,6 +411,12 @@ function filtrarProductos360() {
     });
 }
 
+/**
+ * Generates an automated cross-selling/extra service registry attached to the lead.
+ * Validates the required taxonomy and triggers the FSM-neutral transaction endpoint.
+ *
+ * @param {HTMLButtonElement} [btn=null] - Triggering button.
+ */
 function guardarOportunidad360(btn = null) {
     const leadId = getLeadId();
     const csrfToken = getCsrfToken();
@@ -508,6 +540,14 @@ function marcarNoCierre() {
     });
 }
 
+/**
+ * Evaluates state transitions for cross-selling opportunities directly from the UI dropdown.
+ * Prompts the agent for a quick/free-text Note to justify the transition.
+ *
+ * @param {string} ventaId - The Primary Key of the VentaTransaccional record.
+ * @param {HTMLSelectElement} selectElement - The dropdown element manipulated by the user.
+ * @param {string} estatusAnterior - The previous DOM state, used for rollback if cancelled.
+ */
 function actualizarEstatus360(ventaId, selectElement, estatusAnterior) {
     const nuevoEstatus = selectElement.value;
     const csrfToken = getCsrfToken();

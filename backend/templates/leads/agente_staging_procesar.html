@@ -185,6 +185,11 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/staging_procesar.js' %}"></script>
 <script>
+/**
+ * Prompts the agent with a SweetAlert warning before permanently discarding a Lead
+ * from the Staging Quarantine. Overrides native HTML validations to allow submission
+ * with the 'descartar' action.
+ */
 function confirmarDescarte() {
     Swal.fire({
         title: '⚠️ ¿Descartar definitivamente?',

@@ -160,6 +160,11 @@
                     </form>
                         
                     <script>
+                        /**
+                         * DOMContentLoaded listener for the Filter Panel.
+                         * Implements auto-submit logic over the filters while preserving the window Y scroll 
+                         * across reloads via sessionStorage. Hides manual submit buttons to enforce UX flow.
+                         */
                         document.addEventListener('DOMContentLoaded', function() {
                             // --- 1. Restaurar posición de scroll (si existe) ---
                             let scrollpos = sessionStorage.getItem('scrollpos_dashboard');
@@ -307,6 +312,11 @@
 </div>
 
 <script>
+    /**
+     * Initializes four interactive Chart.js blocks for the Director Dashboard view.
+     * Uses template injection to pass JSON vectors from the Django context directly 
+     * into the dataset objects. Manages responsive theme coloring dynamically.
+     */
     document.addEventListener('DOMContentLoaded', function() {
         // --- 1. Obtener colores dinámicos del tema ---
         const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';

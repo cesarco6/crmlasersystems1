@@ -257,6 +257,12 @@
 {{ chart_data|json_script:"chart-data" }}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
+/**
+ * Asynchronous initialization for Chart.js in the Fidelizacion 360 view.
+ * Dynamically queries CSS variables (like text color and borders) to keep the 
+ * chart design consistent with Bootstrap's dark/light color modes.
+ * Parses context data securely injected via the json_script Django tag to prevent XSS.
+ */
 document.addEventListener('DOMContentLoaded', function() {
     // --- 1. Obtener colores dinámicos del tema ---
     const style = getComputedStyle(document.body);

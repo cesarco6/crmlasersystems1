@@ -1,5 +1,9 @@
 // static/js/modals.js
 
+/**
+ * Toggles the visibility of DOM inputs within the individual creation modal depending
+ * on whether the user selects "Individual" or "Corporativo" (Clinic).
+ */
 function toggleTipoEntidadAlta() {
     const isCorporativo = document.getElementById('alta_tipo_corporativo') && document.getElementById('alta_tipo_corporativo').checked;
     const colTitulo = document.getElementById('col-alta-titulo');
@@ -45,6 +49,12 @@ function toggleTipoEntidadAlta() {
     }
 }
 
+/**
+ * Gathers input values from the individual creation modal and performs a POST request
+ * to manually create a new Lead. Captures Django JSON exceptions for duplication (MDM validation).
+ *
+ * @param {Event} event - The DOM submit event.
+ */
 function guardarLeadManual(event) {
     event.preventDefault();
 
