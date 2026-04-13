@@ -3,6 +3,21 @@ from leads.services.common_services import obtener_catalogos_limpios
 from leads.mdm_services import evaluar_duplicidad_estricta
 
 def crear_prospecto_core(data: dict, user):
+    """Processes the creation of a new Prospect (Phase 1) evaluating strict duplication.
+
+    Acts as the entry point for manual lead creation. Unpacks the given data, evaluates 
+    telecom and name collisions using the MDM sub-services, fetches required taxonomy 
+    catalogs (or creates them if missing via defaults), and finally commits the new atomic 
+    CoreLead instance linked to the requesting user.
+
+    Args:
+        data (dict): Payload containing user inputs (e.g., tipo_entidad, nombre, telefono).
+        user (User): The requesting agent or director attempting the creation.
+
+    Returns:
+        dict: A status payload containing 'success' and 'lead_id' on success, or 
+        an 'error' string indicating duplication or structural failures.
+    """
     try:
         telefono = str(data.get('telefono', '')).strip()
         celular = str(data.get('celular', '')).strip()

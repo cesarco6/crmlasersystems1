@@ -4,6 +4,25 @@ from leads.models import CoreLead
 from leads.services.common_services import obtener_catalogos_limpios
 
 def procesar_transicion_fsm(lead_id: str, data: dict, user):
+    """Processes deterministic lifecycle state transitions for CoreLeads.
+
+    Acts as the main handler for the 'Finite State Machine' (FSM) architecture.
+    It receives the desired action from the user interface and enforces the business 
+    logic constraints depending on the Lead's current Phase (PROSPECTO, LEAD, CLIENTE).
+    It manages Atomic Identity updates, State changes, Note logging, and Document Generation.
+
+    Args:
+        lead_id (str): The UUID of the primary CoreLead entity.
+        data (dict): JSON payload from the frontend containing user inputs (e.g., action, contact date, tax info).
+        user (User): The user executing the HTTP request.
+
+    Returns:
+        dict: A dictionary containing the operational result:
+              - 'success' (bool): True if the transition passed all validations.
+              - 'error' (str): Descriptive error if failed.
+              - 'status_code' (int): Suggested HTTP status mapping (200, 400, 404).
+              - 'url_descarga' (str): If a document was generated (Order format).
+    """
     try:
         lead = CoreLead.objects.get(id=lead_id)
         accion = data.get('accion')

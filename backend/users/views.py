@@ -11,12 +11,32 @@ from django.views.decorators.http import require_http_methods
 User = get_user_model()
 
 def es_director(user):
+    """Verifies if the user holds director privileges.
+
+    Args:
+        user (User): The user instance requesting access.
+
+    Returns:
+        bool: True if the user is a superuser, False otherwise.
+    """
     return user.is_superuser
 
 
 @login_required
 @user_passes_test(es_director, login_url='dashboard_agente')
 def panel_territorios(request):
+    """Renders the territory assignment interface for directors.
+
+    Fetches all sellers and available states (locations) to allow the director
+    to bulk assign geographical territories to specific agents.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request.
+
+    Returns:
+        HttpResponse: Rendered 'director_territorios.html' template containing 
+        the context with 'vendedores' and 'estados'.
+    """
     # Obtener a los vendedores (excluimos al superusuario/director para la lista de asignación)
     vendedores = User.objects.filter(is_superuser=False).order_by('username')
     
@@ -30,6 +50,19 @@ def panel_territorios(request):
     return render(request, 'director_territorios.html', context)
 
 def custom_login_view(request):
+    """Handles user authentication and role-based redirect routing.
+
+    Intercepts login attempts, evaluates user credentials, and implements the 
+    traffic switch (traffic-director) to send Directors to the panoramic dashboard 
+    and Sellers to their local operations dashboard.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request containing POST payload.
+
+    Returns:
+        HttpResponseRedirect|HttpResponse: Redirects on successful login or renders 
+        'login.html' on failure/GET.
+    """
     # Si el usuario ya está logueado, lo pateamos a su dashboard correspondiente
     if request.user.is_authenticated:
         if request.user.is_superuser:
@@ -56,6 +89,14 @@ def custom_login_view(request):
     return render(request, 'login.html')
 
 def custom_logout_view(request):
+    """Terminates the user session and redirects to the login view.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request.
+
+    Returns:
+        HttpResponseRedirect: Redirect to the 'login' route.
+    """
     logout(request)
     return redirect('login')
 
@@ -63,6 +104,19 @@ def custom_logout_view(request):
 @user_passes_test(es_director)
 @require_http_methods(["GET", "POST"])
 def api_territorios_vendedor(request, vendedor_id):
+    """API endpoint to read or update territory assignments for a specific seller.
+
+    - GET: Retrieves a list of states currently assigned to the seller.
+    - POST: Receives a JSON payload mapping new states, removing old assignments 
+      and bulk-creating the new territory boundaries.
+
+    Args:
+        request (HttpRequest): The incoming HTTP request.
+        vendedor_id (int): The primary key of the User/Seller being queried/modified.
+
+    Returns:
+        JsonResponse: A JSON dictionary with the operation 'status' and payload/messages.
+    """
     try:
         vendedor = User.objects.get(id=vendedor_id)
         # Obtenemos el perfil o lo creamos si no existe por alguna razón

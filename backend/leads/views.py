@@ -19,6 +19,15 @@ from users.permissions import role_required
 
 @method_decorator(role_required(['VENDEDOR']), name='dispatch')
 class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
+    """Primary operational dashboard for Sales Agents (Vendedores).
+
+    It calculates the local scope KPIs and active leads for the agent based 
+    strictly on the 'owner' FK. Delegates complex search operations and 
+    temporal filter flags (like hiding hibernating leads next_action_date).
+
+    Attributes:
+        template_name (str): Specifies 'dashboard_agente.html'.
+    """
     template_name = 'dashboard_agente.html'
 
     def get_context_data(self, **kwargs):
@@ -143,6 +152,15 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
 
 @method_decorator(role_required(['VENDEDOR', 'DIRECTOR', 'ADMIN']), name='dispatch')
 class IngestaMasivaView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
+    """Handles the rendering of the mass ingestion tool (El Quirófano).
+    
+    Provides the required taxonomy lists (Especialidades, Ubicaciones, Productos)
+    to power the LuckySheet/JavaScript frontend interface allowing manual 
+    curation before server-side parsing.
+
+    Attributes:
+        template_name (str): 'ingesta_masiva.html'.
+    """
     template_name = 'ingesta_masiva.html'
 
     def get_context_data(self, **kwargs):
@@ -155,6 +173,11 @@ class IngestaMasivaView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
 
 @method_decorator(role_required(['VENDEDOR', 'DIRECTOR', 'ADMIN']), name='dispatch')
 class AltaIndividualView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
+    """Renders the single-lead manual creation generic form interface.
+
+    Attributes:
+        template_name (str): 'alta_individual.html'
+    """
     template_name = 'alta_individual.html'
 
 import os
@@ -167,6 +190,15 @@ from leads.parser_service import orquestar_ingesta_historica
 
 @method_decorator(role_required(['DIRECTOR', 'ADMIN']), name='dispatch')
 class IngestaHistoricaView(LoginRequiredMixin, TemplateView):
+    """Handles massive legacy database uploads by Directors/Admins.
+
+    Implements a two-phase commit interface:
+    1) Simulates the upload (Dry Run) generating a staging report.
+    2) Commits the cleaned JSON directly via integration with the mdm_service.
+
+    Attributes:
+        template_name (str): 'leads/ingesta_historica.html'
+    """
     template_name = 'leads/ingesta_historica.html'
 
     def get_context_data(self, **kwargs):

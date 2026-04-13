@@ -23,13 +23,24 @@ def normalizar_texto(texto):
     return " ".join(texto.strip().lower().split())
 
 def resolver_identidad(datos_dict):
-    """
-    Servicio de aduana central (MDM) para evaluar colisiones y similitud.
+    """Central Master Data Management (MDM) algorithm to resolve duplications.
     
-    Recibe un dict con: 'tipo_entidad', 'nombre_pila', 'apellido_paterno', 
-    'apellido_materno', 'telefono', 'especialidad_obj', 'ubicacion_obj'.
+    Evaluates potential identity collisions based on normalization heuristics, 
+    string similarity (SequenceMatcher), and strict telecom uniqueness.
+    Routes the workflow through either 'CORPORATIVO' or 'INDIVIDUAL' collision paths.
     
-    Retorna: (instancia_encontrada_o_creada, telefono_alternativo_str)
+    Args:
+        datos_dict (dict): Payload containing identity vectors: 'tipo_entidad', 
+            'nombre_pila', 'apellido_paterno', 'apellido_materno', 'telefono', 
+            'especialidad_obj', 'ubicacion_obj'.
+    
+    Returns:
+        tuple (Model, str|None): 
+            - The matched or newly created entity (Clinica or CoreLead).
+            - An alternative phone string if the match implies a secondary line, None otherwise.
+            
+    Raises:
+        ValueError: If a strict phone collision exists preventing deterministic creation.
     """
     tipo_entidad = datos_dict.get('tipo_entidad')
     nombre_pila = datos_dict.get('nombre_pila', '')
