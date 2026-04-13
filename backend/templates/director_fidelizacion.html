@@ -24,7 +24,7 @@
                 <div class="card-body py-2 px-3">
                     <div class="row g-2 align-items-end">
                         {# Filtro Vendedor #}
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-md-3">
                             <label class="form-label text-muted small fw-bold mb-1">Vendedor</label>
                             <select name="vendedor" class="form-select form-select-sm bg-body border-secondary shadow-none">
                                 <option value="">-- Todos --</option>
@@ -37,7 +37,7 @@
                         </div>
 
                         {# Filtro Familia #}
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-md-3">
                             <label class="form-label text-muted small fw-bold mb-1">Familia</label>
                             <select name="familia" class="form-select form-select-sm bg-body border-secondary shadow-none">
                                 <option value="">-- Todas --</option>
@@ -50,7 +50,7 @@
                         </div>
 
                         {# Filtro Estatus #}
-                        <div class="col-6 col-md-2">
+                        <div class="col-6 col-md-3">
                             <label class="form-label text-muted small fw-bold mb-1">Estatus</label>
                             <select name="estatus" class="form-select form-select-sm bg-body border-secondary shadow-none">
                                 <option value="">-- Todos --</option>
@@ -62,7 +62,7 @@
                             </select>
                         </div>
 
-                        {# Filtro Fecha Desde #}
+                       <!-- {# Filtro Fecha Desde #}
                         <div class="col-6 col-md-2">
                             <label class="form-label text-muted small fw-bold mb-1">Desde</label>
                             <input type="date" name="fecha_desde" class="form-control form-control-sm bg-body border-secondary shadow-none"
@@ -74,12 +74,12 @@
                             <label class="form-label text-muted small fw-bold mb-1">Hasta</label>
                             <input type="date" name="fecha_hasta" class="form-control form-control-sm bg-body border-secondary shadow-none"
                                    value="{{ filtro_fecha_hasta }}">
-                        </div>
+                        </div>-->
 
                         {# Botones #}
-                        <div class="col-6 col-md-2 d-flex gap-2">
-                            <button type="submit" class="btn btn-sm btn-primary">🔍 Aplicar Filtros</button>
-                            <a href="{% url 'director_fidelizacion' %}" class="btn btn-sm btn-light border me-2">Limpiar Filtros</a>
+                        <div class="col-6 col-md-3 d-flex gap-2">
+                            <button type="submit" class="btn btn-sm btn-outline-primary fw-bold">Filtros</button>
+                            <a href="{% url 'director_fidelizacion' %}" class="btn btn-sm btn-outline-secondary fw-bold">Limpiar</a>
                         </div>
                     </div>
                 </div>
@@ -263,8 +263,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const textColor = style.getPropertyValue('--bs-body-color').trim() || '#adb5bd';
     const gridColor = style.getPropertyValue('--bs-border-color').trim() || 'rgba(0,0,0,0.1)';
     
-    // 2. Inyectar JSON de forma segura y directa
-    const chartData = {{ chart_data|safe }};
+    // 2. Extraer JSON inyectado estructuralmente (Solución a error linter en VS Code)
+    const chartData = JSON.parse(document.getElementById('chart-data').textContent);
     const ctx = document.getElementById('chart360').getContext('2d');
 
     new Chart(ctx, {
