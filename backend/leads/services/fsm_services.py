@@ -176,7 +176,7 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
                 colonia_fact = 'PENDIENTE'
                 ciudad_fact = 'PENDIENTE'
                 estado_fact = 'PENDIENTE'
-                cp_fact = 'PENDIENTE'
+                cp_fact = '00000'
                 
                 direccion_envio = lead.direccion_completa # Conservar la de corelead si existe
 
