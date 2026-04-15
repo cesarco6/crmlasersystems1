@@ -38,6 +38,30 @@ class CatUbicacion(models.Model):
     def __str__(self):
         return f"{self.ciudad}, {self.estado}"
 
+class CatLada(models.Model):
+    clave = models.CharField(max_length=3, unique=True, help_text="Clave Lada de 2 o 3 dígitos (Ej. '55')")
+    estado_referencia = models.CharField(max_length=100, help_text="Nombre del Estado")
+    ciudad_referencia = models.CharField(max_length=100, help_text="Nombre de la Ciudad o Municipio base")
+    ubicacion_oficial = models.ForeignKey(
+        CatUbicacion, 
+        on_delete=models.SET_NULL, 
+        null=True, 
+        blank=True, 
+        related_name='ladas_asociadas',
+        help_text="Enlace al catálogo oficial. Déjalo en blanco si no se vende ahí."
+    )
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Diccionario LADA'
+        verbose_name_plural = 'Diccionario Nacional de LADAS'
+        ordering = ['clave']
+
+    def __str__(self):
+        estatus = "🔗 Enlazado" if self.ubicacion_oficial else "❌ Sin enlace"
+        return f"[{self.clave}] {self.ciudad_referencia}, {self.estado_referencia} ({estatus})"
+
+
 class CatEspecialidad(models.Model):
     nombre = models.CharField(max_length=100, unique=True)
     # El campo alias nos salvará la vida en las ingestas masivas
