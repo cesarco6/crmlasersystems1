@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aviso de Mantenimiento | CRM Laser Systems</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/static/images/favicon.png">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    
+    <script>
+      (function() {
+        const savedTheme = localStorage.getItem('crm-theme') || 'dark';
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+      })();
+    </script>
+    
+    <style>
+        .glass-card {
+            background-color: var(--bs-body-bg);
+            border: 1px solid var(--ers-border);
+            border-radius: 24px;
+            padding: 3rem;
+            max-width: 650px;
+            width: 90%;
+            /* Cambio de sombra roja a sombra azul/info para mantenimiento */
+            box-shadow: 0 25px 50px -12px rgba(13, 110, 253, 0.25);
+            position: relative;
+            z-index: 10;
+            transform: translateY(-20px);
+        }
+        
+        .glow-icon {
+            font-size: 5rem;
+            line-height: 1;
+            /* Texto azul/info */
+            text-shadow: 0 0 40px rgba(13, 110, 253, 0.8);
+            color: #0d6efd;
+            margin-bottom: 1.5rem;
+            /* Rotación suave para los engranes */
+            animation: spin-slow 8s linear infinite;
+            display: inline-block;
+        }
+
+        .glow-text {
+            text-shadow: 0 0 20px rgba(13, 110, 253, 0.4);
+            letter-spacing: -1px;
+        }
+        
+        @keyframes spin-slow {
+            0% { transform: rotate(0deg); opacity: 0.9; }
+            50% { opacity: 1; text-shadow: 0 0 60px rgba(13, 110, 253, 1); }
+            100% { transform: rotate(360deg); opacity: 0.9; }
+        }
+
+        .btn-hover-scale {
+            transition: all 0.2s ease;
+        }
+        .btn-hover-scale:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(13, 110, 253, 0.3);
+        }
+
+        /* Technical background lines */
+        .tech-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: 50px 50px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            z-index: 1;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    
+    <button onclick="toggleCrmTheme()" class="btn-theme-toggle" id="themeToggleBtn" style="position: absolute; top: 20px; right: 20px; background: transparent; border: 1px solid var(--ers-border); border-radius: 5px; cursor: pointer; color: var(--bs-body-color);">
+        <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+    </button>
+    
+    <div class="tech-bg"></div>
+
+    <div class="glass-card text-center text-body mx-auto mt-5">
+        <div class="glow-icon">
+            <i class="bi bi-gear-fill"></i>
+        </div>
+        
+        <h1 class="display-4 fw-bold text-primary mb-2 glow-text">Mantenimiento</h1>
+        <h3 class="mb-4 text-body-secondary fw-light">El sistema está temporalmente fuera de línea</h3>
+        
+        <p class="lead mb-4 text-body opacity-75">
+            Nuestro equipo de ingeniería está realizando operaciones programadas en el núcleo del sistema para asegurar su máximo rendimiento.
+        </p>
+        
+        <div class="alert bg-body-secondary border-primary border-opacity-50 text-start mb-5 d-flex align-items-center rounded-3 p-3 shadow-sm">
+            <div class="fs-3 text-info me-3">
+                <i class="bi bi-info-circle-fill"></i>
+            </div>
+            <div>
+                <strong class="d-block text-body mb-1">Estatus Operativo:</strong>
+                <span class="text-body-secondary fw-semibold">
+                    <!-- Aquí se inyecta la variable desde el middleware -->
+                    {{ maintenance_message|default:"Proceso activo, por favor intenta en unos minutos." }}
+                </span>
+            </div>
+        </div>
+
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
+            <button onclick="window.location.reload()" class="btn btn-primary btn-lg px-5 rounded-pill shadow-lg btn-hover-scale fw-bold">
+                <i class="bi bi-arrow-clockwise me-2"></i> Refrescar Panel
+            </button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+          const currentTheme = document.documentElement.getAttribute('data-bs-theme');
+          const themeIcon = document.getElementById('themeIcon');
+          if(themeIcon) {
+              if (currentTheme === 'dark') {
+                  themeIcon.className = 'bi bi-moon-stars-fill';
+              } else {
+                  themeIcon.className = 'bi bi-brightness-high-fill text-warning';
+              }
+          }
+      });
+  
+      function toggleCrmTheme() {
+          const htmlTag = document.documentElement;
+          const currentTheme = htmlTag.getAttribute('data-bs-theme');
+          const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+          
+          htmlTag.setAttribute('data-bs-theme', newTheme);
+          localStorage.setItem('crm-theme', newTheme);
+          
+          const icon = document.getElementById('themeIcon');
+          if (newTheme === 'dark') {
+              icon.className = 'bi bi-moon-stars-fill';
+          } else {
+              icon.className = 'bi bi-brightness-high-fill text-warning';
+          }
+      }
+    </script>
+</body>
+</html>
