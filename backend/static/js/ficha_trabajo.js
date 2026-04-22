@@ -133,7 +133,23 @@ function ejecutarRitual(accion, btn = null) {
     if (accion === 'GUARDAR' || accion === 'VALIDAR') {
         const form = document.getElementById('form-editar');
         if (!form.checkValidity()) {
-            form.reportValidity(); // Muestra el mensaje rojo nativo del navegador
+            if (document.getElementById('modal-editar').classList.contains('d-none')) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Datos Incompletos',
+                    text: 'Abre la ventana de edición (✏️ Editar) para completar los campos obligatorios antes de validar.',
+                    confirmButtonText: 'Abrir Edición',
+                    showCancelButton: true,
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        abrirModal('modal-editar');
+                        setTimeout(() => form.reportValidity(), 300);
+                    }
+                });
+            } else {
+                form.reportValidity(); // Muestra el mensaje rojo nativo del navegador
+            }
             return;
         }
     }
@@ -153,6 +169,7 @@ function ejecutarRitual(accion, btn = null) {
         email: document.getElementById('edit-email').value,
         direccion: document.getElementById('edit-direccion').value,
         especialidad: document.getElementById('edit-especialidad').value,
+        ubicacion: document.getElementById('edit-ubicacion') ? document.getElementById('edit-ubicacion').value : '',
         producto: document.getElementById('edit-producto').value
     };
 

@@ -56,6 +56,13 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
                 # Actualizar catálogos (Solo en Prospecto)
                 nueva_esp_str = data.get('especialidad', '').strip()
                 nuevo_prod_str = data.get('producto', '').strip()
+                nueva_ubi_str = data.get('ubicacion', '').strip()
+                
+                if nueva_ubi_str:
+                    from users.models import CatUbicacion
+                    ubi_obj = CatUbicacion.objects.filter(ciudad__iexact=nueva_ubi_str).first()
+                    if ubi_obj: lead.ubicacion = ubi_obj
+                    
                 if nueva_esp_str or nuevo_prod_str:
                     esp_obj, prod_obj = obtener_catalogos_limpios(nueva_esp_str, nuevo_prod_str)
                     if nueva_esp_str: lead.especialidad_cat = esp_obj

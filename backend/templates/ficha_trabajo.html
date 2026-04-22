@@ -5,7 +5,7 @@
 {% block title %}Ficha: {{ lead.nombre_completo_mdm }} - CRM Laser Systems{% endblock %}
 
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/modals.css' %}?v=1.1">
+<link rel="stylesheet" href="{% static 'css/modals.css' %}?v=1.2">
 {% endblock %}
 
 {% block content %}
@@ -32,6 +32,7 @@
                     <button class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-venta-extra')">🎯 Oportunidad 360°</button>
                     
                 {% elif lead.estatus == 'PROSPECTO' %}
+                    <button type="button" class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('VALIDAR', this)">✅ Validar Identidad</button>
                     <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar</button>
 
                 {% elif lead.estatus == 'LEAD' %}

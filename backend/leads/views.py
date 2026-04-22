@@ -59,8 +59,10 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
             # (Asumiendo que usas next_action_date, si usas otro campo, lo cambiamos)
             #qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
             if filtro_rapido == 'clientes':
-                # Si presionó el botón de Clientes, le traemos solo los clientes
-                qs = qs.filter(estatus='CLIENTE')
+                # Si presionó el botón de Clientes, le traemos solo los clientes orgánicos
+                qs = qs.filter(estatus='CLIENTE', es_historico=False)
+            elif filtro_rapido == 'historicos':
+                qs = qs.filter(es_historico=True)
             else:
                 # Regla INBOX ZERO: (Se mantiene para todo lo demás)
                 qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
@@ -668,6 +670,7 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
         context['productos_list'] = CatProducto.objects.filter(is_active=True).order_by('nombre')
         context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
+        context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
         # Variables súper cortas para que el HTML no se rompa al guardar
         context['celular_seguro'] = lead.celular if lead.celular else "No registrado"
         # Priorizamos el catálogo relacional (DDS Fase 2)

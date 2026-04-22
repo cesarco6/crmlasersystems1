@@ -26,21 +26,21 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
     /* Sombra pronunciada para que resalte */
     height: auto;
-    max-height: 90vh; /* Límite máximo antes de scrollear */
+    max-height: 100vh; /* Límite máximo antes de scrollear */
     overflow-y: auto; /* Scroll interno si el contenido es muy largo */
 }
 
 .modal-box .card-header {
-    padding: 15px 20px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--bs-border-color, #3a3a4e);
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
 }
 
 .modal-box .card-body {
-    padding: 20px;
-    font-size: small;
+    padding: 5px 20px;
+    font-size: medium;
 }
 
 .modal-input {
