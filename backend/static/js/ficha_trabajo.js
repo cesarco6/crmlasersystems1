@@ -225,7 +225,34 @@ function ejecutarRitual(accion, btn = null) {
         return;
     }
 
-    // Para GUARDAR o VALIDAR o cualquier otra acción sin confirmación especial
+    if (accion === 'VALIDAR') {
+        Swal.fire({
+            title: 'Validar Identidad',
+            text: "Confirma los datos de contacto y justifica el avance a LEAD.",
+            icon: 'info',
+            input: 'textarea',
+            inputLabel: 'Justificación o nota de validación (obligatoria):',
+            inputPlaceholder: 'Ej. Hablé con el doctor y confirmó sus datos...',
+            showCancelButton: true,
+            confirmButtonColor: '#28a745',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Validar Identidad',
+            cancelButtonText: 'Cancelar',
+            inputValidator: (value) => {
+                if (!value) {
+                    return '¡La justificación es obligatoria para validar la identidad!';
+                }
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                data.nota = result.value;
+                ejecutarFetchActualizar(data, btn);
+            }
+        });
+        return;
+    }
+
+    // Para GUARDAR o cualquier otra acción sin confirmación especial
     ejecutarFetchActualizar(data, btn);
 }
 
@@ -661,3 +688,10 @@ function marcarHitoPostVenta(hito, leadId) {
         }
     });
 }
+
+// Inicialización On-Load
+document.addEventListener('DOMContentLoaded', () => {
+    if (document.getElementById('form-editar') && typeof toggleTipoEntidad === 'function') {
+        toggleTipoEntidad();
+    }
+});

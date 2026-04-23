@@ -107,7 +107,7 @@ def resolver_identidad(datos_dict):
         if telefono:
             lead_telefono = CoreLead.objects.filter(phone_primary=telefono).first()
             if lead_telefono:
-                raise ValueError(f"Colisión MDM: El teléfono {telefono} ya pertenece al prospecto '{lead_telefono.nombre_pila} {lead_telefono.apellido_paterno}'.")
+                raise ValueError(f"Colisión MDM: El teléfono {telefono} ya pertenece a un registro ({lead_telefono.estatus}): '{lead_telefono.nombre_pila} {lead_telefono.apellido_paterno}'.")
                 
         # Si no hubo match por nombre ni colisión por teléfono, retorna None, None
         return None, None

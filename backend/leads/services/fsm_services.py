@@ -80,10 +80,11 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
         # 2. LA MÁQUINA DE ESTADOS
         if accion == 'VALIDAR':
             if lead.estatus == 'PROSPECTO':
+                nota_justificacion = data.get('nota', 'Sin justificación especificada')
                 lead.validar_identidad()
                 lead.notas_variadas.setdefault("notas", []).append({
                     "tipo": "sistema",
-                    "contenido": "Identidad Validada: Avanzó a LEAD.",
+                    "contenido": f"Identidad Validada (Avanzó a LEAD). Justificación: {nota_justificacion}",
                     "fecha": localtime(now()).isoformat()
                 })
 
