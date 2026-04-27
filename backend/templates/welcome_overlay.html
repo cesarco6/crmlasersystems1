@@ -3,7 +3,7 @@
     <div class="welcome-content">        
         <img src="{% static 'images/LOGO-QUANTUM-logochico.png' %}" alt="Logo LS" class="img-fluid welcome-logo">
         <h2 class="welcome-title">Bienvenido, {{ request.user.first_name|title|default:"Compañero" }}</h2>
-        <p class="welcome-subtitle text-ers-muted">Inicializando tu área de trabajo en tiempo real...</p>
+        <p class="welcome-subtitle text-ers-muted">Inicializando tu área de trabajo...</p>
         <div class="welcome-spinner"></div>
     </div>
 </div>

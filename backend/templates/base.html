@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.5">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.6">
     <link rel="stylesheet" href="{% static 'css/crm-mobile.css' %}?v=1.1">
     {% block extra_css %}{% endblock %}
 
@@ -29,25 +29,29 @@
     <!-- Menú Lateral -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h3>CRM Laser Systems</h3>
+            <h3>CRM <span class="text-danger fw-bold fs-6">Laser Systems</span></h3>
         </div>
         <ul class="sidebar-nav ps-0 list-unstyled">
             {% if user.is_superuser %}
-                <li class="menu-title text-uppercase text-light fw-bold mb-2 mt-3 px-3">Dirección</li>                
+                <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">Dirección</li>                
                 <li><a class="leftmenu" href="{% url 'director_dashboard' %}">📊 Dashboard</a></li>
                 <li><a class="leftmenu" href="{% url 'director_directorio' %}">🎯 Directorio</a></li>
                 <!-- <li><a class="leftmenu" href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li> -->
                 <li><a class="leftmenu" href="{% url 'director_fidelizacion' %}">🎯 Oportunidades 360°</a></li>                
                 <li><a class="leftmenu" href="{% url 'director_rescate' %}">🛟 Bandeja de revisión</a></li>
                 <li><a class="leftmenu" href="{% url 'director_eventos' %}">📅 Campañas y Eventos</a></li>
-                <li><a class="leftmenu" href="{% url 'director_ingesta' %}">📥 Ingesta Histórica</a></li>
-                <li><a class="leftmenu" href="{% url 'staging_list' %}">🏥 Staging</a></li>
-                
+            
             {% else %}
-                <li class="menu-title text-uppercase text-muted fw-bold mb-2 mt-3 px-3">V e n t a s</li>
+                <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">V e n t a s</li>
                 <li><a class="leftmenu" href="{% url 'dashboard_agente' %}">🎯 Dashboard</a></li>
                 <li><a class="leftmenu" href="{% url 'ingesta_masiva' %}">📥 Carga de Prospectos</a></li>
                 <li><a class="leftmenu" href="{% url 'agente_staging_list' %}">🏥 Staging</a></li>
+            {% endif %}
+            {% if user.is_staff %}
+                <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">Administración</li>
+                <li><a class="leftmenu" href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li>
+                <li><a class="leftmenu" href="{% url 'director_ingesta' %}">📥 Ingesta Histórica</a></li>
+                <li><a class="leftmenu" href="{% url 'staging_list' %}">🏥 Staging</a></li>
             {% endif %}
         </ul>
     </aside>
