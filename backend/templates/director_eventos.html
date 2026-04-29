@@ -6,7 +6,7 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
             <h2 class="fw-bold text-body">📅 Gestión de Eventos y Campañas</h2>
-            <p class="text-body-secondary">Administra los próximos eventos presenciales, su duración y fuerza de ventas asignada.</p>
+            <p class="text-body-secondary">Administra los próximos eventos, campañas o cursos , su duración y fuerza de ventas asignada.</p>
         </div>
         <div class="col-md-4 text-end">
             <button class="btn btn-secondary fw-bold px-4" data-bs-toggle="modal" data-bs-target="#modalCrearEvento">
@@ -37,11 +37,19 @@
                             <td>
                                 {% if evento.tipo == 'EXPO' %}
                                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-building me-1"></i> EXPO</span>
+                                {% elif evento.tipo == 'CAMPAÑA' %}
+                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-megaphone me-1"></i> CAMPAÑA</span>
                                 {% else %}
                                     <span class="badge bg-info-subtle text-info border border-info-subtle"><i class="bi bi-people me-1"></i> TALLER</span>
                                 {% endif %}
                             </td>
-                            <td class="text-muted">{{ evento.lugar }}</td>
+                            <td class="text-muted">
+                                {% if evento.tipo == 'CAMPAÑA' %}
+                                    <span class="text-muted fst-italic">Digital / Varias</span>
+                                {% else %}
+                                    {{ evento.lugar }}
+                                {% endif %}
+                            </td>
                             <td>
                                 <span class="text-body small">
                                     <i class="bi bi-calendar4-week text-muted me-1"></i>
@@ -101,6 +109,7 @@
                             <select id="ev_tipo" class="form-select bg-body border-secondary shadow-none" required>
                                 <option value="EXPO" selected>Expo / Congreso</option>
                                 <option value="TALLER">Taller / Capacitación</option>
+                                <option value="CAMPAÑA">Campaña Digital / Marketing</option>
                             </select>
                         </div>
                         
@@ -113,9 +122,9 @@
                             <input type="date" id="ev_fecha_fin" class="form-control bg-body border-secondary shadow-none" required>
                         </div>
 
-                        <div class="col-md-12">
+                        <div class="col-md-12" id="div_lugar">
                             <label class="form-label text-muted">Lugar o Sede (Ej: WTC CDMX) *</label>
-                            <input type="text" id="ev_lugar" class="form-control bg-body border-secondary shadow-none" required>
+                            <input type="text" id="ev_lugar" class="form-control bg-body border-secondary shadow-none">
                         </div>
 
                         <!-- Nuevos Selects de Línea y Estados -->
@@ -127,15 +136,17 @@
                                 <option value="DENTAL">Línea Dental</option>
                                 <option value="PODOLOGICO">Línea Podológica</option>
                                 <option value="BEAUTY">Línea Beauty</option>
+                                <option value="SERVICIO">Servicios</option>
+                                <option value="ACCESORIO">Accesorios</option>
                                 <option value="TODAS" selected>Todas las Líneas</option>
                             </select>
                         </div>
                         <div class="col-md-6 mt-3">
-                            <label class="form-label text-muted">Estados Objetivo</label>
+                            <label class="form-label text-muted">Ciudades Objetivo</label>
                             <p class="small text-muted mb-1">Presiona Ctrl o Cmd para múltiples opciones.</p>
-                            <select id="ev_estados" class="form-select bg-body border-secondary shadow-none" multiple size="4">
-                                {% for estado in estados_list %}
-                                    <option value="{{ estado }}">{{ estado }}</option>
+                            <select id="ev_ciudades" class="form-select bg-body border-secondary shadow-none" multiple size="4">
+                                {% for ubi in ciudades_list %}
+                                    <option value="{{ ubi.id }}">{{ ubi.ciudad }}, {{ ubi.estado }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -161,6 +172,20 @@
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const evTipo = document.getElementById('ev_tipo');
+        if(evTipo) {
+            evTipo.addEventListener('change', function() {
+                const divLugar = document.getElementById('div_lugar');
+                if(this.value === 'CAMPAÑA') {
+                    divLugar.style.display = 'none';
+                } else {
+                    divLugar.style.display = 'block';
+                }
+            });
+        }
+    });
+
     function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
@@ -186,16 +211,21 @@
         
         // --- Nuevas capturas ---
         const linea_producto = document.getElementById('ev_linea').value;
-        const estSelect = document.getElementById('ev_estados');
-        const estados_objetivo = Array.from(estSelect.selectedOptions).map(opt => opt.value);
+        const ciudSelect = document.getElementById('ev_ciudades');
+        const ciudades_objetivo = Array.from(ciudSelect.selectedOptions).map(opt => parseInt(opt.value));
         // -----------------------
         
         // Obtener arrays del select múltiple (ahora solo de vendedores)
         const vendSelect = document.getElementById('ev_vendedores');
         const vendedores_ids = Array.from(vendSelect.selectedOptions).map(opt => parseInt(opt.value));
         
-        if (!nombre || !fecha_inicio || !fecha_fin || !lugar) {
-            alert("Por favor, completa los campos obligatorios del evento.");
+        if (!nombre || !fecha_inicio || !fecha_fin) {
+            alert("Por favor, completa los campos obligatorios.");
+            return;
+        }
+
+        if (tipo !== 'CAMPAÑA' && !lugar) {
+            alert("El Lugar o Sede es obligatorio para Expos y Talleres.");
             return;
         }
 
@@ -211,7 +241,7 @@
             fecha_fin: fecha_fin,
             lugar: lugar,
             linea_producto: linea_producto,
-            estados_objetivo: estados_objetivo,
+            ciudades_objetivo: ciudades_objetivo,
             vendedores_ids: vendedores_ids
         };
 

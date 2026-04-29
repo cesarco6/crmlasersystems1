@@ -1220,14 +1220,14 @@ def director_eventos_view(request):
     if not request.user.is_superuser:
         return render(request, '403.html')
         
-    eventos = Evento.objects.prefetch_related('vendedores_asignados').order_by('-fecha_inicio')
+    eventos = Evento.objects.prefetch_related('vendedores_asignados', 'ciudades_objetivo').order_by('-fecha_inicio')
     vendedores = User.objects.filter(is_active=True, is_superuser=False).order_by('username')
-    estados_list = CatUbicacion.objects.exclude(estado='').values_list('estado', flat=True).distinct().order_by('estado')
+    ciudades_list = CatUbicacion.objects.filter(is_active=True).order_by('estado', 'ciudad')
     
     context = {
         'eventos': eventos,
         'vendedores': vendedores,
-        'estados_list': estados_list,
+        'ciudades_list': ciudades_list,
     }
     return render(request, 'director_eventos.html', context)
 
@@ -1246,10 +1246,16 @@ def api_crear_evento(request):
         fecha_fin = data.get('fecha_fin')
         lugar = data.get('lugar')
         linea_producto = data.get('linea_producto', 'TODAS')
-        estados_objetivo = data.get('estados_objetivo', [])
+        ciudades_objetivo_ids = data.get('ciudades_objetivo', [])
         
-        if not all([nombre, fecha_inicio, fecha_fin, lugar]):
-             return JsonResponse({'success': False, 'error': 'Revisa los campos obligatorios.'}, status=400)
+        if not all([nombre, fecha_inicio, fecha_fin]):
+            return JsonResponse({'success': False, 'error': 'Faltan campos obligatorios.'}, status=400)
+            
+        if tipo != 'CAMPAÑA' and not lugar:
+            return JsonResponse({'success': False, 'error': 'El lugar es obligatorio para Expos y Talleres.'}, status=400)
+            
+        if tipo == 'CAMPAÑA':
+            lugar = None
              
         vendedores_ids = data.get('vendedores_ids', [])
         
@@ -1259,9 +1265,11 @@ def api_crear_evento(request):
             fecha_inicio=fecha_inicio,
             fecha_fin=fecha_fin,
             lugar=lugar,
-            linea_producto=linea_producto,
-            estados_objetivo=estados_objetivo
+            linea_producto=linea_producto
         )
+        
+        if ciudades_objetivo_ids:
+            nuevo_evento.ciudades_objetivo.set(ciudades_objetivo_ids)
         
         if vendedores_ids:
             nuevo_evento.vendedores_asignados.set(vendedores_ids)

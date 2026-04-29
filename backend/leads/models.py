@@ -298,7 +298,8 @@ class Evento(models.Model):
     ]
     TIPO_CHOICES = [
         ('EXPO', 'Expo / Congreso'),
-        ('TALLER', 'Taller / Capacitación')
+        ('TALLER', 'Taller / Capacitación'),
+        ('CAMPAÑA', 'Campaña Digital / Marketing')
     ]
     LINEA_CHOICES = [
         ('SPORT', 'Línea Sport'),
@@ -306,6 +307,8 @@ class Evento(models.Model):
         ('DENTAL', 'Línea Dental'),
         ('PODOLOGICO', 'Línea Podológica'),
         ('BEAUTY', 'Línea Beauty'),
+        ('SERVICIO', 'Servicios'),
+        ('ACCESORIO', 'Accesorios'),
         ('TODAS', 'Todas las Líneas')
     ]
     
@@ -313,11 +316,12 @@ class Evento(models.Model):
     tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='EXPO')
     fecha_inicio = models.DateField()
     fecha_fin = models.DateField()
-    lugar = models.CharField(max_length=255)
+    lugar = models.CharField(max_length=255, blank=True, null=True)
     estatus = models.CharField(max_length=20, choices=ESTATUS_CHOICES, default='ACTIVO')
     
     linea_producto = models.CharField(max_length=20, choices=LINEA_CHOICES, default='TODAS')
-    estados_objetivo = models.JSONField(default=list, help_text="Lista de nombres de estados")
+    estados_objetivo = models.JSONField(default=list, help_text="[DEPRECADO] Lista de nombres de estados")
+    ciudades_objetivo = models.ManyToManyField('users.CatUbicacion', blank=True, related_name='eventos_asociados')
     
     vendedores_asignados = models.ManyToManyField(User, related_name='eventos_asignados', blank=True)
     
@@ -330,3 +334,22 @@ class Evento(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.estatus})"
+
+
+class LeadEvento(models.Model):
+    """
+    Tabla intermedia para registrar qué Clientes (CoreLeads) 
+    provienen o participaron en un Evento o Campaña.
+    """
+    evento = models.ForeignKey(Evento, on_delete=models.CASCADE, related_name='clientes_vinculados')
+    lead = models.ForeignKey(CoreLead, on_delete=models.CASCADE, related_name='eventos_asociados')
+    fecha_vinculacion = models.DateTimeField(auto_now_add=True)
+    comentarios = models.TextField(blank=True, null=True, help_text="Notas sobre la participación del cliente")
+
+    class Meta:
+        unique_together = ('evento', 'lead')
+        verbose_name = 'Cliente en Evento/Campaña'
+        verbose_name_plural = 'Clientes en Eventos/Campañas'
+
+    def __str__(self):
+        return f"{self.lead.nombre_completo_mdm} vinculado a {self.evento.nombre}"
