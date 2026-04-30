@@ -53,22 +53,11 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         # ESCENARIO B: LA RED DE ARRASTRE (Filtrando grupos diarios)
         # ---------------------------------------------------------
         else:
-            # Regla INBOX ZERO: Ocultar los que ya terminaron su ciclo
-            #qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
-            # Regla HIBERNACIÓN: Si está "En Espera" para una fecha futura, lo ocultamos hoy
-            # (Asumiendo que usas next_action_date, si usas otro campo, lo cambiamos)
-            #qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
-            if filtro_rapido == 'clientes':
-                # Si presionó el botón de Clientes, le traemos solo los clientes orgánicos
-                qs = qs.filter(estatus='CLIENTE', es_historico=False)
-            elif filtro_rapido == 'historicos':
-                qs = qs.filter(es_historico=True)
-            else:
-                # Regla INBOX ZERO: (Se mantiene para todo lo demás)
-                qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
-                
-                # Regla HIBERNACIÓN: (Se mantiene para todo lo demás)
-                qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
+            # Regla INBOX ZERO: (Se mantiene para todo lo demás)
+            qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
+            
+            # Regla HIBERNACIÓN: (Se mantiene para todo lo demás)
+            qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
 
             # Aplicar el botón que el vendedor haya presionado
             if filtro_rapido == 'hoy':
@@ -78,37 +67,6 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
             elif filtro_rapido == 'urgentes':
                 # Ejemplo: leads en SEGUIMIENTO que su fecha de acción ya se pasó
                 qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
-            elif filtro_rapido == 'campanas':
-                from .models import Evento
-                eventos_activos = Evento.objects.filter(
-                    estatus='ACTIVO',
-                    vendedores_asignados=self.request.user
-                )
-
-                lineas_objetivo = []
-                estados_obj = set()
-                for ev in eventos_activos:
-                    if ev.linea_producto and ev.linea_producto not in lineas_objetivo:
-                        lineas_objetivo.append(ev.linea_producto)
-                    if ev.estados_objetivo:
-                        estados_obj.update(ev.estados_objetivo)
-                
-                estados_obj = list(estados_obj)
-
-                if not eventos_activos.exists():
-                    qs = qs.none()
-                else:
-                    q_campanas = Q()
-                    if estados_obj:
-                        q_campanas &= Q(ubicacion__estado__in=estados_obj)
-
-                    if lineas_objetivo and 'TODAS' not in lineas_objetivo:
-                        q_lineas = Q()
-                        for linea in lineas_objetivo:
-                            q_lineas |= Q(producto_cat__nombre__icontains=linea)
-                        q_campanas &= q_lineas
-
-                    qs = qs.filter(q_campanas)
         
         # Ordenamos la consulta final
         qs = qs.order_by('-updated_at')
@@ -140,6 +98,30 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         
         # KPIs rápidos para la parte superior del Dashboard (Contadores)
         context['total_activos'] = CoreLead.objects.filter(owner=self.request.user).exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
+        
+        return context
+
+@method_decorator(role_required(['VENDEDOR']), name='dispatch')
+class Ventas360View(LoginRequiredMixin, TemplateView):
+    template_name = 'ventas_360.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        qs_base = CoreLead.objects.filter(owner=self.request.user)
+        
+        # 1. Mis Clientes
+        context['mis_clientes'] = qs_base.filter(estatus='CLIENTE', es_historico=False).order_by('-updated_at')
+        
+        # 2. Históricos
+        context['historicos'] = qs_base.filter(es_historico=True).order_by('-updated_at')
+        
+        # 3. Campañas Activas
+        from .models import Evento
+        context['eventos_activos'] = Evento.objects.filter(
+            estatus='ACTIVO',
+            vendedores_asignados=self.request.user
+        ).order_by('-fecha_inicio')
         
         return context
 

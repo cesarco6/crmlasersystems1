@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ventas 360 - CRM Laser Systems{% endblock %}
+
+{% block content %}
+<section class="container-fluid px-2 px-md-4 py-3">
+    
+    <!-- Encabezado -->
+    <div class="mb-4">
+        <h2 class="fw-bold text-body mb-0">🔄 Ventas 360</h2>
+        <p class="text-muted small">Fidelización, Campañas y Rescate de Históricos</p>
+    </div>
+
+    <!-- Pestañas (Tabs) -->
+    <ul class="nav nav-tabs mb-4" id="ventas360Tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active fw-bold" id="campanas-tab" data-bs-toggle="tab" data-bs-target="#campanas" type="button" role="tab" aria-controls="campanas" aria-selected="true">
+                🎟️ Mis Campañas
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="clientes-tab" data-bs-toggle="tab" data-bs-target="#clientes" type="button" role="tab" aria-controls="clientes" aria-selected="false">
+                🏆 Mis Clientes
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link fw-bold" id="historicos-tab" data-bs-toggle="tab" data-bs-target="#historicos" type="button" role="tab" aria-controls="historicos" aria-selected="false">
+                🏛️ Históricos
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las Pestañas -->
+    <div class="tab-content" id="ventas360TabsContent">
+        
+        <!-- Pestaña: CAMPAÑAS Y EVENTOS -->
+        <div class="tab-pane fade show active" id="campanas" role="tabpanel" aria-labelledby="campanas-tab">
+            <div class="row g-4">
+                {% for evento in eventos_activos %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-header bg-body border-bottom py-3 d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ evento.get_tipo_display }}</span>
+                            <small class="text-muted fw-bold">🎯 {{ evento.get_linea_producto_display }}</small>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="fw-bold text-body">{{ evento.nombre }}</h5>
+                            <p class="text-muted small mb-3"><i class="bi bi-geo-alt"></i> {{ evento.lugar|default:"Ubicación no especificada" }}</p>
+                            
+                            <div class="d-flex align-items-center gap-2 mb-3">
+                                <i class="bi bi-calendar-event text-secondary"></i>
+                                <span class="small fw-bold">{{ evento.fecha_inicio|date:"d M Y" }}</span>
+                                <span class="small text-muted">al</span>
+                                <span class="small fw-bold">{{ evento.fecha_fin|date:"d M Y" }}</span>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-transparent border-top pt-3 pb-3">
+                            <a href="{% url 'dashboard_agente' %}?filtro=campanas" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                                Ver Prospectos de Campañas
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12">
+                    <div class="text-center py-5 text-muted bg-body rounded shadow-sm">
+                        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
+                        ¡No tienes eventos ni campañas activas asignadas en este momento!
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Pestaña: MIS CLIENTES -->
+        <div class="tab-pane fade" id="clientes" role="tabpanel" aria-labelledby="clientes-tab">
+            <div class="card card-ers shadow-sm mb-4 border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-ers mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Cliente</th>
+                                    <th>Última Acción</th>
+                                    <th>Etapa</th>
+                                    <th>Especialidad</th>
+                                    <th>Ciudad</th>
+                                    <th class="text-end pe-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lead in mis_clientes %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</span>
+                                        <br><small class="text-muted">{{ lead.phone_primary }}</small>
+                                    </td>
+                                    <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">{{ lead.estatus }}</span>
+                                    </td>
+                                    <td class="text-body small">{{ lead.especialidad_cat.nombre|default:"-" }}</td>
+                                    <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
+                                    <td class="text-end pe-4">
+                                        <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
+                                            Fidelizar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-award fs-1 d-block mb-2"></i>
+                                        Aún no tienes clientes en cartera. ¡Sigue prospectando!
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña: HISTÓRICOS -->
+        <div class="tab-pane fade" id="historicos" role="tabpanel" aria-labelledby="historicos-tab">
+            <div class="card card-ers shadow-sm mb-4 border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-ers mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Lead Histórico</th>
+                                    <th>Última Acción</th>
+                                    <th>Etapa</th>
+                                    <th>Especialidad</th>
+                                    <th>Ciudad</th>
+                                    <th class="text-end pe-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lead in historicos %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</span>
+                                        <span class="badge bg-secondary ms-1" style="font-size: 0.65em;">Histórico</span>
+                                        <br><small class="text-muted">{{ lead.phone_primary }}</small>
+                                    </td>
+                                    <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.estatus }}</span>
+                                    </td>
+                                    <td class="text-body small">{{ lead.especialidad_cat.nombre|default:"-" }}</td>
+                                    <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
+                                    <td class="text-end pe-4">
+                                        <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-secondary fw-bold px-3 shadow-sm">
+                                            Revisar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-archive fs-1 d-block mb-2"></i>
+                                        No tienes leads históricos asignados.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</section>
+{% endblock %}

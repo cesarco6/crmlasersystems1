@@ -20,7 +20,7 @@ from django.views.generic import RedirectView
 from leads import views as leads_views
 
 # 1. Agregamos "procesar_alta_manual" a la lista de importaciones
-from leads.views import DashboardAgenteView, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra, AgenteStagingListView, AgenteStagingProcesarView
+from leads.views import DashboardAgenteView, Ventas360View, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra, AgenteStagingListView, AgenteStagingProcesarView
 from users.views import panel_territorios, custom_login_view, custom_logout_view, api_territorios_vendedor
 
 urlpatterns = [
@@ -28,6 +28,7 @@ urlpatterns = [
     path('login/', custom_login_view, name='login'),
     path('logout/', custom_logout_view, name='logout'),
     path('dashboard/agente/', DashboardAgenteView.as_view(), name='dashboard_agente'),
+    path('agente/ventas-360/', Ventas360View.as_view(), name='ventas_360'),
     path('ingesta-masiva/', IngestaMasivaView.as_view(), name='ingesta_masiva'),
     path('api/ingesta/', procesar_ingesta_masiva, name='api_ingesta_masiva'),
     path('director/ingesta-historica/', IngestaHistoricaView.as_view(), name='director_ingesta'),
