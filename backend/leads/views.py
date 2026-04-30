@@ -110,18 +110,44 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         
         qs_base = CoreLead.objects.filter(owner=self.request.user)
         
-        # 1. Mis Clientes
-        context['mis_clientes'] = qs_base.filter(estatus='CLIENTE', es_historico=False).order_by('-updated_at')
+        from .models import Evento, VentaTransaccional
+        
+        # 1. Oportunidades 360 (Antes Mis Clientes)
+        qs_oportunidades = VentaTransaccional.objects.filter(vendedor=self.request.user).order_by('-fecha_venta')
+        paginator_oportunidades = Paginator(qs_oportunidades, 10)
+        page_oportunidades = self.request.GET.get('page_oportunidades')
+        context['oportunidades_360'] = paginator_oportunidades.get_page(page_oportunidades)
         
         # 2. Históricos
-        context['historicos'] = qs_base.filter(es_historico=True).order_by('-updated_at')
+        qs_historicos = qs_base.filter(es_historico=True).order_by('-updated_at')
+        paginator_historicos = Paginator(qs_historicos, 10)
+        page_historicos = self.request.GET.get('page_historicos')
+        context['historicos'] = paginator_historicos.get_page(page_historicos)
         
-        # 3. Campañas Activas
-        from .models import Evento
-        context['eventos_activos'] = Evento.objects.filter(
-            estatus='ACTIVO',
-            vendedores_asignados=self.request.user
-        ).order_by('-fecha_inicio')
+        # Pestaña activa por defecto
+        context['active_tab'] = self.request.GET.get('tab', 'campanas')
+        
+        # 3. Campañas y Eventos
+        filtro_evento = self.request.GET.get('filtro_evento', 'todos')
+        context['filtro_evento'] = filtro_evento
+        
+        from django.utils import timezone
+        import datetime
+        hoy = timezone.now().date()
+        
+        qs_eventos = Evento.objects.filter(vendedores_asignados=self.request.user)
+        
+        if filtro_evento == 'proximos_7':
+            limite = hoy + datetime.timedelta(days=7)
+            qs_eventos = qs_eventos.filter(estatus='ACTIVO', fecha_inicio__gte=hoy, fecha_inicio__lte=limite).order_by('fecha_inicio')
+        elif filtro_evento == 'este_mes':
+            qs_eventos = qs_eventos.filter(estatus='ACTIVO', fecha_inicio__year=hoy.year, fecha_inicio__month=hoy.month).order_by('fecha_inicio')
+        elif filtro_evento == 'finalizados':
+            qs_eventos = qs_eventos.filter(estatus='FINALIZADO').order_by('-fecha_inicio')
+        else: # 'todos' o por defecto
+            qs_eventos = qs_eventos.filter(estatus='ACTIVO').order_by('fecha_inicio')
+            
+        context['eventos_activos'] = qs_eventos
         
         return context
 
@@ -1255,6 +1281,15 @@ def api_crear_evento(request):
         
         if vendedores_ids:
             nuevo_evento.vendedores_asignados.set(vendedores_ids)
+            
+            # Crear notificación para cada vendedor asignado
+            from .models import Notificacion
+            for v_id in vendedores_ids:
+                Notificacion.objects.create(
+                    usuario_id=v_id,
+                    tipo='general',
+                    mensaje=f"📅 Nueva asignación: Has sido agregado a la campaña/evento: {nombre}"
+                )
             
         return JsonResponse({'success': True, 'message': 'Evento creado correctamente.'})
         

@@ -15,17 +15,17 @@
     <!-- Pestañas (Tabs) -->
     <ul class="nav nav-tabs mb-4" id="ventas360Tabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active fw-bold" id="campanas-tab" data-bs-toggle="tab" data-bs-target="#campanas" type="button" role="tab" aria-controls="campanas" aria-selected="true">
+            <button class="nav-link {% if active_tab == 'campanas' %}active{% endif %} fw-bold" id="campanas-tab" data-bs-toggle="tab" data-bs-target="#campanas" type="button" role="tab" aria-controls="campanas" aria-selected="{% if active_tab == 'campanas' %}true{% else %}false{% endif %}">
                 🎟️ Mis Campañas
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="clientes-tab" data-bs-toggle="tab" data-bs-target="#clientes" type="button" role="tab" aria-controls="clientes" aria-selected="false">
-                🏆 Mis Clientes
+            <button class="nav-link {% if active_tab == 'clientes' %}active{% endif %} fw-bold" id="oportunidades-tab" data-bs-toggle="tab" data-bs-target="#oportunidades" type="button" role="tab" aria-controls="oportunidades" aria-selected="{% if active_tab == 'clientes' %}true{% else %}false{% endif %}">
+                🏆 Oportunidades 360
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link fw-bold" id="historicos-tab" data-bs-toggle="tab" data-bs-target="#historicos" type="button" role="tab" aria-controls="historicos" aria-selected="false">
+            <button class="nav-link {% if active_tab == 'historicos' %}active{% endif %} fw-bold" id="historicos-tab" data-bs-toggle="tab" data-bs-target="#historicos" type="button" role="tab" aria-controls="historicos" aria-selected="{% if active_tab == 'historicos' %}true{% else %}false{% endif %}">
                 🏛️ Históricos
             </button>
         </li>
@@ -35,7 +35,21 @@
     <div class="tab-content" id="ventas360TabsContent">
         
         <!-- Pestaña: CAMPAÑAS Y EVENTOS -->
-        <div class="tab-pane fade show active" id="campanas" role="tabpanel" aria-labelledby="campanas-tab">
+        <div class="tab-pane fade {% if active_tab == 'campanas' %}show active{% endif %}" id="campanas" role="tabpanel" aria-labelledby="campanas-tab">
+            <ul class="nav nav-pills gap-2 mb-4">
+                <li class="nav-item">
+                    <a href="?tab=campanas&filtro_evento=proximos_7" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'proximos_7' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟢 Próximos 7 días</a>
+                </li>
+                <li class="nav-item">
+                    <a href="?tab=campanas&filtro_evento=este_mes" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'este_mes' %}active border-primary{% else %}border-secondary text-body{% endif %}">🔵 Este Mes</a>
+                </li>
+                <li class="nav-item">
+                    <a href="?tab=campanas&filtro_evento=todos" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'todos' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟡 Todos Activos</a>
+                </li>
+                <li class="nav-item">
+                    <a href="?tab=campanas&filtro_evento=finalizados" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'finalizados' %}active bg-secondary border-secondary text-white{% else %}border-secondary text-body{% endif %}">🏛️ Finalizados</a>
+                </li>
+            </ul>
             <div class="row g-4">
                 {% for evento in eventos_activos %}
                 <div class="col-md-6 col-lg-4">
@@ -73,38 +87,38 @@
             </div>
         </div>
 
-        <!-- Pestaña: MIS CLIENTES -->
-        <div class="tab-pane fade" id="clientes" role="tabpanel" aria-labelledby="clientes-tab">
+        <!-- Pestaña: OPORTUNIDADES 360 -->
+        <div class="tab-pane fade {% if active_tab == 'clientes' %}show active{% endif %}" id="oportunidades" role="tabpanel" aria-labelledby="oportunidades-tab">
             <div class="card card-ers shadow-sm mb-4 border-0">
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover table-ers mb-0 align-middle">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">Cliente</th>
-                                    <th>Última Acción</th>
-                                    <th>Etapa</th>
-                                    <th>Especialidad</th>
-                                    <th>Ciudad</th>
+                                    <th class="ps-4">Lead</th>
+                                    <th>Producto/Servicio</th>
+                                    <th>Estatus</th>
+                                    <th>Fecha</th>
+                                    <th>Monto</th>
                                     <th class="text-end pe-4">Acción</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {% for lead in mis_clientes %}
+                                {% for oportunidad in oportunidades_360 %}
                                 <tr>
                                     <td class="ps-4">
-                                        <span class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</span>
-                                        <br><small class="text-muted">{{ lead.phone_primary }}</small>
+                                        <span class="fw-bold text-body">{{ oportunidad.lead.nombre_completo_mdm }}</span>
+                                        <br><small class="text-muted">{{ oportunidad.lead.phone_primary }}</small>
                                     </td>
-                                    <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
+                                    <td class="text-body small">{{ oportunidad.producto.nombre|default:"-" }}</td>
                                     <td>
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle">{{ lead.estatus }}</span>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ oportunidad.get_estatus_display }}</span>
                                     </td>
-                                    <td class="text-body small">{{ lead.especialidad_cat.nombre|default:"-" }}</td>
-                                    <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
+                                    <td class="text-muted small">{{ oportunidad.fecha_venta|date:"d M Y" }}</td>
+                                    <td class="text-muted small">{% if oportunidad.monto %}${{ oportunidad.monto }}{% else %}-{% endif %}</td>
                                     <td class="text-end pe-4">
-                                        <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
-                                            Fidelizar
+                                        <a href="{% url 'ficha_trabajo' oportunidad.lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
+                                            Gestionar
                                         </a>
                                     </td>
                                 </tr>
@@ -112,7 +126,7 @@
                                 <tr>
                                     <td colspan="6" class="text-center py-5 text-muted">
                                         <i class="bi bi-award fs-1 d-block mb-2"></i>
-                                        Aún no tienes clientes en cartera. ¡Sigue prospectando!
+                                        Aún no tienes oportunidades 360 registradas.
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -120,11 +134,39 @@
                         </table>
                     </div>
                 </div>
+                
+                <div class="card-footer bg-transparent py-3 border-0">
+                    {% if oportunidades_360.has_other_pages %}
+                    <nav aria-label="Navegación de oportunidades">
+                        <ul class="pagination justify-content-center mb-0 mt-2">
+                            {% if oportunidades_360.has_previous %}
+                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=clientes&page_oportunidades={{ oportunidades_360.previous_page_number }}{% if request.GET.page_historicos %}&page_historicos={{ request.GET.page_historicos }}{% endif %}">Anterior</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link shadow-sm">Anterior</span></li>
+                            {% endif %}
+
+                            {% for num in oportunidades_360.paginator.page_range %}
+                                {% if oportunidades_360.number == num %}
+                                    <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
+                                {% elif num > oportunidades_360.number|add:'-3' and num < oportunidades_360.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link shadow-sm" href="?tab=clientes&page_oportunidades={{ num }}{% if request.GET.page_historicos %}&page_historicos={{ request.GET.page_historicos }}{% endif %}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if oportunidades_360.has_next %}
+                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=clientes&page_oportunidades={{ oportunidades_360.next_page_number }}{% if request.GET.page_historicos %}&page_historicos={{ request.GET.page_historicos }}{% endif %}">Siguiente</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link shadow-sm">Siguiente</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
             </div>
         </div>
 
         <!-- Pestaña: HISTÓRICOS -->
-        <div class="tab-pane fade" id="historicos" role="tabpanel" aria-labelledby="historicos-tab">
+        <div class="tab-pane fade {% if active_tab == 'historicos' %}show active{% endif %}" id="historicos" role="tabpanel" aria-labelledby="historicos-tab">
             <div class="card card-ers shadow-sm mb-4 border-0">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -170,6 +212,34 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                
+                <div class="card-footer bg-transparent py-3 border-0">
+                    {% if historicos.has_other_pages %}
+                    <nav aria-label="Navegación de históricos">
+                        <ul class="pagination justify-content-center mb-0 mt-2">
+                            {% if historicos.has_previous %}
+                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=historicos&page_historicos={{ historicos.previous_page_number }}{% if request.GET.page_clientes %}&page_clientes={{ request.GET.page_clientes }}{% endif %}">Anterior</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link shadow-sm">Anterior</span></li>
+                            {% endif %}
+
+                            {% for num in historicos.paginator.page_range %}
+                                {% if historicos.number == num %}
+                                    <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
+                                {% elif num > historicos.number|add:'-3' and num < historicos.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link shadow-sm" href="?tab=historicos&page_historicos={{ num }}{% if request.GET.page_clientes %}&page_clientes={{ request.GET.page_clientes }}{% endif %}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if historicos.has_next %}
+                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=historicos&page_historicos={{ historicos.next_page_number }}{% if request.GET.page_clientes %}&page_clientes={{ request.GET.page_clientes }}{% endif %}">Siguiente</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link shadow-sm">Siguiente</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
                 </div>
             </div>
         </div>
