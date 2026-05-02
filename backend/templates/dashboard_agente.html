@@ -55,18 +55,6 @@
                         class="btn btn-sm {% if filtro_actual == 'urgentes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
                         🔴 Urgentes
                     </a>
-                    <a href="?filtro=campanas{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-                        class="btn btn-sm {% if filtro_actual == 'campanas' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-                        🎟️ Campañas
-                    </a>
-                    <a href="?filtro=clientes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-                        class="btn btn-sm {% if filtro_actual == 'clientes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-                        🏆 Mis Clientes
-                    </a>
-                    <a href="?filtro=historicos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-                        class="btn btn-sm {% if filtro_actual == 'historicos' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-                        🏛️ Históricos
-                    </a>
                 </div>
 
                 <form method="GET" class="d-flex w-100 min-w-300px mt-2 mt-md-0" style="max-width: 400px;">
