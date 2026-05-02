@@ -1,5 +1,5 @@
 {% load static %}
-<div id="welcome-overlay" class="welcome-overlay">
+<div id="welcome-overlay" class="welcome-overlay" style="display:none;">
     <div class="welcome-content">        
         <img src="{% static 'images/LOGO-QUANTUM-logochico.png' %}" alt="Logo LS" class="img-fluid welcome-logo">
         <h2 class="welcome-title">Bienvenido, {{ request.user.first_name|title|default:"Compañero" }}</h2>
@@ -9,45 +9,38 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
+(function () {
+    // Ejecutar INMEDIATAMENTE (sin esperar DOMContentLoaded) para evitar cualquier flash
     try {
         const overlay = document.getElementById('welcome-overlay');
-        
-        // Función garantizada para remover la cortina y el modo esqueleto
-        const clearSkeletonAndOverlay = () => {
-            document.body.classList.remove('skeleton-active');
-            if (overlay) overlay.style.display = 'none';
-        };
 
-        // Si la llave existe en sessionStorage, significa que el usuario ya vio el Splash Layout
         if (sessionStorage.getItem('welcomeShown_ers')) {
-            // Cortina desaparece instantáneamente
-            if (overlay) overlay.style.display = 'none';
-            
-            // Simular carga de datos ("Skeleton Loading") muy rápida, sin bloquear vista
-            document.body.classList.add('skeleton-active');
-            setTimeout(clearSkeletonAndOverlay, 600);
-            
-        } else {
-            // Es la primera vez que inicia sesión hoy o carga la página maestra
-            sessionStorage.setItem('welcomeShown_ers', 'true');
-            document.body.classList.add('skeleton-active');
-            
-            // El telón dura 3s visible, luego se hace fadeout suavemente
-            setTimeout(() => {
-                if (overlay) overlay.classList.add('fade-out');
-                setTimeout(clearSkeletonAndOverlay, 600);
-            }, 3000);
+            // Ya vio el splash — el overlay permanece oculto, no hay skeleton en navegaciones
+            return;
         }
 
-        // Failsafe incondicional: por si hay errores en JS que anulen los setTimeouts
-        setTimeout(clearSkeletonAndOverlay, 5000);
+        // Primera visita de la sesión: mostrar el splash
+        sessionStorage.setItem('welcomeShown_ers', 'true');
+        if (overlay) overlay.style.display = 'flex';
+        document.body.classList.add('skeleton-active');
+
+        // Fade-out después de 2.5s
+        setTimeout(() => {
+            if (overlay) overlay.classList.add('fade-out');
+            setTimeout(() => {
+                document.body.classList.remove('skeleton-active');
+                if (overlay) overlay.style.display = 'none';
+            }, 600);
+        }, 2500);
+
+        // Failsafe: limpiar todo a los 4.5s en caso de error
+        setTimeout(() => {
+            document.body.classList.remove('skeleton-active');
+            if (overlay) overlay.style.display = 'none';
+        }, 4500);
+
     } catch (e) {
-        // En caso de cualquier choque violento de JS abortar el splash modal
-        document.body.classList.remove('skeleton-active');
-        const overlay = document.getElementById('welcome-overlay');
-        if (overlay) overlay.style.display = 'none';
         console.error("Error en welcome_overlay:", e);
     }
-});
+})();
 </script>

@@ -77,7 +77,7 @@
         <!-- Tarjeta 1: Cartera Activa -->
         <div class="col">
             <div class="kpi-card kpi-activos shadow-sm">
-                <div class="kpi-icon mb-1">💼</div>
+                <div class="kpi-icon mb-1"><i class="bi bi-briefcase-fill" style="color:var(--bs-primary);"></i></div>
                 <div class="kpi-num text-body">{{ total_activos }}</div>
                 <div class="kpi-label">Cartera Activa</div>
             </div>
@@ -87,7 +87,7 @@
         <div class="col">
             <a href="?filtro=frescos" class="text-decoration-none">
                 <div class="kpi-card kpi-prospecto shadow-sm">
-                    <div class="kpi-icon mb-1">🔵</div>
+                    <div class="kpi-icon mb-1"><i class="bi bi-person-plus-fill" style="color:#6366f1;"></i></div>
                     <div class="kpi-num" style="color:#6366f1;">{{ total_prospectos }}</div>
                     <div class="kpi-label">Prospectos</div>
                 </div>
@@ -97,7 +97,7 @@
         <!-- Tarjeta 3: Leads (identidad validada) -->
         <div class="col">
             <div class="kpi-card kpi-lead shadow-sm">
-                <div class="kpi-icon mb-1">🟡</div>
+                <div class="kpi-icon mb-1"><i class="bi bi-person-check-fill" style="color:#f59e0b;"></i></div>
                 <div class="kpi-num" style="color:#f59e0b;">{{ total_leads }}</div>
                 <div class="kpi-label">Leads</div>
             </div>
@@ -106,7 +106,7 @@
         <!-- Tarjeta 4: Calificados -->
         <div class="col">
             <div class="kpi-card kpi-calificado shadow-sm">
-                <div class="kpi-icon mb-1">🟣</div>
+                <div class="kpi-icon mb-1"><i class="bi bi-star-fill" style="color:#a855f7;"></i></div>
                 <div class="kpi-num" style="color:#a855f7;">{{ total_calificados }}</div>
                 <div class="kpi-label">Calificados</div>
             </div>
@@ -115,7 +115,7 @@
         <!-- Tarjeta 5: Cierres del mes -->
         <div class="col">
             <div class="kpi-card kpi-cierre shadow-sm">
-                <div class="kpi-icon mb-1">🟢</div>
+                <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill" style="color:#10b981;"></i></div>
                 <div class="kpi-num" style="color:#10b981;">{{ total_cierres_mes }}</div>
                 <div class="kpi-label">Cierres / Mes</div>
             </div>
@@ -186,13 +186,27 @@
                         <tr>
                             <td class="ps-4">
                                 <span class="fw-bold text-body">
-                                    {% if lead.clinica and not lead.apellido_paterno %}<i title="Clínica Corporativa">🏥</i>{% elif lead.clinica %}<i title="Médico de Clínica: {{ lead.clinica.nombre }}">👩‍⚕️</i>{% else %}<i title="Médico Independiente">👩‍⚕️</i>{% endif %}
+                                    {% if lead.clinica and not lead.apellido_paterno %}
+                                        <i class="bi bi-building-fill text-info" title="Clínica Corporativa"></i>
+                                    {% elif lead.clinica %}
+                                        <i class="bi bi-hospital-fill text-primary" title="Médico de Clínica: {{ lead.clinica.nombre }}"></i>
+                                    {% else %}
+                                        <i class="bi bi-person-fill text-secondary" title="Médico Independiente"></i>
+                                    {% endif %}
                                     {{ lead.nombre_completo_mdm }}
                                 </span>
                                 {% if lead.es_historico %}
                                     <span class="badge bg-secondary ms-1" style="font-size: 0.65em;">Histórico</span>
                                 {% endif %}
-                                <br><small class="text-muted">{{ lead.phone_primary }}</small>
+                                <br>
+                                {% if lead.clinica and not lead.apellido_paterno %}
+                                    <span class="badge rounded-pill bg-info-subtle text-info border border-info-subtle" style="font-size:0.65em;">🏢 Clínica Corporativa</span>
+                                {% elif lead.clinica %}
+                                    <span class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle" style="font-size:0.65em;">🏥 Médico de Clínica</span>
+                                {% else %}
+                                    <span class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle" style="font-size:0.65em;">👤 Independiente</span>
+                                {% endif %}
+                                <small class="text-muted ms-1" style="font-size:0.72em;">{{ lead.phone_primary }}</small>
                             </td>
                             <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
                             <td>
