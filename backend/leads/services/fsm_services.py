@@ -23,12 +23,12 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
                     lead.apellido_paterno = ''
                     lead.apellido_materno = ''
                     lead.titulo_cortesia_id = None
-                    lead.nombre = nombre_corp[:100]
+                    # lead.nombre = nombre_corp[:100]
                     
                     from leads.models import Clinica
                     clinica_obj, _ = Clinica.objects.get_or_create(
                         telefono_master=lead.phone_primary,
-                        defaults={'nombre': nombre_corp}
+                        defaults={'nombre': nombre_corp, 'ubicacion': lead.ubicacion}
                     )
                     lead.clinica = clinica_obj
 
@@ -51,7 +51,7 @@ def procesar_transicion_fsm(lead_id: str, data: dict, user):
                     if nombre: partes_nombre.append(nombre)
                     if paterno: partes_nombre.append(paterno)
                     if materno: partes_nombre.append(materno)
-                    lead.nombre = " ".join(partes_nombre)[:100]
+                    # lead.nombre = " ".join(partes_nombre)[:100]
                     
                 # Actualizar catálogos (Solo en Prospecto)
                 nueva_esp_str = data.get('especialidad', '').strip()

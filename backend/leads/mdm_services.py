@@ -50,7 +50,7 @@ def evaluar_duplicidad_estricta(nombre_entrante, telefono_entrante, especialidad
     
     for lead_existente in coincidencias_telefono:
         # Filtro 2 (Choque de Nombres)
-        set_existente = extraer_set_palabras(lead_existente.nombre)
+        set_existente = extraer_set_palabras(lead_existente.nombre_completo_mdm)
         
         # Si la intersección es vacía (0 coincidencias lexicográficas), no chocan sus nombres
         if not set_entrante.intersection(set_existente):

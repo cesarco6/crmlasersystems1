@@ -18,17 +18,17 @@ def rutina_diaria_alertas():
     
     for lead in leads_estancados:
         # Aquí crearemos la notificación (Badge) para el vendedor
-        # Ejemplo: "El lead {lead.nombre} lleva 30 días sin avance. Por favor, actualiza sus notas o cambia su estado."
-        print(f"ALERTA CREADA PARA: {lead.nombre} - 30 días sin cierre")
+        # Ejemplo: "El lead {lead.nombre_completo_mdm} lleva 30 días sin avance. Por favor, actualiza sus notas o cambia su estado."
+        print(f"ALERTA CREADA PARA: {lead.nombre_completo_mdm} - 30 días sin cierre")
+        # Aquí puedes agregar lógica real de correo, websocket o crear un objeto 'Alerta'
 
-    # Regla de Reactivación: Leads 'En Espera' que llegan a su fecha
-    leads_a_despertar = Lead.objects.filter(
-        estado='espera',
-        fecha_reactivacion__date=hoy
-    )
-    
-    for lead in leads_a_despertar:
-        # Alerta: "Es hora de contactar de nuevo a {lead.nombre}"
-        print(f"DESPERTAR A: {lead.nombre}")
+@shared_task
+def despertar_lead(lead_id):
+    try:
+        lead = Lead.objects.get(id=lead_id)
+        # Alerta: "Es hora de contactar de nuevo a {lead.nombre_completo_mdm}"
+        print(f"DESPERTAR A: {lead.nombre_completo_mdm}")
+    except Lead.DoesNotExist:
+        pass
         
     return "Rutina de alertas ejecutada con éxito"

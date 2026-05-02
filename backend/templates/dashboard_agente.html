@@ -114,7 +114,10 @@
                         {% for lead in leads %}
                         <tr>
                             <td class="ps-4">
-                                <span class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</span>
+                                <span class="fw-bold text-body">
+                                    {% if lead.clinica and not lead.apellido_paterno %}<i title="Clínica Corporativa">🏥</i>{% elif lead.clinica %}<i title="Médico de Clínica: {{ lead.clinica.nombre }}">👩‍⚕️</i>{% else %}<i title="Médico Independiente">👩‍⚕️</i>{% endif %}
+                                    {{ lead.nombre_completo_mdm }}
+                                </span>
                                 {% if lead.es_historico %}
                                     <span class="badge bg-secondary ms-1" style="font-size: 0.65em;">Histórico</span>
                                 {% endif %}

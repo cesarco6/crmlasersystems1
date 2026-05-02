@@ -63,7 +63,7 @@ class Command(BaseCommand):
             crear_si_no_existe(
                 lead=lead,
                 tipo='reactivacion',
-                mensaje=f"📅 La agenda de {lead.nombre} venció el {lead.next_action_date}. ¡Contacta hoy!"
+                mensaje=f"📅 La agenda de {lead.nombre_completo_mdm} venció el {lead.next_action_date}. ¡Contacta hoy!"
             )
 
         self.stdout.write(f"  Regla 1 (reactivacion): evaluadas {leads_vencidos.count()} leads")
@@ -78,7 +78,7 @@ class Command(BaseCommand):
             crear_si_no_existe(
                 lead=lead,
                 tipo='estancamiento',
-                mensaje=f"🕸️ {lead.nombre} lleva {dias} días sin movimiento. ¡Reactívalo!"
+                mensaje=f"🕸️ {lead.nombre_completo_mdm} lleva {dias} días sin movimiento. ¡Reactívalo!"
             )
 
         self.stdout.write(f"  Regla 2 (estancamiento): evaluadas {leads_estancados.count()} leads")
@@ -98,7 +98,7 @@ class Command(BaseCommand):
             crear_si_no_existe(
                 lead=lead,
                 tipo='capacitacion',
-                mensaje=f"🎓 {lead.nombre} lleva {dias} días como cliente sin recibir capacitación. ¡Agéndala!"
+                mensaje=f"🎓 {lead.nombre_completo_mdm} lleva {dias} días como cliente sin recibir capacitación. ¡Agéndala!"
             )
 
         self.stdout.write(f"  Regla 3 (capacitacion): evaluados {trackings_sin_cap.count()} trackings")
@@ -118,7 +118,7 @@ class Command(BaseCommand):
             crear_si_no_existe(
                 lead=lead,
                 tipo='calidad',
-                mensaje=f"📞 {lead.nombre}: han pasado {dias} días. ¡Es momento de la llamada de calidad!"
+                mensaje=f"📞 {lead.nombre_completo_mdm}: han pasado {dias} días. ¡Es momento de la llamada de calidad!"
             )
 
         self.stdout.write(f"  Regla 4 (calidad): evaluados {trackings_sin_calidad.count()} trackings")
@@ -153,7 +153,7 @@ class Command(BaseCommand):
                 crear_si_no_existe(
                     lead=lead,
                     tipo='mantenimiento',
-                    mensaje=f"🔧 {lead.nombre}: Han pasado {dias} días desde el último servicio. ¡Es momento del mantenimiento!"
+                    mensaje=f"🔧 {lead.nombre_completo_mdm}: Han pasado {dias} días desde el último servicio. ¡Es momento del mantenimiento!"
                 )
 
         self.stdout.write(f"  Regla 5 (mantenimiento): evaluados {clientes.count()} clientes")

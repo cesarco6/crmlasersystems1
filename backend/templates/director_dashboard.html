@@ -270,7 +270,10 @@
                                 <tr>
                                     <td>
                                         <div class="d-flex flex-column">
-                                            <span class="fw-bold">{{ lead.nombre_completo_mdm }}</span>
+                                            <span class="fw-bold">
+                                                {% if lead.clinica and not lead.apellido_paterno %}<i title="Clínica Corporativa">🏥</i>{% elif lead.clinica %}<i title="Médico de Clínica: {{ lead.clinica.nombre }}">👩‍⚕️</i>{% else %}<i title="Médico Independiente">👩‍⚕️</i>{% endif %}
+                                                {{ lead.nombre_completo_mdm }}
+                                            </span>
                                             <span class="text-muted small">{{ lead.telefono|default:lead.celular|default:"Sin teléfono" }}</span>
                                         </div>
                                     </td>

@@ -42,7 +42,7 @@ def crear_prospecto_core(data: dict, user):
             
         elif estatus_identidad == 'DUPLICADO':
             dueño_actual = resultado_identidad.owner.username if resultado_identidad.owner else 'Sin asignar'
-            return {"success": False, "error": f"⚠️ Posible Duplicado: Un registro similar ({resultado_identidad.nombre}) ya usa este teléfono. Pertenece a la cartera de {dueño_actual}.", "status_code": 400}
+            return {"success": False, "error": f"⚠️ Posible Duplicado: Un registro similar ({resultado_identidad.nombre_completo_mdm}) ya usa este teléfono. Pertenece a la cartera de {dueño_actual}.", "status_code": 400}
             
         telefono_limpio = resultado_identidad
         
@@ -56,7 +56,7 @@ def crear_prospecto_core(data: dict, user):
         if tipo_entidad == 'CORPORATIVO':
             clinica_obj, _ = Clinica.objects.get_or_create(
                 telefono_master=telefono_limpio,
-                defaults={'nombre': nombre_concatenado}
+                defaults={'nombre': nombre_concatenado, 'ubicacion': ubicacion_obj}
             )
             nuevo_lead = CoreLead.objects.create(
                 owner=user,

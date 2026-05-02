@@ -73,7 +73,10 @@
                     <tbody>
                         {% for lead in page_obj %}
                         <tr>
-                            <td class="fw-bold text-body">{{ lead.nombre_completo_mdm }}</td>
+                            <td class="fw-bold text-body">
+                                {% if lead.clinica and not lead.apellido_paterno %}<i title="Clínica Corporativa">🏥</i>{% elif lead.clinica %}<i title="Médico de Clínica: {{ lead.clinica.nombre }}">👩‍⚕️</i>{% else %}<i title="Médico Independiente">👩‍⚕️</i>{% endif %}
+                                {{ lead.nombre_completo_mdm }}
+                            </td>
                             <td class="text-muted">{{ lead.phone_primary|default:"Sin registro" }}</td>
                             <td><span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.estatus }}</span></td>
                             <td class="text-center">
@@ -139,6 +142,7 @@
             <div class="modal-content border-0 shadow-lg">
                 <div class="modal-header border-bottom-0 pb-0">
                     <h5 class="modal-title fw-bold text-body">
+                        {% if lead.clinica and not lead.apellido_paterno %}<i title="Clínica Corporativa">🏥</i>{% elif lead.clinica %}<i title="Médico de Clínica: {{ lead.clinica.nombre }}">👩‍⚕️</i>{% else %}<i title="Médico Independiente">👩‍⚕️</i>{% endif %}
                         {{ lead.nombre_completo_mdm }} 
                         <span class="badge bg-secondary-subtle text-secondary ms-2">{{ lead.estatus }}</span>
                     </h5>
