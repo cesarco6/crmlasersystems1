@@ -7,9 +7,99 @@
 <section class="container-fluid px-2 px-md-4 py-3">
     
     <!-- Encabezado -->
-    <div class="mb-4">
+    <div class="mb-3">
         <h2 class="fw-bold text-body mb-0">🔄 Ventas 360</h2>
         <p class="text-muted small">Fidelización, Campañas y Rescate de Históricos</p>
+    </div>
+
+    <!-- KPI Cards — Ventas 360 -->
+    <style>
+        .kpi-card {
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            border: 1px solid var(--bs-border-color);
+            background: var(--bs-card-bg, var(--bs-body-bg));
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.15);
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+        }
+        .kpi-card.kpi-total::before      { background: var(--bs-primary); }
+        .kpi-card.kpi-gestion::before    { background: #f59e0b; }
+        .kpi-card.kpi-concretada::before { background: #10b981; }
+        .kpi-card.kpi-historico::before  { background: #8b5cf6; }
+        .kpi-card.kpi-campana::before    { background: #ec4899; }
+
+        .kpi-icon { font-size: 1.6rem; line-height: 1; }
+        .kpi-num  { font-size: 2rem; font-weight: 800; line-height: 1.1; }
+        .kpi-label {
+            font-size: 0.7rem; font-weight: 600;
+            letter-spacing: .06em; text-transform: uppercase;
+            color: var(--bs-secondary-color);
+        }
+    </style>
+
+    <div class="row g-3 mb-4">
+        <!-- Tarjeta 1: Total Oportunidades 360 -->
+        <div class="col">
+            <a href="?tab=clientes" class="text-decoration-none">
+                <div class="kpi-card kpi-total shadow-sm">
+                    <div class="kpi-icon mb-1">🏆</div>
+                    <div class="kpi-num text-body">{{ kpi_oportunidades_total }}</div>
+                    <div class="kpi-label">Oportunidades 360</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta 2: En Gestión (Pendiente + En_Gestion) -->
+        <div class="col">
+            <div class="kpi-card kpi-gestion shadow-sm">
+                <div class="kpi-icon mb-1">⏳</div>
+                <div class="kpi-num" style="color:#f59e0b;">{{ kpi_en_gestion }}</div>
+                <div class="kpi-label">En Gestión</div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 3: Concretadas -->
+        <div class="col">
+            <div class="kpi-card kpi-concretada shadow-sm">
+                <div class="kpi-icon mb-1">✅</div>
+                <div class="kpi-num" style="color:#10b981;">{{ kpi_concretadas }}</div>
+                <div class="kpi-label">Concretadas</div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Históricos -->
+        <div class="col">
+            <a href="?tab=historicos" class="text-decoration-none">
+                <div class="kpi-card kpi-historico shadow-sm">
+                    <div class="kpi-icon mb-1">🏛️</div>
+                    <div class="kpi-num" style="color:#8b5cf6;">{{ kpi_historicos }}</div>
+                    <div class="kpi-label">Históricos</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta 5: Campañas Activas -->
+        <div class="col">
+            <a href="?tab=campanas" class="text-decoration-none">
+                <div class="kpi-card kpi-campana shadow-sm">
+                    <div class="kpi-icon mb-1">🎟️</div>
+                    <div class="kpi-num" style="color:#ec4899;">{{ kpi_campanas_activas }}</div>
+                    <div class="kpi-label">Campañas Activas</div>
+                </div>
+            </a>
+        </div>
     </div>
 
     <!-- Pestañas (Tabs) -->

@@ -22,62 +22,145 @@
         </button>
     </div>
 
-    <!-- 1. Tarjetas de Estadísticas (Stats Nativos) -->
-    <div class="row g-4 mb-0">
-        <div class="col-md-3">
-            <div class="card card-ers border-start border-primary border-4 shadow-sm">
-                <div class="card-body d-flex align-items-center gap-3">
-                    <div class="fs-1">💼</div>
-                    <div>
-                        <div class="h2 fw-bold mb-0 text-body">{{ total_activos }}</div>
-                        <div class="text-muted small fw-bold text-uppercase">Cartera Activa</div>
-                    </div>
-                </div>
+    <!-- KPI Cards — Embudo de Ventas -->
+    <style>
+        .kpi-card {
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+            border: 1px solid var(--bs-border-color);
+            background: var(--bs-card-bg, var(--bs-body-bg));
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(0,0,0,.15);
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 4px;
+        }
+        .kpi-card.kpi-activos::before  { background: var(--bs-primary); }
+        .kpi-card.kpi-prospecto::before { background: #6366f1; }
+        .kpi-card.kpi-lead::before      { background: #f59e0b; }
+        .kpi-card.kpi-calificado::before{ background: #a855f7; }
+        .kpi-card.kpi-cierre::before    { background: #10b981; }
+
+        .kpi-icon {
+            font-size: 1.6rem;
+            line-height: 1;
+        }
+        .kpi-num {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.1;
+        }
+        .kpi-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--bs-secondary-color);
+        }
+        .kpi-badge {
+            font-size: 0.65rem;
+            padding: 2px 7px;
+            border-radius: 20px;
+        }
+    </style>
+
+    <div class="row g-3 mb-3">
+        <!-- Tarjeta 1: Cartera Activa -->
+        <div class="col">
+            <div class="kpi-card kpi-activos shadow-sm">
+                <div class="kpi-icon mb-1">💼</div>
+                <div class="kpi-num text-body">{{ total_activos }}</div>
+                <div class="kpi-label">Cartera Activa</div>
             </div>
         </div>
-        <div class="col-md-9">
-            <!-- 2. Filtros y Búsqueda -->
-            <div class="filters mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
-                <div class="d-flex flex-wrap gap-2">
-                    <a href="?filtro=activos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-                    class="btn btn-sm {% if filtro_actual == 'activos' or not filtro_actual %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-                    📋 Todos
-                    </a>
-                    <a href="?filtro=frescos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-                        class="btn btn-sm {% if filtro_actual == 'frescos' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-                        🔵 Nuevos
-                    </a>
-                    <a href="?filtro=hoy{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-                        class="btn btn-sm {% if filtro_actual == 'hoy' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-                        🟡 Para Hoy
-                    </a>
-                    <a href="?filtro=urgentes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-                        class="btn btn-sm {% if filtro_actual == 'urgentes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-                        🔴 Urgentes
-                    </a>
-                </div>
 
-                <form method="GET" class="d-flex w-100 min-w-300px mt-2 mt-md-0" style="max-width: 400px;">
-                    {% if filtro_actual %}
-                        <input type="hidden" name="filtro" value="{{ filtro_actual }}">
-                    {% endif %}
-                    <div class="input-group shadow-sm">
-                        <span class="input-group-text bg-body border-secondary border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="q" class="form-control bg-body border-secondary border-start-0 ps-0 text-body shadow-none" 
-                        placeholder="Buscar nombre, tel, correo..." value="{{ busqueda_actual|default:'' }}">
-                        <button type="submit" class="btn btn-primary fw-bold px-3">Buscar</button>
-                        {% if busqueda_actual %}
-                            <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}" class="btn btn-outline-secondary border-secondary bg-body d-flex align-items-center justify-content-center" title="Limpiar búsqueda">
-                                <i class="bi bi-x-lg"></i>
-                            </a>
-                        {% endif %}
-                    </div>
-                </form>
+        <!-- Tarjeta 2: Prospectos -->
+        <div class="col">
+            <a href="?filtro=frescos" class="text-decoration-none">
+                <div class="kpi-card kpi-prospecto shadow-sm">
+                    <div class="kpi-icon mb-1">🔵</div>
+                    <div class="kpi-num" style="color:#6366f1;">{{ total_prospectos }}</div>
+                    <div class="kpi-label">Prospectos</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta 3: Leads (identidad validada) -->
+        <div class="col">
+            <div class="kpi-card kpi-lead shadow-sm">
+                <div class="kpi-icon mb-1">🟡</div>
+                <div class="kpi-num" style="color:#f59e0b;">{{ total_leads }}</div>
+                <div class="kpi-label">Leads</div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 4: Calificados -->
+        <div class="col">
+            <div class="kpi-card kpi-calificado shadow-sm">
+                <div class="kpi-icon mb-1">🟣</div>
+                <div class="kpi-num" style="color:#a855f7;">{{ total_calificados }}</div>
+                <div class="kpi-label">Calificados</div>
+            </div>
+        </div>
+
+        <!-- Tarjeta 5: Cierres del mes -->
+        <div class="col">
+            <div class="kpi-card kpi-cierre shadow-sm">
+                <div class="kpi-icon mb-1">🟢</div>
+                <div class="kpi-num" style="color:#10b981;">{{ total_cierres_mes }}</div>
+                <div class="kpi-label">Cierres / Mes</div>
             </div>
         </div>
     </div>
 
-    
+    <!-- Filtros y Búsqueda -->
+    <div class="filters mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="?filtro=activos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+            class="btn btn-sm {% if filtro_actual == 'activos' or not filtro_actual %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+            📋 Todos
+            </a>
+            <a href="?filtro=frescos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                class="btn btn-sm {% if filtro_actual == 'frescos' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                🔵 Nuevos
+            </a>
+            <a href="?filtro=hoy{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                class="btn btn-sm {% if filtro_actual == 'hoy' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                🟡 Para Hoy
+            </a>
+            <a href="?filtro=urgentes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+                class="btn btn-sm {% if filtro_actual == 'urgentes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
+                🔴 Urgentes
+            </a>
+        </div>
+
+        <form method="GET" class="d-flex w-100 mt-2 mt-md-0" style="max-width: 420px;">
+            {% if filtro_actual %}
+                <input type="hidden" name="filtro" value="{{ filtro_actual }}">
+            {% endif %}
+            <div class="input-group shadow-sm">
+                <span class="input-group-text bg-body border-secondary border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="q" class="form-control bg-body border-secondary border-start-0 ps-0 text-body shadow-none" 
+                placeholder="Buscar nombre, tel, correo..." value="{{ busqueda_actual|default:'' }}">
+                <button type="submit" class="btn btn-primary fw-bold px-3">Buscar</button>
+                {% if busqueda_actual %}
+                    <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}" class="btn btn-outline-secondary border-secondary bg-body d-flex align-items-center justify-content-center" title="Limpiar búsqueda">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
 
     <!-- 3. La Tabla de Leads en formato nativo -->
     <div class="card card-ers shadow-sm mb-4 border-0">

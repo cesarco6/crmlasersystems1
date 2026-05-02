@@ -91,14 +91,20 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
         context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
         
-        # 3. ENVIAR RESULTADOS AL HTML
-        #context['leads'] = qs.order_by('-updated_at') # Los movidos recientemente van arriba
-        context['busqueda_actual'] = busqueda
-        context['filtro_actual'] = filtro_rapido
-        
-        # KPIs rápidos para la parte superior del Dashboard (Contadores)
-        context['total_activos'] = CoreLead.objects.filter(owner=self.request.user).exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
-        
+        # KPIs del Embudo de Ventas — Fila superior del Dashboard
+        qs_owner = CoreLead.objects.filter(owner=self.request.user)
+        mes_actual = localtime(now())
+
+        context['total_activos']     = qs_owner.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
+        context['total_prospectos']  = qs_owner.filter(estatus='PROSPECTO').count()
+        context['total_leads']       = qs_owner.filter(estatus='LEAD').count()
+        context['total_calificados'] = qs_owner.filter(estatus='LEAD_CALIFICADO').count()
+        context['total_cierres_mes'] = qs_owner.filter(
+            estatus='CLIENTE',
+            updated_at__year=mes_actual.year,
+            updated_at__month=mes_actual.month
+        ).count()
+
         return context
 
 @method_decorator(role_required(['VENDEDOR']), name='dispatch')
@@ -148,7 +154,17 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
             qs_eventos = qs_eventos.filter(estatus='ACTIVO').order_by('fecha_inicio')
             
         context['eventos_activos'] = qs_eventos
-        
+
+        # KPIs del resumen superior — Ventas 360
+        qs_oport_all = VentaTransaccional.objects.filter(vendedor=self.request.user)
+        context['kpi_oportunidades_total'] = qs_oport_all.count()
+        context['kpi_en_gestion']          = qs_oport_all.filter(estatus__in=['PENDIENTE', 'EN_GESTION']).count()
+        context['kpi_concretadas']         = qs_oport_all.filter(estatus='CONCRETADO').count()
+        context['kpi_historicos']          = qs_base.filter(es_historico=True).count()
+        context['kpi_campanas_activas']    = Evento.objects.filter(
+            vendedores_asignados=self.request.user, estatus='ACTIVO'
+        ).count()
+
         return context
 
 @method_decorator(role_required(['VENDEDOR', 'DIRECTOR', 'ADMIN']), name='dispatch')
