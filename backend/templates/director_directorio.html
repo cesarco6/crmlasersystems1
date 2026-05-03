@@ -46,9 +46,13 @@
                     </select>
                 </div>
                 <div class="col-md-2">
-                    <div class="d-flex gap-2">
+                    <div class="d-flex gap-2 flex-wrap">
                         <button type="submit" class="btn btn-sm btn-outline-primary">Filtrar</button>
                         <a href="{% url 'director_directorio' %}" class="btn btn-sm btn-outline-secondary">Limpiar</a>
+                        <a href="{% url 'director_directorio_exportar' %}?q={{ q }}&vendedor_id={{ vendedor_id }}&estatus={{ estatus_filtro }}&calificacion={{ calificacion }}"
+                           class="btn btn-sm btn-success" title="Descargar lista filtrada en Excel">
+                            📥 Exportar XLSX
+                        </a>
                     </div>
                 </div>
             </form>

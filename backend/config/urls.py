@@ -48,6 +48,8 @@ urlpatterns = [
     # Buscador Global Omnipotente - Director
     path('director/buscar/', leads_views.director_busqueda_view, name='director_busqueda'),
     path('director/directorio/', leads_views.director_directorio_view, name='director_directorio'),
+    path('director/directorio/exportar/', leads_views.director_directorio_exportar_view, name='director_directorio_exportar'),
+    path('agente/exportar-leads/', leads_views.agente_exportar_leads_view, name='agente_exportar_leads'),
     
     # Eventos y Campañas - Director
     path('director/eventos/', leads_views.director_eventos_view, name='director_eventos'),

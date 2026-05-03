@@ -141,6 +141,10 @@
                 class="btn btn-sm {% if filtro_actual == 'urgentes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
                 🔴 Urgentes
             </a>
+            <a href="{% url 'agente_exportar_leads' %}?filtro={{ filtro_actual }}&q={{ busqueda_actual }}"
+               class="btn btn-sm btn-success shadow-sm" title="Descargar lista actual en Excel">
+                📥 Exportar XLSX
+            </a>
         </div>
 
         <form method="GET" class="d-flex w-100 mt-2 mt-md-0" style="max-width: 420px;">

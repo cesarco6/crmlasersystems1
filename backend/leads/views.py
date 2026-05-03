@@ -107,6 +107,39 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
 
         return context
 
+@login_required
+def agente_exportar_leads_view(request):
+    """Exporta los leads del agente logueado a XLSX, respetando los filtros del dashboard."""
+    busqueda      = request.GET.get('q', '').strip()
+    filtro_rapido = request.GET.get('filtro', 'activos')
+    hoy           = localtime(now()).date()
+
+    qs = CoreLead.objects.filter(owner=request.user)
+
+    if busqueda:
+        qs = qs.filter(
+            Q(nombre_pila__icontains=busqueda) |
+            Q(apellido_paterno__icontains=busqueda) |
+            Q(apellido_materno__icontains=busqueda) |
+            Q(phone_primary__icontains=busqueda) |
+            Q(celular__icontains=busqueda) |
+            Q(email__icontains=busqueda) |
+            Q(clinica__nombre__icontains=busqueda)
+        )
+    else:
+        qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
+        qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
+        if filtro_rapido == 'hoy':
+            qs = qs.filter(next_action_date=hoy)
+        elif filtro_rapido == 'frescos':
+            qs = qs.filter(estatus='PROSPECTO')
+        elif filtro_rapido == 'urgentes':
+            qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
+
+    qs = qs.order_by('-updated_at')
+    return generar_respuesta_xlsx(qs, f"mis_leads_{request.user.username}.xlsx")
+
+
 @method_decorator(role_required(['VENDEDOR']), name='dispatch')
 class Ventas360View(LoginRequiredMixin, TemplateView):
     template_name = 'ventas_360.html'
@@ -711,7 +744,7 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
 import json
 from datetime import datetime
 from datetime import timedelta
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
 from users.models import CatUbicacion
@@ -1190,6 +1223,81 @@ def director_busqueda_view(request):
 
 from django.core.paginator import Paginator
 
+# ─── XLSX EXPORT HELPER ─────────────────────────────────────────────────────
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill, Alignment
+
+_CAL_MAP = {3: 'Alta', 2: 'Media', 1: 'Baja'}
+
+def generar_respuesta_xlsx(queryset, nombre_archivo):
+    """
+    Helper compartido. Recibe un QuerySet de CoreLead ya filtrado
+    y devuelve un HttpResponse con el archivo .xlsx listo para descargar.
+    """
+    qs = queryset.select_related(
+        'owner', 'especialidad_cat', 'producto_cat', 'ubicacion', 'titulo_cortesia'
+    )
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Leads"
+
+    header_font  = Font(bold=True, color="FFFFFF", size=11)
+    header_fill  = PatternFill("solid", fgColor="1E3A5F")
+    header_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+
+    HEADERS = [
+        "Nombre Completo", "Telefono", "Celular", "Email",
+        "Estatus", "Calificacion", "Producto", "Especialidad",
+        "Ciudad", "Vendedor", "Fecha Registro", "Notas",
+    ]
+    ws.append(HEADERS)
+    for cell in ws[1]:
+        cell.font      = header_font
+        cell.fill      = header_fill
+        cell.alignment = header_align
+    ws.row_dimensions[1].height = 30
+
+    for lead in qs:
+        notas_raw  = lead.notas_variadas or {}
+        notas_list = notas_raw.get("notas", []) if isinstance(notas_raw, dict) else []
+        notas_texto = " | ".join(
+            "[{}] {} -- {}".format(
+                n.get('tipo', ''),
+                n.get('contenido', ''),
+                str(n.get('fecha', ''))[:10]
+            )
+            for n in notas_list if isinstance(n, dict)
+        )
+
+        ws.append([
+            lead.nombre_completo_mdm,
+            lead.phone_primary or "",
+            lead.celular        or "",
+            lead.email          or "",
+            lead.estatus,
+            _CAL_MAP.get(lead.calificacion, "Sin calificacion"),
+            lead.producto_cat.nombre     if lead.producto_cat    else "",
+            lead.especialidad_cat.nombre if lead.especialidad_cat else "",
+            lead.ubicacion.ciudad        if lead.ubicacion        else "",
+            lead.owner.username.title()  if lead.owner            else "",
+            lead.created_at.strftime("%d/%m/%Y") if lead.created_at else "",
+            notas_texto,
+        ])
+
+    ANCHOS = [32, 14, 14, 28, 18, 14, 24, 24, 18, 16, 16, 60]
+    for i, ancho in enumerate(ANCHOS, start=1):
+        ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = ancho
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    response["Content-Disposition"] = 'attachment; filename="{}"'.format(nombre_archivo)
+    wb.save(response)
+    return response
+# ─────────────────────────────────────────────────────────────────────────────
+
+
 @login_required
 def director_directorio_view(request):
     if not request.user.is_superuser:
@@ -1236,6 +1344,38 @@ def director_directorio_view(request):
     }
     
     return render(request, 'director_directorio.html', context)
+
+
+@login_required
+def director_directorio_exportar_view(request):
+    """Exporta el directorio de leads a XLSX respetando los filtros activos."""
+    if not request.user.is_superuser:
+        return render(request, '403.html')
+
+    q            = request.GET.get('q', '').strip()
+    vendedor_id  = request.GET.get('vendedor_id', '')
+    estatus      = request.GET.get('estatus', '')
+    calificacion = request.GET.get('calificacion', '')
+
+    leads = CoreLead.objects.all()
+
+    if q:
+        leads = leads.filter(
+            Q(nombre_pila__icontains=q) |
+            Q(apellido_paterno__icontains=q) |
+            Q(apellido_materno__icontains=q) |
+            Q(phone_primary__icontains=q)
+        )
+    if vendedor_id:
+        leads = leads.filter(owner_id=vendedor_id)
+    if estatus:
+        leads = leads.filter(estatus=estatus)
+    if calificacion:
+        leads = leads.filter(calificacion=int(calificacion))
+
+    leads = leads.order_by('-created_at')
+    return generar_respuesta_xlsx(leads, "directorio_leads.xlsx")
+
 
 from .models import Evento
 
