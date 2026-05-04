@@ -203,71 +203,88 @@
     }
 
     function guardarEvento() {
-        const nombre = document.getElementById('ev_nombre').value.trim();
-        const tipo = document.getElementById('ev_tipo').value;
-        const fecha_inicio = document.getElementById('ev_fecha_inicio').value;
-        const fecha_fin = document.getElementById('ev_fecha_fin').value;
-        const lugar = document.getElementById('ev_lugar').value.trim();
-        
-        // --- Nuevas capturas ---
-        const linea_producto = document.getElementById('ev_linea').value;
-        const ciudSelect = document.getElementById('ev_ciudades');
-        const ciudades_objetivo = Array.from(ciudSelect.selectedOptions).map(opt => parseInt(opt.value));
-        // -----------------------
-        
-        // Obtener arrays del select múltiple (ahora solo de vendedores)
-        const vendSelect = document.getElementById('ev_vendedores');
-        const vendedores_ids = Array.from(vendSelect.selectedOptions).map(opt => parseInt(opt.value));
-        
-        if (!nombre || !fecha_inicio || !fecha_fin) {
-            alert("Por favor, completa los campos obligatorios.");
-            return;
-        }
-
-        if (tipo !== 'CAMPAÑA' && !lugar) {
-            alert("El Lugar o Sede es obligatorio para Expos y Talleres.");
-            return;
-        }
-
-        if (fecha_inicio > fecha_fin) {
-            alert("La fecha de inicio no puede ser mayor a la fecha de fin.");
-            return;
-        }
-
-        const data = {
-            nombre: nombre,
-            tipo: tipo,
-            fecha_inicio: fecha_inicio,
-            fecha_fin: fecha_fin,
-            lugar: lugar,
-            linea_producto: linea_producto,
-            ciudades_objetivo: ciudades_objetivo,
-            vendedores_ids: vendedores_ids
-        };
-
-        const csrftoken = getCookie('csrftoken');
-
-        fetch("{% url 'api_crear_evento' %}", {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken
-            },
-            body: JSON.stringify(data)
-        })
-        .then(response => response.json())
-        .then(res => {
-            if (res.success) {
-                alert("¡Evento creado correctamente!");
-                location.reload();
-            } else {
-                alert("Error al guardar: " + res.error);
-            }
-        })
-        .catch(err => {
-            console.error("Error en Fetch", err);
-            alert("Ocurrió un error en la conexión.");
-        });
+    // 1. Captura de datos (Igual a tu lógica actual)
+    const nombre = document.getElementById('ev_nombre').value.trim();
+    const tipo = document.getElementById('ev_tipo').value;
+    const fecha_inicio = document.getElementById('ev_fecha_inicio').value;
+    const fecha_fin = document.getElementById('ev_fecha_fin').value;
+    const lugar = document.getElementById('ev_lugar').value.trim();
+    const linea_producto = document.getElementById('ev_linea').value;
+    const ciudSelect = document.getElementById('ev_ciudades');
+    const ciudades_objetivo = Array.from(ciudSelect.selectedOptions).map(opt => parseInt(opt.value));
+    const vendSelect = document.getElementById('ev_vendedores');
+    const vendedores_ids = Array.from(vendSelect.selectedOptions).map(opt => parseInt(opt.value));
+    
+    // 2. Validaciones con SweetAlert2 (En lugar de alerts nativos)
+    if (!nombre || !fecha_inicio || !fecha_fin) {
+        Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor, completa los campos obligatorios.' });
+        return;
     }
+
+    if (tipo !== 'CAMPAÑA' && !lugar) {
+        Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'El Lugar o Sede es obligatorio para Expos y Talleres.' });
+        return;
+    }
+
+    if (fecha_inicio > fecha_fin) {
+        Swal.fire({ icon: 'error', title: 'Error en fechas', text: 'La fecha de inicio no puede ser mayor a la fecha de fin.' });
+        return;
+    }
+
+    // 3. Bloqueo de UI mientras se procesa (Evita clics dobles)
+    Swal.fire({
+        title: 'Guardando evento',
+        text: 'Estamos registrando la información en el sistema...',
+        allowOutsideClick: false,
+        didOpen: () => { Swal.showLoading(); }
+    });
+
+    const data = {
+        nombre: nombre,
+        tipo: tipo,
+        fecha_inicio: fecha_inicio,
+        fecha_fin: fecha_fin,
+        lugar: lugar,
+        linea_producto: linea_producto,
+        ciudades_objetivo: ciudades_objetivo,
+        vendedores_ids: vendedores_ids
+    };
+
+    const csrftoken = getCookie('csrftoken');
+
+    // 4. Envío de datos
+    fetch("{% url 'api_crear_evento' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrftoken
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(res => {
+        if (res.success) {
+            Swal.fire({
+                icon: 'success',
+                title: '¡Evento creado!',
+                text: 'Los datos se han guardado correctamente.',
+                timer: 1500,
+                showConfirmButton: false
+            }).then(() => {
+                location.reload(); // Recarga para ver el nuevo evento en la tabla
+            });
+        } else {
+            Swal.fire({
+                icon: 'error',
+                title: 'No se pudo guardar',
+                text: 'Error: ' + res.error
+            });
+        }
+    })
+    .catch(err => {
+        console.error("Error en Fetch", err);
+        Swal.fire({ icon: 'error', title: 'Error de red', text: 'Hubo un problema al conectar con el servidor.' });
+    });
+}
 </script>
 {% endblock %}
