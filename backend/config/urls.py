@@ -54,6 +54,7 @@ urlpatterns = [
     # Eventos y Campañas - Director
     path('director/eventos/', leads_views.director_eventos_view, name='director_eventos'),
     path('api/eventos/crear/', leads_views.api_crear_evento, name='api_crear_evento'),
+    path('api/eventos/eliminar/<int:evento_id>/', leads_views.api_eliminar_evento, name='api_eliminar_evento'),
     
     # Vistas de Dirección - Bandeja de Rescate
     path('director/rescate/', leads_views.bandeja_rescate_view, name='director_rescate'),

@@ -67,6 +67,12 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
             elif filtro_rapido == 'urgentes':
                 # Ejemplo: leads en SEGUIMIENTO que su fecha de acción ya se pasó
                 qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
+            elif filtro_rapido == 'campanas':
+                evento_id = self.request.GET.get('evento_id')
+                if evento_id:
+                    qs = qs.filter(eventos_asociados__evento_id=evento_id)
+                else:
+                    qs = qs.filter(eventos_asociados__isnull=False).distinct()
         
         # Ordenamos la consulta final
         qs = qs.order_by('-updated_at')
@@ -183,10 +189,35 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
             qs_eventos = qs_eventos.filter(estatus='ACTIVO', fecha_inicio__year=hoy.year, fecha_inicio__month=hoy.month).order_by('fecha_inicio')
         elif filtro_evento == 'finalizados':
             qs_eventos = qs_eventos.filter(estatus='FINALIZADO').order_by('-fecha_inicio')
-        else: # 'todos' o por defecto
+        else:
             qs_eventos = qs_eventos.filter(estatus='ACTIVO').order_by('fecha_inicio')
             
         context['eventos_activos'] = qs_eventos
+
+        # Manejo de Opción A: Prospectos in-place
+        evento_id = self.request.GET.get('evento_id')
+        if evento_id:
+            evento_seleccionado = Evento.objects.filter(id=evento_id).first()
+            if evento_seleccionado:
+                context['evento_seleccionado'] = evento_seleccionado
+                from django.db.models import Q
+                
+                # Buscar leads asignados manualmente O clientes en las ciudades objetivo
+                ciudades_objetivo = evento_seleccionado.ciudades_objetivo.all()
+                if ciudades_objetivo.exists():
+                    qs_prospectos = qs_base.filter(
+                        Q(eventos_asociados__evento=evento_seleccionado) |
+                        Q(estatus='CLIENTE', ubicacion__in=ciudades_objetivo)
+                    ).distinct().order_by('-updated_at')
+                else:
+                    qs_prospectos = qs_base.filter(
+                        Q(eventos_asociados__evento=evento_seleccionado) |
+                        Q(estatus='CLIENTE')
+                    ).distinct().order_by('-updated_at')
+                
+                paginator_prospectos = Paginator(qs_prospectos, 10)
+                page_prospectos = self.request.GET.get('page_prospectos')
+                context['prospectos_campana'] = paginator_prospectos.get_page(page_prospectos)
 
         # KPIs del resumen superior — Ventas 360
         qs_oport_all = VentaTransaccional.objects.filter(vendedor=self.request.user)
@@ -1438,17 +1469,23 @@ def api_crear_evento(request):
         if vendedores_ids:
             nuevo_evento.vendedores_asignados.set(vendedores_ids)
             
-            # Crear notificación para cada vendedor asignado
-            from .models import Notificacion
-            for v_id in vendedores_ids:
-                Notificacion.objects.create(
-                    usuario_id=v_id,
-                    tipo='general',
-                    mensaje=f"📅 Nueva asignación: Has sido agregado a la campaña/evento: {nombre}"
-                )
-            
         return JsonResponse({'success': True, 'message': 'Evento creado correctamente.'})
         
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def api_eliminar_evento(request, evento_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+        
+    try:
+        evento = Evento.objects.get(id=evento_id)
+        evento.delete()
+        return JsonResponse({'success': True})
+    except Evento.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Evento no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 

@@ -79,7 +79,7 @@
             </div>
         </div>
 
-        <!-- Tarjeta 4: Históricos
+        <!-- Tarjeta 4: Históricos -->
         <div class="col">
             <a href="?tab=historicos" class="text-decoration-none">
                 <div class="kpi-card kpi-historico shadow-sm">
@@ -88,7 +88,7 @@
                     <div class="kpi-label">Históricos</div>
                 </div>
             </a>
-        </div>  -->
+        </div>
 
         <!-- Tarjeta 5: Campañas Activas -->
         <div class="col">
@@ -126,6 +126,65 @@
         
         <!-- Pestaña: CAMPAÑAS Y EVENTOS -->
         <div class="tab-pane fade {% if active_tab == 'campanas' %}show active{% endif %}" id="campanas" role="tabpanel" aria-labelledby="campanas-tab">
+            {% if evento_seleccionado %}
+                <div class="mb-4">
+                    <a href="?tab=campanas" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm">
+                        <i class="bi bi-arrow-left"></i> Volver a Mis Campañas
+                    </a>
+                    <h4 class="mt-4 fw-bold text-body">🎯 {{ evento_seleccionado.nombre }}</h4>
+                    <p class="text-muted small">Mostrando la lista de clientes/prospectos asignados a esta campaña.</p>
+                </div>
+                
+                <div class="card card-ers shadow-sm mb-4 border-0">
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-ers mb-0 align-middle">
+                                <thead>
+                                    <tr>
+                                        <th class="ps-4">Prospecto de Campaña</th>
+                                        <th>Última Acción</th>
+                                        <th>Etapa</th>
+                                        <th>Especialidad</th>
+                                        <th>Ciudad</th>
+                                        <th class="text-end pe-4">Acción</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for lead in prospectos_campana %}
+                                    <tr>
+                                        <td class="ps-4">
+                                            <span class="fw-bold text-body">
+                                                {% if lead.clinica and not lead.apellido_paterno %}<i title="Clínica Corporativa">🏥</i>{% elif lead.clinica %}<i title="Médico de Clínica: {{ lead.clinica.nombre }}">👩‍⚕️</i>{% else %}<i title="Médico Independiente">👩‍⚕️</i>{% endif %}
+                                                {{ lead.nombre_completo_mdm }}
+                                            </span>
+                                            <br><small class="text-muted">{{ lead.phone_primary }}</small>
+                                        </td>
+                                        <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
+                                        <td>
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.get_estatus_display }}</span>
+                                        </td>
+                                        <td class="text-body small">{{ lead.especialidad_display }}</td>
+                                        <td class="text-muted small">{{ lead.ciudad|default:"-" }}</td>
+                                        <td class="text-end pe-4">
+                                            <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
+                                                Revisar
+                                            </a>
+                                        </td>
+                                    </tr>
+                                    {% empty %}
+                                    <tr>
+                                        <td colspan="6" class="text-center py-5 text-muted">
+                                            <i class="bi bi-people fs-1 d-block mb-2"></i>
+                                            Aún no tienes prospectos asignados a esta campaña.
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            {% else %}
             <ul class="nav nav-pills gap-2 mb-4">
                 <li class="nav-item">
                     <a href="?tab=campanas&filtro_evento=proximos_7" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'proximos_7' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟢 Próximos 7 días</a>
@@ -160,8 +219,8 @@
                             </div>
                         </div>
                         <div class="card-footer bg-transparent border-top pt-3 pb-3">
-                            <a href="{% url 'dashboard_agente' %}?filtro=campanas" class="btn btn-outline-primary btn-sm w-100 fw-bold">
-                                Ver Prospectos de Campañas
+                            <a href="?tab=campanas&evento_id={{ evento.id }}" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                                Ver Prospectos de Campaña
                             </a>
                         </div>
                     </div>
@@ -175,6 +234,7 @@
                 </div>
                 {% endfor %}
             </div>
+            {% endif %}
         </div>
 
         <!-- Pestaña: OPORTUNIDADES 360 -->
