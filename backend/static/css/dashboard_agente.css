@@ -1,0 +1,77 @@
+/* ==========================================================================
+   DASHBOARD AGENTE — KPI Cards
+   Extraído de dashboard_agente.html para eliminar estilos inline.
+   Cargado únicamente en dashboard_agente.html via {% block extra_css %}.
+   ========================================================================== */
+
+/* ── Variables de color por variante ───────────────────────────────────── */
+.kpi-activos   { --kpi-color: var(--bs-primary); }
+.kpi-prospecto { --kpi-color: #6366f1; }  /* indigo  */
+.kpi-lead      { --kpi-color: #f59e0b; }  /* amber   */
+.kpi-calificado{ --kpi-color: #a855f7; }  /* purple  */
+.kpi-cierre    { --kpi-color: #10b981; }  /* emerald */
+
+/* ── Estructura base de la tarjeta ─────────────────────────────────────── */
+.kpi-card {
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    cursor: pointer;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-card-bg, var(--bs-body-bg));
+    position: relative;
+    overflow: hidden;
+}
+.kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
+}
+
+/* ── Barra de acento inferior (color desde --kpi-color) ─────────────────── */
+.kpi-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--kpi-color);
+}
+
+/* ── Ícono y número heredan --kpi-color ────────────────────────────────── */
+.kpi-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--kpi-color);
+}
+.kpi-num {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--kpi-color);
+}
+
+/* Tarjeta "Activos": el número usa color de texto base, no --kpi-color */
+.kpi-activos .kpi-num { color: var(--bs-body-color); }
+.kpi-activos .kpi-icon { color: var(--bs-primary); }
+
+/* ── Etiqueta ───────────────────────────────────────────────────────────── */
+.kpi-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+/* ── Badge mini (usado en la lista de leads) ────────────────────────────── */
+.kpi-badge {
+    font-size: 0.65rem;
+    padding: 2px 7px;
+    border-radius: 20px;
+}
+.badge-xs { font-size: 0.65em; }
+
+/* ── Barra de búsqueda (max-width puntual) ──────────────────────────────── */
+.agente-search-form { max-width: 420px; }
+
+/* ── Badge de texto muted en lista de leads ─────────────────────────────── */
+.lead-phone-label { font-size: 0.72em; }

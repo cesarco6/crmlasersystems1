@@ -14,7 +14,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.6">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.7">
     <link rel="stylesheet" href="{% static 'css/crm-mobile.css' %}?v=1.1">
     {% block extra_css %}{% endblock %}
 
@@ -22,6 +22,9 @@
     <script>
         const savedTheme = localStorage.getItem('crm-theme') || 'dark';
         document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        // Restaurar fuente guardada antes de pintar la página
+        const savedFont = localStorage.getItem('crm-font') || 'ubuntu';
+        document.documentElement.classList.add('crm-font-' + savedFont);
     </script>
 </head>
 
@@ -72,6 +75,61 @@
                 <button class="btn icon-action-btn btn-theme-toggle" id="themeToggleBtn" onclick="toggleCrmTheme()" title="Cambiar Tema">
                     <i class="bi bi-moon-stars-fill text-body" id="themeIcon"></i>
                 </button>
+
+                <!-- Font Picker -->
+                <div class="dropdown" id="fontPickerDropdown">
+                    <button class="btn icon-action-btn" id="fontPickerBtn" data-bs-toggle="dropdown"
+                            aria-expanded="false" title="Cambiar Fuente">
+                        <i class="bi bi-type"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2" style="min-width:210px;" aria-labelledby="fontPickerBtn">
+                        <li><h6 class="dropdown-header text-uppercase fw-bold small mb-1">Tipografía</h6></li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt" data-font="ubuntu"
+                                    style="font-family:'Ubuntu',sans-serif;" onclick="setCrmFont('ubuntu')">
+                                <span class="fs-5 fw-medium">Aa</span>
+                                <div>
+                                    <div class="fw-semibold">Ubuntu</div>
+                                    <div class="text-muted" style="font-size:0.72rem;">Moderna humanista</div>
+                                </div>
+                                <i class="bi bi-check2-circle ms-auto text-primary d-none" id="check-ubuntu"></i>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt" data-font="inter"
+                                    style="font-family:'Inter',sans-serif;" onclick="setCrmFont('inter')">
+                                <span class="fs-5 fw-medium">Aa</span>
+                                <div>
+                                    <div class="fw-semibold">Inter</div>
+                                    <div class="text-muted" style="font-size:0.72rem;">UI / Dashboard</div>
+                                </div>
+                                <i class="bi bi-check2-circle ms-auto text-primary d-none" id="check-inter"></i>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt" data-font="roboto"
+                                    style="font-family:'Roboto',sans-serif;" onclick="setCrmFont('roboto')">
+                                <span class="fs-5 fw-medium">Aa</span>
+                                <div>
+                                    <div class="fw-semibold">Roboto</div>
+                                    <div class="text-muted" style="font-size:0.72rem;">Material clásica</div>
+                                </div>
+                                <i class="bi bi-check2-circle ms-auto text-primary d-none" id="check-roboto"></i>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt" data-font="outfit"
+                                    style="font-family:'Outfit',sans-serif;" onclick="setCrmFont('outfit')">
+                                <span class="fs-5 fw-medium">Aa</span>
+                                <div>
+                                    <div class="fw-semibold">Outfit</div>
+                                    <div class="text-muted" style="font-size:0.72rem;">Geométrica premium</div>
+                                </div>
+                                <i class="bi bi-check2-circle ms-auto text-primary d-none" id="check-outfit"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
 
                 {% if user.is_authenticated %}  
                     <!-- Dropdown Alertas -->
@@ -194,6 +252,29 @@
         return '';
     }
 
+    /* ─── FONT SYSTEM ─────────────────────────────────────── */
+    const CRM_FONTS = ['ubuntu', 'inter', 'roboto', 'outfit'];
+
+    function _applyFontClass(fontKey) {
+        CRM_FONTS.forEach(f => document.documentElement.classList.remove('crm-font-' + f));
+        document.documentElement.classList.add('crm-font-' + fontKey);
+    }
+
+    function _updateFontCheckmarks(activeFont) {
+        CRM_FONTS.forEach(f => {
+            const el = document.getElementById('check-' + f);
+            if (el) el.classList.toggle('d-none', f !== activeFont);
+        });
+    }
+
+    function setCrmFont(fontKey) {
+        if (!CRM_FONTS.includes(fontKey)) return;
+        _applyFontClass(fontKey);
+        _updateFontCheckmarks(fontKey);
+        localStorage.setItem('crm-font', fontKey);
+    }
+    /* ─────────────────────────────────────────────────────── */
+
     function atenderAlerta(alertaId, tipoAlerta, leadId) {
         const tiposConMotivo = ['mantenimiento', 'calidad', 'capacitacion', 'estancamiento', 'no_cierre', 'fidelizacion'];
         const esOperativo = tiposConMotivo.includes(tipoAlerta);
@@ -281,6 +362,12 @@
             });
         }
     }
+
+    // Inicializar checkmark de fuente activa al cargar el DOM
+    document.addEventListener('DOMContentLoaded', function () {
+        const activeFont = localStorage.getItem('crm-font') || 'ubuntu';
+        _updateFontCheckmarks(activeFont);
+    });
     </script>
 </body>
 

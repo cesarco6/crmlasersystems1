@@ -144,7 +144,7 @@
                         <div class="col-md-6 mt-3">
                             <label class="form-label text-muted">Ciudades Objetivo</label>
                             <p class="small text-muted mb-1">Presiona Ctrl o Cmd para múltiples opciones.</p>
-                            <select id="ev_ciudades" class="form-select bg-body border-secondary shadow-none" multiple size="4">
+                            <select id="ev_ciudades" class="form-select bg-body border-secondary shadow-none" multiple size="5">
                                 {% for ubi in ciudades_list %}
                                     <option value="{{ ubi.id }}">{{ ubi.ciudad }}, {{ ubi.estado }}</option>
                                 {% endfor %}
@@ -154,7 +154,7 @@
                         <div class="col-md-12 mt-4">
                             <label class="form-label text-muted">Vendedores Asignados</label>
                             <p class="small text-muted mb-1">Presiona Ctrl (Windows) o Cmd (Mac) para seleccionar varios.</p>
-                            <select id="ev_vendedores" class="form-select bg-body border-secondary shadow-none" multiple size="5" style="border-radius: 5px;">
+                            <select id="ev_vendedores" class="form-select bg-body border-secondary shadow-none" multiple size="3" style="border-radius: 5px;">
                                 {% for v in vendedores %}
                                     <option value="{{ v.id }}">{{ v.username|title }}</option>
                                 {% endfor %}
@@ -165,7 +165,7 @@
             </div>
             <div class="modal-footer border-top-0 pt-4">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary fw-bold px-4" onclick="guardarEvento()">💾 Guardar Evento</button>
+                <button type="button" class="btn btn-outline-primary fw-bold px-4" onclick="guardarEvento()">💾 Guardar Evento</button>
             </div>
         </div>
     </div>

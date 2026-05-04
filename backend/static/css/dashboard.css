@@ -1,20 +1,92 @@
-/* Utilidades limpias para el Dashboard */
-.kpi-title {
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
+/* ==========================================================================
+   DASHBOARD DIRECTOR — KPI Cards + Gráficas
+   Extraído de director_dashboard.html para eliminar estilos inline.
+   Cargado únicamente en director_dashboard.html via {% block extra_css %}.
+   ========================================================================== */
+
+/* ── Variables de color por variante ───────────────────────────────────── */
+.kpi-total   { --kpi-color: var(--bs-primary); }
+.kpi-hist    { --kpi-color: #06b6d4; }  /* cyan    */
+.kpi-cierres { --kpi-color: #10b981; }  /* emerald */
+.kpi-fuerza  { --kpi-color: #f59e0b; }  /* amber   */
+.kpi-volumen { --kpi-color: var(--bs-primary); }
+.kpi-calidad { --kpi-color: #f1416c; }  /* danger  */
+.kpi-prosp   { --kpi-color: #f59e0b; }  /* warning */
+.kpi-nocierre{ --kpi-color: #a1a5b7; }  /* secondary */
+.kpi-venta   { --kpi-color: #10b981; }  /* success */
+
+/* ── Estructura base de la tarjeta ─────────────────────────────────────── */
+.dir-kpi-card {
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    border: 1px solid var(--bs-border-color);
+    background: var(--bs-card-bg, var(--bs-body-bg));
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+}
+.dir-kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .15);
 }
 
-.chart-dona-container {
-    width: 100%;
-    max-width: 300px;
+/* ── Barra de acento inferior (color desde --kpi-color) ─────────────────── */
+.dir-kpi-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--kpi-color);
 }
 
+/* ── Ícono y número heredan --kpi-color ────────────────────────────────── */
+.dir-kpi-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    color: var(--kpi-color);
+}
+.dir-kpi-num {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--kpi-color);
+}
+
+/* Tarjeta "Total BD": número en color base del texto */
+.kpi-total .dir-kpi-num  { color: var(--bs-body-color); }
+.kpi-volumen .dir-kpi-num{ color: var(--bs-body-color); }
+
+/* ── Etiqueta ───────────────────────────────────────────────────────────── */
+.dir-kpi-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--bs-secondary-color);
+}
+
+/* ── Badge mini ─────────────────────────────────────────────────────────── */
+.dir-kpi-badge { font-size: .62rem; }
+
+/* ── Título de sección semanal ──────────────────────────────────────────── */
+.dir-section-title {
+    font-size: 1.1rem;
+    letter-spacing: .06em;
+}
+
+/* ── Contenedor del gráfico de dona ─────────────────────────────────────── */
+.chart-dona-wrap {
+    width: 320px;
+    height: 320px;
+}
+
+/* ── Contenedores de gráficas de barras ─────────────────────────────────── */
 .chart-bar-container {
     position: relative;
     height: 350px;
     width: 100%;
 }
-
 .chart-bar-container-md {
     position: relative;
     height: 300px;

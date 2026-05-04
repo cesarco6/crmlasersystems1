@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/modals.css' %}?v=1.2">
+<link rel="stylesheet" href="{% static 'css/dashboard_agente.css' %}?v=1.1">
 {% endblock %}
 
 {% block content %}
@@ -23,62 +24,13 @@
     </div>
 
     <!-- KPI Cards — Embudo de Ventas -->
-    <style>
-        .kpi-card {
-            border-radius: 14px;
-            padding: 1rem 1.1rem;
-            cursor: pointer;
-            transition: transform 0.18s ease, box-shadow 0.18s ease;
-            border: 1px solid var(--bs-border-color);
-            background: var(--bs-card-bg, var(--bs-body-bg));
-            position: relative;
-            overflow: hidden;
-        }
-        .kpi-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 24px rgba(0,0,0,.15);
-        }
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            height: 4px;
-        }
-        .kpi-card.kpi-activos::before  { background: var(--bs-primary); }
-        .kpi-card.kpi-prospecto::before { background: #6366f1; }
-        .kpi-card.kpi-lead::before      { background: #f59e0b; }
-        .kpi-card.kpi-calificado::before{ background: #a855f7; }
-        .kpi-card.kpi-cierre::before    { background: #10b981; }
-
-        .kpi-icon {
-            font-size: 1.6rem;
-            line-height: 1;
-        }
-        .kpi-num {
-            font-size: 2rem;
-            font-weight: 800;
-            line-height: 1.1;
-        }
-        .kpi-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            letter-spacing: .06em;
-            text-transform: uppercase;
-            color: var(--bs-secondary-color);
-        }
-        .kpi-badge {
-            font-size: 0.65rem;
-            padding: 2px 7px;
-            border-radius: 20px;
-        }
-    </style>
 
     <div class="row g-3 mb-3">
         <!-- Tarjeta 1: Cartera Activa -->
         <div class="col">
             <div class="kpi-card kpi-activos shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-briefcase-fill" style="color:var(--bs-primary);"></i></div>
-                <div class="kpi-num text-body">{{ total_activos }}</div>
+                <div class="kpi-icon mb-1"><i class="bi bi-briefcase-fill"></i></div>
+                <div class="kpi-num">{{ total_activos }}</div>
                 <div class="kpi-label">Cartera Activa</div>
             </div>
         </div>
@@ -87,8 +39,8 @@
         <div class="col">
             <a href="?filtro=frescos" class="text-decoration-none">
                 <div class="kpi-card kpi-prospecto shadow-sm">
-                    <div class="kpi-icon mb-1"><i class="bi bi-person-plus-fill" style="color:#6366f1;"></i></div>
-                    <div class="kpi-num" style="color:#6366f1;">{{ total_prospectos }}</div>
+                    <div class="kpi-icon mb-1"><i class="bi bi-person-plus-fill"></i></div>
+                    <div class="kpi-num">{{ total_prospectos }}</div>
                     <div class="kpi-label">Prospectos</div>
                 </div>
             </a>
@@ -97,8 +49,8 @@
         <!-- Tarjeta 3: Leads (identidad validada) -->
         <div class="col">
             <div class="kpi-card kpi-lead shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-person-check-fill" style="color:#f59e0b;"></i></div>
-                <div class="kpi-num" style="color:#f59e0b;">{{ total_leads }}</div>
+                <div class="kpi-icon mb-1"><i class="bi bi-person-check-fill"></i></div>
+                <div class="kpi-num">{{ total_leads }}</div>
                 <div class="kpi-label">Leads</div>
             </div>
         </div>
@@ -106,8 +58,8 @@
         <!-- Tarjeta 4: Calificados -->
         <div class="col">
             <div class="kpi-card kpi-calificado shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-star-fill" style="color:#a855f7;"></i></div>
-                <div class="kpi-num" style="color:#a855f7;">{{ total_calificados }}</div>
+                <div class="kpi-icon mb-1"><i class="bi bi-star-fill"></i></div>
+                <div class="kpi-num">{{ total_calificados }}</div>
                 <div class="kpi-label">Calificados</div>
             </div>
         </div>
@@ -115,8 +67,8 @@
         <!-- Tarjeta 5: Cierres del mes -->
         <div class="col">
             <div class="kpi-card kpi-cierre shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill" style="color:#10b981;"></i></div>
-                <div class="kpi-num" style="color:#10b981;">{{ total_cierres_mes }}</div>
+                <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill"></i></div>
+                <div class="kpi-num">{{ total_cierres_mes }}</div>
                 <div class="kpi-label">Cierres / Mes</div>
             </div>
         </div>
@@ -142,7 +94,7 @@
                 🔴 Urgentes
             </a>
             <a href="{% url 'agente_exportar_leads' %}?filtro={{ filtro_actual }}&q={{ busqueda_actual }}"
-               class="btn btn-sm btn-success shadow-sm" title="Descargar lista actual en Excel">
+               class="btn btn-sm btn-outline-primary shadow-sm" title="Descargar lista actual en Excel">
                 📥 Exportar XLSX
             </a>
         </div>
@@ -155,7 +107,7 @@
                 <span class="input-group-text bg-body border-secondary border-end-0"><i class="bi bi-search text-muted"></i></span>
                 <input type="text" name="q" class="form-control bg-body border-secondary border-start-0 ps-0 text-body shadow-none" 
                 placeholder="Buscar nombre, tel, correo..." value="{{ busqueda_actual|default:'' }}">
-                <button type="submit" class="btn btn-primary fw-bold px-3">Buscar</button>
+                <button type="submit" class="btn btn-outline-primary fw-bold px-3">Buscar</button>
                 {% if busqueda_actual %}
                     <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}" class="btn btn-outline-secondary border-secondary bg-body d-flex align-items-center justify-content-center" title="Limpiar búsqueda">
                         <i class="bi bi-x-lg"></i>

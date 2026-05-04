@@ -40,7 +40,7 @@ def obtener_metricas_director(filtros: dict) -> dict:
 
     # --- 4. KPIs GLOBALES ---
     total_leads = qs.count()
-    total_historicos = qs.filter(estatus='Histórico').count()
+    total_historicos = qs.filter(es_historico=True).count()
     total_vendedores_metric = lista_vendedores.count()
 
     hace_7_dias = localtime(now()) - timedelta(days=7)

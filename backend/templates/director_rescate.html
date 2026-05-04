@@ -56,12 +56,12 @@
                                             <option value="{{ vendedor.id }}">{{ vendedor.username|title }}</option>
                                         {% endfor %}
                                     </select>
-                                    <button class="btn btn-sm btn-primary" onclick="reasignarLead('{{ lead.id }}')">
+                                    <button class="btn btn-sm btn-primary" onclick="reasignarLead('{{ lead.id }}')"disabled>
                                         🔀 Reasignar
                                     </button>
  
                                     <!-- Botón Descartar (Archivo Muerto) -->
-                                    <button class="btn btn-sm btn-danger ms-auto" onclick="desecharLead('{{ lead.id }}')">
+                                    <button class="btn btn-sm btn-danger ms-auto" onclick="desecharLead('{{ lead.id }}')"disabled>
                                         🗑️ Desechar
                                     </button>
                                 </div>

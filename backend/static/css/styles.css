@@ -1,10 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&family=Inter:wght@300;400;500;600;700&family=Roboto:ital,wght@0,300;0,400;0,500;0,700;1,400&family=Outfit:wght@300;400;500;600;700&display=swap');
+
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-@import url('https://fonts.googleapis.com/css2?family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+/* ===== SISTEMA DE FUENTES CRM ===================================
+   Fuente activa controlada por clase en <html>.
+   Clase                  Fuente
+   .crm-font-ubuntu    →  Ubuntu   (predeterminado)
+   .crm-font-inter     →  Inter
+   .crm-font-roboto    →  Roboto
+   .crm-font-outfit    →  Outfit
+================================================================ */
+:root,
+.crm-font-ubuntu  { --crm-font-body: 'Ubuntu',  Cantarell, sans-serif; }
+.crm-font-inter   { --crm-font-body: 'Inter',   system-ui,  sans-serif; }
+.crm-font-roboto  { --crm-font-body: 'Roboto',  Arial,      sans-serif; }
+.crm-font-outfit  { --crm-font-body: 'Outfit',  Verdana,    sans-serif; }
 
 /* ==========================================================================
    DESIGN SYSTEM - PHASE 1: SEMANTIC VARIABLES
@@ -92,6 +106,18 @@
     letter-spacing: 0.05rem;
 }
 
+/* ===== KPI CARDS — Altura fija del título ==============================
+   Reserva 2 líneas de texto (min-height ~2.8em).
+   El número queda alineado porque .card-body usa flex-column y mt-auto.
+================================================================ */
+.kpi-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.04em;
+    min-height: 2.8em;
+    display: flex;
+    align-items: flex-start;
+}
+
 /* Global Geometry for Templates and Modals */
 .card, .modal-content {
     border: 1px solid var(--ers-border) !important;
@@ -133,7 +159,7 @@
 
 /* Base modifications */
 body {
-    font-family: "Ubuntu", Cantarell, sans-serif;
+    font-family: var(--crm-font-body, 'Ubuntu', Cantarell, sans-serif);
     font-size: 1rem;
     background-color: var(--bs-body-bg);
     color: var(--bs-body-color);
@@ -1546,7 +1572,7 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
   border: 1px solid var(--ers-primary);
-  color: rgb(255, 255, 255);
+  color: rgba(118, 147, 209, 0.7);  
 }
 
 .login-footer {
