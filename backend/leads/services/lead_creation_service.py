@@ -73,6 +73,8 @@ def crear_prospecto_core(data: dict, user):
                 notas_variadas={"notas": [], "columnas_excel_historicas": {}}
             )
         else:
+            clinica_vinculada = Clinica.objects.filter(telefono_master=telefono_limpio).first()
+            
             nuevo_lead = CoreLead.objects.create(
                 owner=user,
                 ubicacion=ubicacion_obj,
@@ -82,11 +84,11 @@ def crear_prospecto_core(data: dict, user):
                 phone_primary=telefono_limpio,
                 celular=celular[:15],
                 email=email,
-                #nombre=nombre_concatenado[:100],
                 titulo_cortesia=titulo_obj,
                 nombre_pila=nombre_pila[:100],
                 apellido_paterno=apellido_paterno[:100],
                 apellido_materno=apellido_materno[:100],
+                clinica=clinica_vinculada,
                 notas_variadas={"notas": [], "columnas_excel_historicas": {}}
             )
 

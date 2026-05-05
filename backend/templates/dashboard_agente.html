@@ -29,7 +29,7 @@
         <!-- Tarjeta 1: Cartera Activa -->
         <div class="col">
             <a href="?filtro=activos" class="text-decoration-none">
-                <div class="kpi-card kpi-activos shadow-sm {% if filtro_actual == 'activos' or not filtro_actual %}border-primary{% endif %}">
+                <div class="kpi-card kpi-activos shadow-sm {% if filtro_actual == 'activos' or not filtro_actual %}border-activos{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-briefcase-fill"></i></div>
                     <div class="kpi-num">{{ total_activos }}</div>
                     <div class="kpi-label">Cartera Activa</div>
@@ -40,7 +40,7 @@
         <!-- Tarjeta 2: Prospectos -->
         <div class="col">
             <a href="?filtro=frescos" class="text-decoration-none">
-                <div class="kpi-card kpi-prospecto shadow-sm {% if filtro_actual == 'frescos' %}border-info{% endif %}">
+                <div class="kpi-card kpi-prospecto shadow-sm {% if filtro_actual == 'frescos' %}border-prospecto{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-person-plus-fill"></i></div>
                     <div class="kpi-num">{{ total_prospectos }}</div>
                     <div class="kpi-label">Prospectos</div>
@@ -51,7 +51,7 @@
         <!-- Tarjeta 3: Leads (identidad validada) -->
         <div class="col">
             <a href="?filtro=leads" class="text-decoration-none">
-                <div class="kpi-card kpi-lead shadow-sm {% if filtro_actual == 'leads' %}border-warning{% endif %}">
+                <div class="kpi-card kpi-lead shadow-sm {% if filtro_actual == 'leads' %}border-lead{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-person-check-fill"></i></div>
                     <div class="kpi-num">{{ total_leads }}</div>
                     <div class="kpi-label">Leads</div>
@@ -62,7 +62,7 @@
         <!-- Tarjeta 4: Calificados -->
         <div class="col">
             <a href="?filtro=calificados" class="text-decoration-none">
-                <div class="kpi-card kpi-calificado shadow-sm {% if filtro_actual == 'calificados' %}border-danger{% endif %}">
+                <div class="kpi-card kpi-calificado shadow-sm {% if filtro_actual == 'calificados' %}border-calificado{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-star-fill"></i></div>
                     <div class="kpi-num">{{ total_calificados }}</div>
                     <div class="kpi-label">Calificados</div>
@@ -72,13 +72,11 @@
 
         <!-- Tarjeta 5: Cierres del mes -->
         <div class="col">
-            <a href="?filtro=cierres" class="text-decoration-none">
-                <div class="kpi-card kpi-cierre shadow-sm {% if filtro_actual == 'cierres' %}border-success{% endif %}">
-                    <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill"></i></div>
-                    <div class="kpi-num">{{ total_cierres_mes }}</div>
-                    <div class="kpi-label">Cierres / Mes</div>
-                </div>
-            </a>
+            <div class="kpi-card kpi-cierre shadow-sm">
+                <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill"></i></div>
+                <div class="kpi-num">{{ total_cierres_mes }}</div>
+                <div class="kpi-label">Cierres / Mes</div>
+            </div>
         </div>
     </div>
 
@@ -119,9 +117,31 @@
 
 
     <!-- 3. La Tabla de Leads en formato nativo -->
-    <div class="card card-ers shadow-sm mb-4 border-0">
+    <div class="card card-ers shadow-sm mb-4 border-2 
+        {% if filtro_actual == 'activos' or not filtro_actual %}border-activos
+        {% elif filtro_actual == 'frescos' %}border-prospecto
+        {% elif filtro_actual == 'leads' %}border-lead
+        {% elif filtro_actual == 'calificados' %}border-calificado
+        {% else %}border-0{% endif %}">
+        
         <div class="card-header border-bottom py-3">
-            <h5 class="fw-bold text-body m-0">📋 Mis Oportunidades</h5>
+            <h5 class="fw-bold text-body m-0">
+                {% if filtro_actual == 'activos' or not filtro_actual %}
+                    <i class="bi bi-briefcase-fill me-2" style="color: var(--bs-primary);"></i>Cartera Activa
+                {% elif filtro_actual == 'frescos' %}
+                    <i class="bi bi-person-plus-fill me-2" style="color: #6366f1;"></i>Prospectos
+                {% elif filtro_actual == 'leads' %}
+                    <i class="bi bi-person-check-fill me-2" style="color: #f59e0b;"></i>Leads
+                {% elif filtro_actual == 'calificados' %}
+                    <i class="bi bi-star-fill me-2" style="color: #a855f7;"></i>Calificados
+                {% elif filtro_actual == 'hoy' %}
+                    🟡 Para Hoy
+                {% elif filtro_actual == 'urgentes' %}
+                    🔴 Urgentes
+                {% else %}
+                    📋 Mis Oportunidades
+                {% endif %}
+            </h5>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">

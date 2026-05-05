@@ -9,7 +9,7 @@
     <!-- Encabezado -->
     <div class="mb-3">
         <h2 class="fw-bold text-body mb-0">🔄 Ventas 360</h2>
-        <p class="text-muted small">Fidelización, Campañas y Rescate de Históricos</p>
+        <p class="text-muted small">Fidelización, Campañas y Cross-selling</p>
     </div>
 
     <!-- KPI Cards — Ventas 360 -->
@@ -39,6 +39,20 @@
         .kpi-card.kpi-concretada::before { background: #10b981; }
         .kpi-card.kpi-historico::before  { background: #8b5cf6; }
         .kpi-card.kpi-campana::before    { background: #ec4899; }
+
+        .border-total { border-color: var(--bs-primary) !important; }
+        .border-gestion { border-color: #f59e0b !important; }
+        .border-concretada { border-color: #10b981 !important; }
+        .border-historico { border-color: #8b5cf6 !important; }
+        .border-campana { border-color: #ec4899 !important; }
+
+        .bg-purple-subtle { background-color: rgba(139, 92, 246, 0.15) !important; }
+        .text-purple { color: #8b5cf6 !important; }
+        .border-purple-subtle { border-color: rgba(139, 92, 246, 0.3) !important; }
+
+        .bg-pink-subtle { background-color: rgba(236, 72, 153, 0.15) !important; }
+        .text-pink { color: #ec4899 !important; }
+        .border-pink-subtle { border-color: rgba(236, 72, 153, 0.3) !important; }
 
         .kpi-icon { font-size: 1.6rem; line-height: 1; }
         .kpi-num  { font-size: 2rem; font-weight: 800; line-height: 1.1; }
@@ -100,7 +114,7 @@
                 <div class="kpi-card kpi-campana shadow-sm {% if active_tab == 'campanas' %}border-pink{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-megaphone-fill" style="color:#ec4899;"></i></div>
                     <div class="kpi-num" style="color:#ec4899;">{{ kpi_campanas_activas }}</div>
-                    <div class="kpi-label">Campañas Activas</div>
+                    <div class="kpi-label">Campañas</div>
                 </div>
             </a>
         </div>
@@ -111,14 +125,19 @@
     <div class="tab-content" id="ventas360TabsContent">
         
         <!-- Pestaña: MIS CLIENTES -->
-        <div class="tab-pane fade {% if active_tab == 'mis_clientes' %}show active{% endif %}" id="mis_clientes" role="tabpanel">
-            <div class="card card-ers shadow-sm mb-4 border-0">
+        <div class="tab-pane fade {% if active_tab == 'mis_clientes' %}show active{% endif %}" id="mis_clientes" role="tabpanel" aria-labelledby="mis-clientes-tab">
+            <div class="card card-ers shadow-sm mb-4 border-2 border-total">
+                <div class="card-header border-bottom py-3">
+                    <h5 class="fw-bold text-body m-0">
+                        <i class="bi bi-people-fill me-2" style="color:var(--bs-primary);"></i>Mis Clientes
+                    </h5>
+                </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover table-ers mb-0 align-middle">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">Mi Cliente / Lead</th>
+                                    <th class="ps-4">Cliente</th>
                                     <th>Última Acción</th>
                                     <th>Etapa</th>
                                     <th>Especialidad</th>
@@ -202,7 +221,12 @@
                     <p class="text-muted small">Mostrando la lista de clientes/prospectos asignados a esta campaña.</p>
                 </div>
                 
-                <div class="card card-ers shadow-sm mb-4 border-0">
+                <div class="card card-ers shadow-sm mb-4 border-2 border-campana">
+                    <div class="card-header border-bottom py-3">
+                        <h5 class="fw-bold text-body m-0">
+                            <i class="bi bi-megaphone-fill me-2" style="color:#ec4899;"></i>Prospectos de Campaña
+                        </h5>
+                    </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
                             <table class="table table-hover table-ers mb-0 align-middle">
@@ -306,7 +330,16 @@
 
         <!-- Pestaña: OPORTUNIDADES 360 -->
         <div class="tab-pane fade {% if active_tab == 'oportunidades' %}show active{% endif %}" id="oportunidades" role="tabpanel" aria-labelledby="oportunidades-tab">
-            <div class="card card-ers shadow-sm mb-4 border-0">
+            <div class="card card-ers shadow-sm mb-4 border-2 {% if request.GET.estatus == 'concretadas' %}border-concretada{% else %}border-gestion{% endif %}">
+                <div class="card-header border-bottom py-3">
+                    <h5 class="fw-bold text-body m-0">
+                        {% if request.GET.estatus == 'concretadas' %}
+                            <i class="bi bi-patch-check-fill me-2" style="color:#10b981;"></i>Concretadas
+                        {% else %}
+                            <i class="bi bi-hourglass-split me-2" style="color:#f59e0b;"></i>En Gestión
+                        {% endif %}
+                    </h5>
+                </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover table-ers mb-0 align-middle">
@@ -316,7 +349,7 @@
                                     <th>Producto/Servicio</th>
                                     <th>Estatus</th>
                                     <th>Fecha</th>
-                                    <th>Monto</th>
+                                    <th>Origen</th>
                                     <th class="text-end pe-4">Acción</th>
                                 </tr>
                             </thead>
@@ -335,7 +368,21 @@
                                         <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ oportunidad.get_estatus_display }}</span>
                                     </td>
                                     <td class="text-muted small">{{ oportunidad.fecha_venta|date:"d M Y" }}</td>
-                                    <td class="text-muted small">{% if oportunidad.monto %}${{ oportunidad.monto }}{% else %}-{% endif %}</td>
+                                    <td class="text-body small">
+                                        {% with campanas=oportunidad.lead.campanas_activas %}
+                                            {% if campanas %}
+                                                {% for campana in campanas %}
+                                                    <span class="badge bg-pink-subtle text-pink border border-pink-subtle mb-1" title="Campaña">
+                                                        📢 {{ campana.nombre }}
+                                                    </span>{% if not forloop.last %}<br>{% endif %}
+                                                {% endfor %}
+                                            {% elif oportunidad.lead.es_historico %}
+                                                <span class="badge bg-purple-subtle text-purple border border-purple-subtle">Histórico</span>
+                                            {% else %}
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Mis Clientes</span>
+                                            {% endif %}
+                                        {% endwith %}
+                                    </td>
                                     <td class="text-end pe-4">
                                         <a href="{% url 'ficha_trabajo' oportunidad.lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
                                             Gestionar
@@ -387,7 +434,12 @@
 
         <!-- Pestaña: HISTÓRICOS -->
         <div class="tab-pane fade {% if active_tab == 'historicos' %}show active{% endif %}" id="historicos" role="tabpanel" aria-labelledby="historicos-tab">
-            <div class="card card-ers shadow-sm mb-4 border-0">
+            <div class="card card-ers shadow-sm mb-4 border-2 border-historico">
+                <div class="card-header border-bottom py-3">
+                    <h5 class="fw-bold text-body m-0">
+                        <i class="bi bi-archive-fill me-2" style="color:#8b5cf6;"></i>Históricos
+                    </h5>
+                </div>
                 <div class="card-body p-0">
                     <div class="table-responsive">
                         <table class="table table-hover table-ers mb-0 align-middle">

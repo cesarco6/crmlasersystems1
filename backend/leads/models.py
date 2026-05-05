@@ -150,6 +150,18 @@ class CoreLead(models.Model):
         self.plan = 'SEGUIMIENTO'
         self.next_action_date = timezone.now().date()
 
+    @property
+    def campanas_activas(self):
+        """Retorna los eventos activos a los que pertenece el lead (directo o por ciudad)."""
+        from .models import Evento
+        from django.db.models import Q
+        return Evento.objects.filter(
+            estatus='ACTIVO'
+        ).filter(
+            Q(clientes_vinculados__lead=self) | 
+            (Q(ciudades_objetivo=self.ubicacion) if self.ubicacion else Q(pk__isnull=True))
+        ).distinct()
+
 class LeadStaging(models.Model):
     ESTATUS_CHOICES = [
         ('PENDIENTE', 'Pendiente de Revisión'),

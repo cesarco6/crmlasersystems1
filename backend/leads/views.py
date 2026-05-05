@@ -119,6 +119,7 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['total_calificados'] = qs_owner.filter(estatus='LEAD_CALIFICADO').count()
         context['total_cierres_mes'] = qs_owner.filter(
             estatus='CLIENTE',
+            es_historico=False,
             updated_at__year=mes_actual.year,
             updated_at__month=mes_actual.month
         ).count()
@@ -182,7 +183,7 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         from .models import Evento, VentaTransaccional
         
         # 1. Oportunidades 360 (Ventas Transaccionales)
-        qs_oportunidades = VentaTransaccional.objects.filter(vendedor=self.request.user).order_by('-fecha_venta')
+        qs_oportunidades = VentaTransaccional.objects.filter(vendedor=self.request.user).select_related('lead', 'producto').prefetch_related('lead__eventos_asociados').order_by('-fecha_venta')
         estatus_oportunidad = self.request.GET.get('estatus')
         if estatus_oportunidad == 'gestion':
             qs_oportunidades = qs_oportunidades.filter(estatus__in=['PENDIENTE', 'EN_GESTION'])
@@ -244,12 +245,20 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
                     qs_prospectos = qs_base.filter(
                         Q(eventos_asociados__evento=evento_seleccionado) |
                         Q(estatus='CLIENTE', ubicacion__in=ciudades_objetivo)
-                    ).distinct().order_by('-updated_at')
+                    ).distinct()
                 else:
                     qs_prospectos = qs_base.filter(
                         Q(eventos_asociados__evento=evento_seleccionado) |
                         Q(estatus='CLIENTE')
-                    ).distinct().order_by('-updated_at')
+                    ).distinct()
+
+                # Excluir los leads que ya fueron abordados (tienen oportunidad 360 reciente)
+                import datetime
+                fecha_margen = evento_seleccionado.fecha_inicio - datetime.timedelta(days=15)
+                qs_prospectos = qs_prospectos.exclude(
+                    compras_extra__vendedor=self.request.user,
+                    compras_extra__fecha_venta__gte=fecha_margen
+                ).order_by('-updated_at')
                 
                 paginator_prospectos = Paginator(qs_prospectos, 10)
                 page_prospectos = self.request.GET.get('page_prospectos')

@@ -11,6 +11,11 @@
 .kpi-calificado{ --kpi-color: #a855f7; }  /* purple  */
 .kpi-cierre    { --kpi-color: #10b981; }  /* emerald */
 
+.border-activos { border-color: var(--bs-primary) !important; }
+.border-prospecto { border-color: #6366f1 !important; }
+.border-lead { border-color: #f59e0b !important; }
+.border-calificado { border-color: #a855f7 !important; }
+
 /* ── Estructura base de la tarjeta ─────────────────────────────────────── */
 .kpi-card {
     border-radius: 14px;
