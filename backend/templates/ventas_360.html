@@ -52,37 +52,41 @@
     <div class="row g-3 mb-4">
         <!-- Tarjeta 1: Total Oportunidades 360 -->
         <div class="col">
-            <a href="?tab=clientes" class="text-decoration-none">
-                <div class="kpi-card kpi-total shadow-sm">
-                    <div class="kpi-icon mb-1"><i class="bi bi-award-fill" style="color:var(--bs-primary);"></i></div>
-                    <div class="kpi-num text-body">{{ kpi_oportunidades_total }}</div>
-                    <div class="kpi-label">Oportunidades 360</div>
+            <a href="?tab=mis_clientes" class="text-decoration-none">
+                <div class="kpi-card kpi-total shadow-sm {% if active_tab == 'mis_clientes' %}border-primary{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-people-fill" style="color:var(--bs-primary);"></i></div>
+                    <div class="kpi-num text-body">{{ kpi_mis_clientes }}</div>
+                    <div class="kpi-label">Mis Clientes</div>
                 </div>
             </a>
         </div>
 
         <!-- Tarjeta 2: En Gestión (Pendiente + En_Gestion) -->
         <div class="col">
-            <div class="kpi-card kpi-gestion shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-hourglass-split" style="color:#f59e0b;"></i></div>
-                <div class="kpi-num" style="color:#f59e0b;">{{ kpi_en_gestion }}</div>
-                <div class="kpi-label">En Gestión</div>
-            </div>
+            <a href="?tab=oportunidades&estatus=gestion" class="text-decoration-none">
+                <div class="kpi-card kpi-gestion shadow-sm {% if active_tab == 'oportunidades' and request.GET.estatus == 'gestion' %}border-warning{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-hourglass-split" style="color:#f59e0b;"></i></div>
+                    <div class="kpi-num" style="color:#f59e0b;">{{ kpi_en_gestion }}</div>
+                    <div class="kpi-label">En Gestión</div>
+                </div>
+            </a>
         </div>
 
         <!-- Tarjeta 3: Concretadas -->
         <div class="col">
-            <div class="kpi-card kpi-concretada shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-patch-check-fill" style="color:#10b981;"></i></div>
-                <div class="kpi-num" style="color:#10b981;">{{ kpi_concretadas }}</div>
-                <div class="kpi-label">Concretadas</div>
-            </div>
+            <a href="?tab=oportunidades&estatus=concretadas" class="text-decoration-none">
+                <div class="kpi-card kpi-concretada shadow-sm {% if active_tab == 'oportunidades' and request.GET.estatus == 'concretadas' %}border-success{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-patch-check-fill" style="color:#10b981;"></i></div>
+                    <div class="kpi-num" style="color:#10b981;">{{ kpi_concretadas }}</div>
+                    <div class="kpi-label">Concretadas</div>
+                </div>
+            </a>
         </div>
 
         <!-- Tarjeta 4: Históricos -->
         <div class="col">
             <a href="?tab=historicos" class="text-decoration-none">
-                <div class="kpi-card kpi-historico shadow-sm">
+                <div class="kpi-card kpi-historico shadow-sm {% if active_tab == 'historicos' %}border-purple{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-archive-fill" style="color:#8b5cf6;"></i></div>
                     <div class="kpi-num" style="color:#8b5cf6;">{{ kpi_historicos }}</div>
                     <div class="kpi-label">Históricos</div>
@@ -93,7 +97,7 @@
         <!-- Tarjeta 5: Campañas Activas -->
         <div class="col">
             <a href="?tab=campanas" class="text-decoration-none">
-                <div class="kpi-card kpi-campana shadow-sm">
+                <div class="kpi-card kpi-campana shadow-sm {% if active_tab == 'campanas' %}border-pink{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-megaphone-fill" style="color:#ec4899;"></i></div>
                     <div class="kpi-num" style="color:#ec4899;">{{ kpi_campanas_activas }}</div>
                     <div class="kpi-label">Campañas Activas</div>
@@ -101,28 +105,91 @@
             </a>
         </div>
     </div>
+    </div>
 
-    <!-- Pestañas (Tabs) -->
-    <ul class="nav nav-tabs mb-4" id="ventas360Tabs" role="tablist">
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'campanas' %}active{% endif %} fw-bold" id="campanas-tab" data-bs-toggle="tab" data-bs-target="#campanas" type="button" role="tab" aria-controls="campanas" aria-selected="{% if active_tab == 'campanas' %}true{% else %}false{% endif %}">
-                🎟️ Mis Campañas
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'clientes' %}active{% endif %} fw-bold" id="oportunidades-tab" data-bs-toggle="tab" data-bs-target="#oportunidades" type="button" role="tab" aria-controls="oportunidades" aria-selected="{% if active_tab == 'clientes' %}true{% else %}false{% endif %}">
-                🏆 Oportunidades 360
-            </button>
-        </li>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link {% if active_tab == 'historicos' %}active{% endif %} fw-bold" id="historicos-tab" data-bs-toggle="tab" data-bs-target="#historicos" type="button" role="tab" aria-controls="historicos" aria-selected="{% if active_tab == 'historicos' %}true{% else %}false{% endif %}">
-                🏛️ Históricos
-            </button>
-        </li>
-    </ul>
-
-    <!-- Contenido de las Pestañas -->
+    <!-- Contenido Principal -->
     <div class="tab-content" id="ventas360TabsContent">
+        
+        <!-- Pestaña: MIS CLIENTES -->
+        <div class="tab-pane fade {% if active_tab == 'mis_clientes' %}show active{% endif %}" id="mis_clientes" role="tabpanel">
+            <div class="card card-ers shadow-sm mb-4 border-0">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-ers mb-0 align-middle">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Mi Cliente / Lead</th>
+                                    <th>Última Acción</th>
+                                    <th>Etapa</th>
+                                    <th>Especialidad</th>
+                                    <th>Ciudad</th>
+                                    <th class="text-end pe-4">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for lead in mis_clientes_list %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <span class="fw-bold text-body">
+                                            {% if lead.clinica and not lead.apellido_paterno %}<i title="Clínica Corporativa">🏥</i>{% elif lead.clinica %}<i title="Médico de Clínica: {{ lead.clinica.nombre }}">👩‍⚕️</i>{% else %}<i title="Médico Independiente">👩‍⚕️</i>{% endif %}
+                                            {{ lead.nombre_completo_mdm }}
+                                        </span>
+                                        <br><small class="text-muted">{{ lead.phone_primary }}</small>
+                                    </td>
+                                    <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.estatus }}</span>
+                                    </td>
+                                    <td class="text-body small">{{ lead.especialidad_cat.nombre|default:"-" }}</td>
+                                    <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
+                                    <td class="text-end pe-4">
+                                        <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
+                                            Gestionar
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center py-5 text-muted">
+                                        <i class="bi bi-people fs-1 d-block mb-2"></i>
+                                        Aún no tienes clientes registrados.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="card-footer bg-transparent py-3 border-0">
+                    {% if mis_clientes_list.has_other_pages %}
+                    <nav aria-label="Navegación de clientes">
+                        <ul class="pagination justify-content-center mb-0 mt-2">
+                            {% if mis_clientes_list.has_previous %}
+                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=mis_clientes&page_mis_clientes={{ mis_clientes_list.previous_page_number }}">Anterior</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link shadow-sm">Anterior</span></li>
+                            {% endif %}
+
+                            {% for num in mis_clientes_list.paginator.page_range %}
+                                {% if mis_clientes_list.number == num %}
+                                    <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
+                                {% elif num > mis_clientes_list.number|add:'-3' and num < mis_clientes_list.number|add:'3' %}
+                                    <li class="page-item"><a class="page-link shadow-sm" href="?tab=mis_clientes&page_mis_clientes={{ num }}">{{ num }}</a></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if mis_clientes_list.has_next %}
+                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=mis_clientes&page_mis_clientes={{ mis_clientes_list.next_page_number }}">Siguiente</a></li>
+                            {% else %}
+                                <li class="page-item disabled"><span class="page-link shadow-sm">Siguiente</span></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
         
         <!-- Pestaña: CAMPAÑAS Y EVENTOS -->
         <div class="tab-pane fade {% if active_tab == 'campanas' %}show active{% endif %}" id="campanas" role="tabpanel" aria-labelledby="campanas-tab">
@@ -161,10 +228,10 @@
                                         </td>
                                         <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
                                         <td>
-                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.get_estatus_display }}</span>
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.estatus }}</span>
                                         </td>
-                                        <td class="text-body small">{{ lead.especialidad_display }}</td>
-                                        <td class="text-muted small">{{ lead.ciudad|default:"-" }}</td>
+                                        <td class="text-body small">{{ lead.especialidad_cat.nombre|default:"-" }}</td>
+                                        <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
                                         <td class="text-end pe-4">
                                             <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
                                                 Revisar
@@ -238,7 +305,7 @@
         </div>
 
         <!-- Pestaña: OPORTUNIDADES 360 -->
-        <div class="tab-pane fade {% if active_tab == 'clientes' %}show active{% endif %}" id="oportunidades" role="tabpanel" aria-labelledby="oportunidades-tab">
+        <div class="tab-pane fade {% if active_tab == 'oportunidades' %}show active{% endif %}" id="oportunidades" role="tabpanel" aria-labelledby="oportunidades-tab">
             <div class="card card-ers shadow-sm mb-4 border-0">
                 <div class="card-body p-0">
                     <div class="table-responsive">
@@ -293,7 +360,7 @@
                     <nav aria-label="Navegación de oportunidades">
                         <ul class="pagination justify-content-center mb-0 mt-2">
                             {% if oportunidades_360.has_previous %}
-                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=clientes&page_oportunidades={{ oportunidades_360.previous_page_number }}{% if request.GET.page_historicos %}&page_historicos={{ request.GET.page_historicos }}{% endif %}">Anterior</a></li>
+                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=oportunidades&estatus={{ request.GET.estatus }}&page_oportunidades={{ oportunidades_360.previous_page_number }}">Anterior</a></li>
                             {% else %}
                                 <li class="page-item disabled"><span class="page-link shadow-sm">Anterior</span></li>
                             {% endif %}
@@ -302,12 +369,12 @@
                                 {% if oportunidades_360.number == num %}
                                     <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
                                 {% elif num > oportunidades_360.number|add:'-3' and num < oportunidades_360.number|add:'3' %}
-                                    <li class="page-item"><a class="page-link shadow-sm" href="?tab=clientes&page_oportunidades={{ num }}{% if request.GET.page_historicos %}&page_historicos={{ request.GET.page_historicos }}{% endif %}">{{ num }}</a></li>
+                                    <li class="page-item"><a class="page-link shadow-sm" href="?tab=oportunidades&estatus={{ request.GET.estatus }}&page_oportunidades={{ num }}">{{ num }}</a></li>
                                 {% endif %}
                             {% endfor %}
 
                             {% if oportunidades_360.has_next %}
-                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=clientes&page_oportunidades={{ oportunidades_360.next_page_number }}{% if request.GET.page_historicos %}&page_historicos={{ request.GET.page_historicos }}{% endif %}">Siguiente</a></li>
+                                <li class="page-item"><a class="page-link shadow-sm" href="?tab=oportunidades&estatus={{ request.GET.estatus }}&page_oportunidades={{ oportunidades_360.next_page_number }}">Siguiente</a></li>
                             {% else %}
                                 <li class="page-item disabled"><span class="page-link shadow-sm">Siguiente</span></li>
                             {% endif %}

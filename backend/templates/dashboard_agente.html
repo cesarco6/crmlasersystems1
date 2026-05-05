@@ -28,17 +28,19 @@
     <div class="row g-3 mb-3">
         <!-- Tarjeta 1: Cartera Activa -->
         <div class="col">
-            <div class="kpi-card kpi-activos shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-briefcase-fill"></i></div>
-                <div class="kpi-num">{{ total_activos }}</div>
-                <div class="kpi-label">Cartera Activa</div>
-            </div>
+            <a href="?filtro=activos" class="text-decoration-none">
+                <div class="kpi-card kpi-activos shadow-sm {% if filtro_actual == 'activos' or not filtro_actual %}border-primary{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-briefcase-fill"></i></div>
+                    <div class="kpi-num">{{ total_activos }}</div>
+                    <div class="kpi-label">Cartera Activa</div>
+                </div>
+            </a>
         </div>
 
         <!-- Tarjeta 2: Prospectos -->
         <div class="col">
             <a href="?filtro=frescos" class="text-decoration-none">
-                <div class="kpi-card kpi-prospecto shadow-sm">
+                <div class="kpi-card kpi-prospecto shadow-sm {% if filtro_actual == 'frescos' %}border-info{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-person-plus-fill"></i></div>
                     <div class="kpi-num">{{ total_prospectos }}</div>
                     <div class="kpi-label">Prospectos</div>
@@ -48,43 +50,41 @@
 
         <!-- Tarjeta 3: Leads (identidad validada) -->
         <div class="col">
-            <div class="kpi-card kpi-lead shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-person-check-fill"></i></div>
-                <div class="kpi-num">{{ total_leads }}</div>
-                <div class="kpi-label">Leads</div>
-            </div>
+            <a href="?filtro=leads" class="text-decoration-none">
+                <div class="kpi-card kpi-lead shadow-sm {% if filtro_actual == 'leads' %}border-warning{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-person-check-fill"></i></div>
+                    <div class="kpi-num">{{ total_leads }}</div>
+                    <div class="kpi-label">Leads</div>
+                </div>
+            </a>
         </div>
 
         <!-- Tarjeta 4: Calificados -->
         <div class="col">
-            <div class="kpi-card kpi-calificado shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-star-fill"></i></div>
-                <div class="kpi-num">{{ total_calificados }}</div>
-                <div class="kpi-label">Calificados</div>
-            </div>
+            <a href="?filtro=calificados" class="text-decoration-none">
+                <div class="kpi-card kpi-calificado shadow-sm {% if filtro_actual == 'calificados' %}border-danger{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-star-fill"></i></div>
+                    <div class="kpi-num">{{ total_calificados }}</div>
+                    <div class="kpi-label">Calificados</div>
+                </div>
+            </a>
         </div>
 
         <!-- Tarjeta 5: Cierres del mes -->
         <div class="col">
-            <div class="kpi-card kpi-cierre shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill"></i></div>
-                <div class="kpi-num">{{ total_cierres_mes }}</div>
-                <div class="kpi-label">Cierres / Mes</div>
-            </div>
+            <a href="?filtro=cierres" class="text-decoration-none">
+                <div class="kpi-card kpi-cierre shadow-sm {% if filtro_actual == 'cierres' %}border-success{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill"></i></div>
+                    <div class="kpi-num">{{ total_cierres_mes }}</div>
+                    <div class="kpi-label">Cierres / Mes</div>
+                </div>
+            </a>
         </div>
     </div>
 
     <!-- Filtros y Búsqueda -->
     <div class="filters mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div class="d-flex flex-wrap gap-2">
-            <a href="?filtro=activos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-            class="btn btn-sm {% if filtro_actual == 'activos' or not filtro_actual %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-            📋 Todos
-            </a>
-            <a href="?filtro=frescos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
-                class="btn btn-sm {% if filtro_actual == 'frescos' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
-                🔵 Nuevos
-            </a>
             <a href="?filtro=hoy{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
                 class="btn btn-sm {% if filtro_actual == 'hoy' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
                 🟡 Para Hoy

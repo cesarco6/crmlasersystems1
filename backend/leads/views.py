@@ -53,18 +53,30 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         # ESCENARIO B: LA RED DE ARRASTRE (Filtrando grupos diarios)
         # ---------------------------------------------------------
         else:
-            # Regla INBOX ZERO: (Se mantiene para todo lo demás)
-            qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
-            
-            # Regla HIBERNACIÓN: (Se mantiene para todo lo demás)
-            qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
-
-            # Aplicar el botón que el vendedor haya presionado
-            if filtro_rapido == 'hoy':
-                qs = qs.filter(next_action_date=hoy)
-            elif filtro_rapido == 'frescos':
-                qs = qs.filter(estatus='PROSPECTO')
-            elif filtro_rapido == 'urgentes':
+            if filtro_rapido == 'cierres':
+                mes_actual = localtime(now())
+                qs = qs.filter(
+                    estatus='CLIENTE',
+                    updated_at__year=mes_actual.year,
+                    updated_at__month=mes_actual.month
+                )
+            else:
+                # Regla INBOX ZERO: (Se mantiene para todo lo demás)
+                qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
+                
+                # Regla HIBERNACIÓN: (Se mantiene para todo lo demás)
+                qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
+    
+                # Aplicar el botón que el vendedor haya presionado
+                if filtro_rapido == 'hoy':
+                    qs = qs.filter(next_action_date=hoy)
+                elif filtro_rapido == 'frescos':
+                    qs = qs.filter(estatus='PROSPECTO')
+                elif filtro_rapido == 'leads':
+                    qs = qs.filter(estatus='LEAD')
+                elif filtro_rapido == 'calificados':
+                    qs = qs.filter(estatus='LEAD_CALIFICADO')
+                elif filtro_rapido == 'urgentes':
                 # Ejemplo: leads en SEGUIMIENTO que su fecha de acción ya se pasó
                 qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
             elif filtro_rapido == 'campanas':
@@ -133,13 +145,25 @@ def agente_exportar_leads_view(request):
             Q(clinica__nombre__icontains=busqueda)
         )
     else:
-        qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
-        qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
-        if filtro_rapido == 'hoy':
-            qs = qs.filter(next_action_date=hoy)
-        elif filtro_rapido == 'frescos':
-            qs = qs.filter(estatus='PROSPECTO')
-        elif filtro_rapido == 'urgentes':
+        if filtro_rapido == 'cierres':
+            mes_actual = localtime(now())
+            qs = qs.filter(
+                estatus='CLIENTE',
+                updated_at__year=mes_actual.year,
+                updated_at__month=mes_actual.month
+            )
+        else:
+            qs = qs.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO')
+            qs = qs.exclude(Q(plan='EN_ESPERA') & Q(next_action_date__gt=hoy))
+            if filtro_rapido == 'hoy':
+                qs = qs.filter(next_action_date=hoy)
+            elif filtro_rapido == 'frescos':
+                qs = qs.filter(estatus='PROSPECTO')
+            elif filtro_rapido == 'leads':
+                qs = qs.filter(estatus='LEAD')
+            elif filtro_rapido == 'calificados':
+                qs = qs.filter(estatus='LEAD_CALIFICADO')
+            elif filtro_rapido == 'urgentes':
             qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
 
     qs = qs.order_by('-updated_at')
@@ -157,8 +181,14 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         
         from .models import Evento, VentaTransaccional
         
-        # 1. Oportunidades 360 (Antes Mis Clientes)
+        # 1. Oportunidades 360 (Ventas Transaccionales)
         qs_oportunidades = VentaTransaccional.objects.filter(vendedor=self.request.user).order_by('-fecha_venta')
+        estatus_oportunidad = self.request.GET.get('estatus')
+        if estatus_oportunidad == 'gestion':
+            qs_oportunidades = qs_oportunidades.filter(estatus__in=['PENDIENTE', 'EN_GESTION'])
+        elif estatus_oportunidad == 'concretadas':
+            qs_oportunidades = qs_oportunidades.filter(estatus='CONCRETADO')
+            
         paginator_oportunidades = Paginator(qs_oportunidades, 10)
         page_oportunidades = self.request.GET.get('page_oportunidades')
         context['oportunidades_360'] = paginator_oportunidades.get_page(page_oportunidades)
@@ -170,7 +200,13 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         context['historicos'] = paginator_historicos.get_page(page_historicos)
         
         # Pestaña activa por defecto
-        context['active_tab'] = self.request.GET.get('tab', 'campanas')
+        context['active_tab'] = self.request.GET.get('tab', 'mis_clientes')
+        
+        # 3. Mis Clientes (Leads no históricos)
+        qs_mis_clientes = qs_base.filter(es_historico=False).order_by('-updated_at')
+        paginator_mis_clientes = Paginator(qs_mis_clientes, 10)
+        page_mis_clientes = self.request.GET.get('page_mis_clientes')
+        context['mis_clientes_list'] = paginator_mis_clientes.get_page(page_mis_clientes)
         
         # 3. Campañas y Eventos
         filtro_evento = self.request.GET.get('filtro_evento', 'todos')
@@ -220,8 +256,9 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
                 context['prospectos_campana'] = paginator_prospectos.get_page(page_prospectos)
 
         # KPIs del resumen superior — Ventas 360
+        context['kpi_mis_clientes']        = qs_base.filter(es_historico=False).count()
+        
         qs_oport_all = VentaTransaccional.objects.filter(vendedor=self.request.user)
-        context['kpi_oportunidades_total'] = qs_oport_all.count()
         context['kpi_en_gestion']          = qs_oport_all.filter(estatus__in=['PENDIENTE', 'EN_GESTION']).count()
         context['kpi_concretadas']         = qs_oport_all.filter(estatus='CONCRETADO').count()
         context['kpi_historicos']          = qs_base.filter(es_historico=True).count()
