@@ -77,14 +77,14 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
                 elif filtro_rapido == 'calificados':
                     qs = qs.filter(estatus='LEAD_CALIFICADO')
                 elif filtro_rapido == 'urgentes':
-                # Ejemplo: leads en SEGUIMIENTO que su fecha de acción ya se pasó
-                qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
-            elif filtro_rapido == 'campanas':
-                evento_id = self.request.GET.get('evento_id')
-                if evento_id:
-                    qs = qs.filter(eventos_asociados__evento_id=evento_id)
-                else:
-                    qs = qs.filter(eventos_asociados__isnull=False).distinct()
+                    # Ejemplo: leads en SEGUIMIENTO que su fecha de acción ya se pasó
+                    qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
+                elif filtro_rapido == 'campanas':
+                    evento_id = self.request.GET.get('evento_id')
+                    if evento_id:
+                        qs = qs.filter(eventos_asociados__evento_id=evento_id)
+                    else:
+                        qs = qs.filter(eventos_asociados__isnull=False).distinct()
         
         # Ordenamos la consulta final
         qs = qs.order_by('-updated_at')
@@ -164,7 +164,7 @@ def agente_exportar_leads_view(request):
             elif filtro_rapido == 'calificados':
                 qs = qs.filter(estatus='LEAD_CALIFICADO')
             elif filtro_rapido == 'urgentes':
-            qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
+                qs = qs.filter(plan='SEGUIMIENTO', next_action_date__lt=hoy)
 
     qs = qs.order_by('-updated_at')
     return generar_respuesta_xlsx(qs, f"mis_leads_{request.user.username}.xlsx")
@@ -202,8 +202,8 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         # Pestaña activa por defecto
         context['active_tab'] = self.request.GET.get('tab', 'mis_clientes')
         
-        # 3. Mis Clientes (Leads no históricos)
-        qs_mis_clientes = qs_base.filter(es_historico=False).order_by('-updated_at')
+        # 3. Mis Clientes (Leads no históricos con estatus CLIENTE)
+        qs_mis_clientes = qs_base.filter(estatus='CLIENTE', es_historico=False).order_by('-updated_at')
         paginator_mis_clientes = Paginator(qs_mis_clientes, 10)
         page_mis_clientes = self.request.GET.get('page_mis_clientes')
         context['mis_clientes_list'] = paginator_mis_clientes.get_page(page_mis_clientes)
@@ -256,7 +256,7 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
                 context['prospectos_campana'] = paginator_prospectos.get_page(page_prospectos)
 
         # KPIs del resumen superior — Ventas 360
-        context['kpi_mis_clientes']        = qs_base.filter(es_historico=False).count()
+        context['kpi_mis_clientes']        = qs_base.filter(estatus='CLIENTE', es_historico=False).count()
         
         qs_oport_all = VentaTransaccional.objects.filter(vendedor=self.request.user)
         context['kpi_en_gestion']          = qs_oport_all.filter(estatus__in=['PENDIENTE', 'EN_GESTION']).count()
