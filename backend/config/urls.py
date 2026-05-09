@@ -22,6 +22,20 @@ from leads import views as leads_views
 # 1. Agregamos "procesar_alta_manual" a la lista de importaciones
 from leads.views import DashboardAgenteView, Ventas360View, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra, AgenteStagingListView, AgenteStagingProcesarView
 from users.views import panel_territorios, custom_login_view, custom_logout_view, api_territorios_vendedor
+from django.shortcuts import render
+
+def custom_404(request, exception=None):
+    return render(request, '404.html', status=404)
+
+def custom_500(request):
+    return render(request, '500.html', status=500)
+
+def custom_403(request, exception=None):
+    return render(request, '403.html', status=403)
+
+handler404 = custom_404
+handler500 = custom_500
+handler403 = custom_403
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -83,3 +97,9 @@ from django.conf.urls.static import static
 
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Rutas para probar las páginas de error en entorno local (DEBUG=True)
+    urlpatterns += [
+        path('test/404/', custom_404, name='test_404'),
+        path('test/500/', custom_500, name='test_500'),
+        path('test/403/', custom_403, name='test_403'),
+    ]
