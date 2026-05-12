@@ -89,6 +89,7 @@ urlpatterns = [
 
     path('api/lead/<uuid:pk>/no-cierre/', leads_views.api_marcar_no_cierre, name='api_no_cierre'),
     path('api/alerta/<int:alerta_id>/atender/', leads_views.api_atender_alerta, name='api_atender_alerta'),
+    path('api/citas-dia/', leads_views.api_citas_dia, name='api_citas_dia'),
 
 ]
 

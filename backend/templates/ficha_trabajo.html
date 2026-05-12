@@ -57,6 +57,7 @@
                 {% elif lead.estatus == 'PROSPECTO' %}
                     <button type="button" class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('VALIDAR', this)">✅ Validar Identidad</button>
                     <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar</button>
+                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
 
                 {% elif lead.estatus == 'LEAD' %}
                     <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar</button>

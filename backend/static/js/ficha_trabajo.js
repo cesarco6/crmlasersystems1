@@ -694,4 +694,59 @@ document.addEventListener('DOMContentLoaded', () => {
     if (document.getElementById('form-editar') && typeof toggleTipoEntidad === 'function') {
         toggleTipoEntidad();
     }
+    
+    const inputFechaAgenda = document.getElementById('input-fecha-agenda');
+    if (inputFechaAgenda) {
+        // --- Restricción de 3 días hábiles para Prospectos ---
+        const estatus = inputFechaAgenda.getAttribute('data-estatus');
+        if (estatus === 'PROSPECTO') {
+            let count = 0;
+            let limitDate = new Date();
+            limitDate.setHours(0, 0, 0, 0);
+            
+            while (count < 3) {
+                limitDate.setDate(limitDate.getDate() + 1);
+                // 0 = Domingo, 6 = Sábado
+                if (limitDate.getDay() !== 0 && limitDate.getDay() !== 6) {
+                    count++;
+                }
+            }
+            
+            // Desfase de zona horaria (trick para toISOString)
+            limitDate.setMinutes(limitDate.getMinutes() - limitDate.getTimezoneOffset());
+            const maxDateStr = limitDate.toISOString().split('T')[0];
+            inputFechaAgenda.setAttribute('max', maxDateStr);
+            
+            const todayDate = new Date();
+            todayDate.setMinutes(todayDate.getMinutes() - todayDate.getTimezoneOffset());
+            inputFechaAgenda.setAttribute('min', todayDate.toISOString().split('T')[0]);
+        }
+
+        inputFechaAgenda.addEventListener('change', (e) => {
+            const fecha = e.target.value;
+            if (!fecha) {
+                const badge = document.getElementById('citas-dia-badge');
+                if (badge) badge.classList.add('d-none');
+                return;
+            }
+            
+            fetch(`/api/citas-dia/?fecha=${fecha}`)
+                .then(res => res.json())
+                .then(data => {
+                    const badge = document.getElementById('citas-dia-badge');
+                    if (badge && data.citas_programadas !== undefined) {
+                        badge.classList.remove('d-none');
+                        badge.innerText = `Tienes ${data.citas_programadas} citas ya programadas para este día`;
+                        if (data.citas_programadas > 0) {
+                            badge.classList.remove('bg-success');
+                            badge.classList.add('bg-warning', 'text-dark');
+                        } else {
+                            badge.classList.remove('bg-warning', 'text-dark');
+                            badge.classList.add('bg-success');
+                        }
+                    }
+                })
+                .catch(err => console.error("Error obteniendo citas del día", err));
+        });
+    }
 });

@@ -16,7 +16,11 @@
         <div class="card-body">
             {# --- Alerta informativa --- #}
             <div class="alert alert-secondary  text-secondary  small mb-3">
-                ℹ️ <strong>Regla automática:</strong> Si agendas a más de 30 días, el prospecto pasará a "En Espera". Si es a menor plazo, continuará en "Seguimiento".
+                {% if lead.estatus == 'PROSPECTO' %}
+                    ℹ️ Agenda la validación del prospecto hasta 3 días hábiles.
+                {% else %}
+                    ℹ️ Si agendas a más de 30 días, el prospecto pasará a "En Espera". Si es a menor plazo, continuará en "Seguimiento".
+                {% endif %}
             </div>
 
             <div class="row mb-4">
@@ -25,8 +29,10 @@
                         Fecha de próximo contacto:
                     </label>
                     <input type="date" id="input-fecha-agenda"
-                           class="form-control form-control-sm   "
+                           class="form-control form-control-sm"
+                           data-estatus="{{ lead.estatus }}"
                            required>
+                    <div id="citas-dia-badge" class="badge bg-success mt-2 d-none w-100 py-2 fs-6 text-wrap fw-bold shadow-sm"></div>
                 </div>
             </div>
 

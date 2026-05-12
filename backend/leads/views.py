@@ -1918,3 +1918,27 @@ class AgenteStagingProcesarView(LoginRequiredMixin, DetailView):
             except Exception as e:
                 messages.error(request, f"Error de DB: {str(e)}")
                 return redirect('agente_staging_procesar', pk=staging_lead.pk)
+
+from django.http import JsonResponse
+
+@login_required
+def api_citas_dia(request):
+    fecha_str = request.GET.get('fecha')
+    if not fecha_str:
+        return JsonResponse({'error': 'Fecha no proporcionada'}, status=400)
+    
+    try:
+        from django.utils.dateparse import parse_date
+        fecha = parse_date(fecha_str)
+        if not fecha:
+            return JsonResponse({'error': 'Formato de fecha inválido'}, status=400)
+            
+        citas_count = CoreLead.objects.filter(
+            owner=request.user,
+            next_action_date=fecha
+        ).count()
+        
+        return JsonResponse({'citas_programadas': citas_count})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
