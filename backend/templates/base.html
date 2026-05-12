@@ -22,9 +22,9 @@
     <script>
         const savedTheme = localStorage.getItem('crm-theme') || 'dark';
         document.documentElement.setAttribute('data-bs-theme', savedTheme);
-        // Restaurar fuente guardada antes de pintar la página
-        const savedFont = localStorage.getItem('crm-font') || 'ubuntu';
-        document.documentElement.classList.add('crm-font-' + savedFont);
+        // Restaurar fuente global dictada por el administrador
+        const globalFont = "{{ GLOBAL_CRM_FONT|default:'ubuntu' }}";
+        document.documentElement.classList.add('crm-font-' + globalFont);
     </script>
 </head>
 
@@ -271,9 +271,28 @@
 
     function setCrmFont(fontKey) {
         if (!CRM_FONTS.includes(fontKey)) return;
-        _applyFontClass(fontKey);
-        _updateFontCheckmarks(fontKey);
-        localStorage.setItem('crm-font', fontKey);
+        
+        // Guardar la fuente globalmente (solo staff tiene este botón)
+        fetch('/api/set-global-font/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCsrfFromCookie()
+            },
+            body: JSON.stringify({ font: fontKey })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.status === 'success') {
+                _applyFontClass(fontKey);
+                _updateFontCheckmarks(fontKey);
+            } else {
+                Swal.fire('Error', res.error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error al guardar fuente global:', err);
+        });
     }
     /* ─────────────────────────────────────────────────────── */
 
@@ -367,7 +386,7 @@
 
     // Inicializar checkmark de fuente activa al cargar el DOM
     document.addEventListener('DOMContentLoaded', function () {
-        const activeFont = localStorage.getItem('crm-font') || 'ubuntu';
+        const activeFont = "{{ GLOBAL_CRM_FONT|default:'ubuntu' }}";
         _updateFontCheckmarks(activeFont);
     });
     </script>

@@ -21,7 +21,7 @@ from leads import views as leads_views
 
 # 1. Agregamos "procesar_alta_manual" a la lista de importaciones
 from leads.views import DashboardAgenteView, Ventas360View, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra, AgenteStagingListView, AgenteStagingProcesarView
-from users.views import panel_territorios, custom_login_view, custom_logout_view, api_territorios_vendedor
+from users.views import panel_territorios, custom_login_view, custom_logout_view, api_territorios_vendedor, api_set_global_font
 from django.shortcuts import render
 
 def custom_404(request, exception=None):
@@ -49,6 +49,7 @@ urlpatterns = [
     path('director/dashboard/', director_dashboard_view, name='director_dashboard'),
     path('director/territorios/', panel_territorios, name='director_territorios'),
     path('api/director/territorios/<int:vendedor_id>/', api_territorios_vendedor, name='api_territorios_vendedor'),
+    path('api/set-global-font/', api_set_global_font, name='api_set_global_font'),
 
     # Quirófano (Staging) - DIrector
     path('director/staging/', ListaStagingView.as_view(), name='staging_list'),

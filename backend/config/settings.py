@@ -71,6 +71,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'leads.context_processors.contador_alertas', # Contador personalizado
+                'users.context_processors.global_settings_processor', # Fuente global
             ],
         },
     },

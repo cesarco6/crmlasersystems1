@@ -92,3 +92,32 @@ def api_territorios_vendedor(request, vendedor_id):
             return JsonResponse({'status': 'success', 'message': 'Territorios actualizados correctamente.'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+@login_required
+@require_http_methods(["POST"])
+def api_set_global_font(request):
+    if not request.user.is_staff:
+        return JsonResponse({'error': 'Solo el administrador puede cambiar la fuente'}, status=403)
+    
+    try:
+        from django.conf import settings
+        import os
+        
+        data = json.loads(request.body)
+        font = data.get('font')
+        if font in ['ubuntu', 'inter', 'roboto', 'outfit']:
+            settings_file = os.path.join(settings.BASE_DIR, 'global_settings.json')
+            settings_data = {}
+            if os.path.exists(settings_file):
+                try:
+                    with open(settings_file, 'r') as f:
+                        settings_data = json.load(f)
+                except Exception:
+                    pass
+            settings_data['crm_font'] = font
+            with open(settings_file, 'w') as f:
+                json.dump(settings_data, f)
+            return JsonResponse({'status': 'success'})
+        return JsonResponse({'error': 'Fuente no válida'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
