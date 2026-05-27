@@ -61,9 +61,15 @@
             <h2 class="fw-bold text-body mb-0">🎯Dashboard Vendedor</h2>
             <p class="text-muted small">Panel operativo de ventas</p>
         </div>
-        <button onclick="document.getElementById('modal-alta').style.display='block'" class="btn btn-secondary shadow-sm fw-bold">
-            + Nueva Oportunidad
-        </button>
+        {% if filtro_actual == 'expos' and evento_seleccionado %}
+            <button onclick="abrirModalAltaParaExpo('{{ evento_seleccionado.id }}', '{{ evento_seleccionado.nombre }}')" class="btn btn-pink shadow-sm fw-bold">
+                + Nueva Oportunidad (Expo)
+            </button>
+        {% else %}
+            <button onclick="document.getElementById('modal-alta').style.display='block'" class="btn btn-secondary shadow-sm fw-bold">
+                + Nueva Oportunidad
+            </button>
+        {% endif %}
     </div>
 
     <!-- KPI Cards — Embudo de Ventas -->
