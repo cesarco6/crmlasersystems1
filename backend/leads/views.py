@@ -116,7 +116,7 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['total_activos'] = CoreLead.objects.filter(owner=self.request.user).exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
         # --- LÍNEAS NUEVAS PARA EL MODAL DE ALTA RÁPIDA ---
         context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
-        context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+        context['productos_list'] = CatProducto.objects.filter(is_active=True, familia='EQUIPO').values_list('nombre', flat=True).order_by('nombre')
         context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
         context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
         
@@ -174,7 +174,7 @@ class AgenteExpoCapturaView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView
         
         # Catálogos para el modal de alta rápida
         context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
-        context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+        context['productos_list'] = CatProducto.objects.filter(is_active=True, familia='EQUIPO').values_list('nombre', flat=True).order_by('nombre')
         context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
         context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
         
