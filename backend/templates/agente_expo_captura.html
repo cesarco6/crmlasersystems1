@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Captura de Expo: {{ evento_seleccionado.nombre }} - CRM Laser Systems{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/modals.css' %}?v=1.2">
+<link rel="stylesheet" href="{% static 'css/dashboard_agente.css' %}?v=1.1">
+<style>
+    .btn-pink {
+        background-color: #ec4899;
+        border-color: #ec4899;
+        color: #fff !important;
+    }
+
+    .btn-pink:hover {
+        background-color: #db2777;
+        border-color: #db2777;
+        color: #fff !important;
+    }
+
+    .btn-outline-pink {
+        border-color: #ec4899;
+        color: #ec4899 !important;
+    }
+
+    .btn-outline-pink:hover {
+        background-color: #ec4899;
+        border-color: #ec4899;
+        color: #fff !important;
+    }
+
+    .border-pink {
+        border-color: #ec4899 !important;
+    }
+
+    .text-pink {
+        color: #ec4899 !important;
+    }
+
+    .bg-pink-subtle {
+        background-color: rgba(236, 72, 153, 0.12) !important;
+    }
+
+    .border-pink-subtle {
+        border-color: rgba(236, 72, 153, 0.3) !important;
+    }
+
+    .card-expo {
+        border-radius: 14px;
+        border: 1px solid var(--bs-border-color);
+        background: var(--bs-card-bg, var(--bs-body-bg));
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+{% include 'welcome_overlay.html' %}
+<section class="container-fluid px-2 px-md-4 py-3">
+
+    <!-- Navegación de Retorno -->
+    <div class="mb-3">
+        <a href="{% url 'dashboard_agente' %}?filtro=expos" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm">
+            <i class="bi bi-arrow-left"></i> Volver a Mis Expos
+        </a>
+    </div>
+
+    <!-- Banner de Detalles de la Expo con Diseño Premium -->
+    <div class="card shadow-sm border-0 p-3 card-expo border-start border-pink border-4 mb-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+            <div>
+                <span class="badge bg-pink-subtle text-pink border border-pink-subtle mb-2">📢 EXPO / CONGRESO (CAPTURA
+                    DEDICADA)</span>
+                <h4 class="fw-bold text-body mb-1">{{ evento_seleccionado.nombre }}</h4>
+                <p class="text-muted small mb-0"><i class="bi bi-geo-alt-fill text-pink me-1"></i> {{
+                    evento_seleccionado.lugar|default:"Ubicación no especificada" }}</p>
+            </div>
+            <div class="text-md-end">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-calendar-event text-secondary"></i>
+                    <span class="small fw-bold">{{ evento_seleccionado.fecha_inicio|date:"d M Y" }}</span>
+                    <span class="small text-muted">al</span>
+                    <span class="small fw-bold">{{ evento_seleccionado.fecha_fin|date:"d M Y" }}</span>
+                </div>
+                {% if evento_seleccionado.ciudades_objetivo.exists %}
+                <div class="small text-muted">
+                    <i class="bi bi-geo-fill text-muted"></i> Cobertura:
+                    {% for ubi in evento_seleccionado.ciudades_objetivo.all %}
+                    <span class="badge bg-secondary-subtle text-secondary">{{ ubi.ciudad }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Leads Captados en la Expo -->
+    <div class="card card-ers shadow-sm mb-4 border-2 border-pink">
+
+        <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold text-body m-0">
+                <i class="bi bi-megaphone-fill me-2" style="color: #ec4899;"></i>Prospectos de: {{
+                evento_seleccionado.nombre }}
+            </h5>
+            <button onclick="abrirModalAltaParaExpo('{{ evento_seleccionado.id }}', '{{ evento_seleccionado.nombre }}')"
+                class="btn btn-sm btn-pink fw-bold shadow-sm">
+                ➕ Registrar Prospecto en esta Expo
+            </button>
+        </div>
+
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-ers mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Cliente</th>
+                            <th>Última Acción</th>
+                            <th>Etapa</th>
+                            <th>Producto</th>
+                            <th>Cal.</th>
+                            <th>Ciudad</th>
+                            <th class="text-end pe-4">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lead in leads %}
+                        <tr>
+                            <td class="ps-4">
+                                <span class="fw-bold text-body">
+                                    {% if lead.clinica and not lead.apellido_paterno %}
+                                    <i class="bi bi-building-fill text-info" title="Clínica Corporativa"></i>
+                                    {% elif lead.clinica %}
+                                    <i class="bi bi-hospital-fill text-primary"
+                                        title="Médico de Clínica: {{ lead.clinica.nombre }}"></i>
+                                    {% else %}
+                                    <i class="bi bi-person-fill text-secondary" title="Médico Independiente"></i>
+                                    {% endif %}
+                                    {{ lead.nombre_completo_mdm }}
+                                </span>
+                                {% if lead.es_historico %}
+                                <span class="badge bg-secondary ms-1" style="font-size: 0.65em;">Histórico</span>
+                                {% endif %}
+                                <br>
+                                {% if lead.clinica and not lead.apellido_paterno %}
+                                <span class="badge rounded-pill bg-info-subtle text-info border border-info-subtle"
+                                    style="font-size:0.65em;">🏢 Clínica Corporativa</span>
+                                {% elif lead.clinica %}
+                                <span
+                                    class="badge rounded-pill bg-primary-subtle text-primary border border-primary-subtle"
+                                    style="font-size:0.65em;">🏥 Médico de Clínica</span>
+                                {% else %}
+                                <span
+                                    class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle"
+                                    style="font-size:0.65em;">👤 Independiente</span>
+                                {% endif %}
+                                <small class="text-muted ms-1" style="font-size:0.72em;">{{ lead.phone_primary
+                                    }}</small>
+                            </td>
+                            <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
+                            <td>
+                                {% if lead.estatus == 'OPORTUNIDAD' %}
+                                <span
+                                    class="badge bg-warning-subtle text-warning border border-warning-subtle">OPORTUNIDAD</span>
+                                {% else %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{
+                                    lead.estatus }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-body small">{{ lead.producto_cat.nombre|default:"-" }}</td>
+                            <td>
+                                {% if lead.calificacion == 3 %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">🔥
+                                    Alta</span>
+                                {% elif lead.calificacion == 2 %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle">⭐ Media</span>
+                                {% elif lead.calificacion == 1 %}
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">🧊
+                                    Baja</span>
+                                {% else %}
+                                <span class="text-muted small">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
+                            <td class="text-end pe-4">
+                                <a href="{% url 'ficha_trabajo' lead.id %}"
+                                    class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
+                                    Gestionar
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                                ¡Bandeja limpia! Registra tu primer prospecto de esta Expo usando el botón superior.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Paginación Limpia -->
+        <div class="card-footer bg-transparent py-3 border-0">
+            {% if page_obj.has_other_pages %}
+            <nav aria-label="Navegación de leads">
+                <ul class="pagination justify-content-center mb-0 mt-2">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item"><a class="page-link shadow-sm"
+                            href="?page={{ page_obj.previous_page_number }}">Anterior</a></li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link shadow-sm">Anterior</span></li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %} <li class="page-item"><a
+                            class="page-link shadow-sm" href="?page={{ num }}">{{ num }}</a></li>
+                        {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link shadow-sm"
+                                href="?page={{ page_obj.next_page_number }}">Siguiente</a></li>
+                        {% else %}
+                        <li class="page-item disabled"><span class="page-link shadow-sm">Siguiente</span></li>
+                        {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Modal de Alta Rápida (Componente DRY) #}
+    {% include 'partials/modals/_modal_alta_rapida.html' %}
+
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="{% static 'js/modals.js' %}?v=1.3"></script>
+<script>
+    function abrirModalAltaParaExpo(eventoId, eventoNombre) {
+        const modalInput = document.getElementById('alta-evento-id');
+        const badgeContainer = document.getElementById('alta-evento-badge-container');
+        const badgeText = document.getElementById('alta-evento-badge-text');
+        const selectRow = document.getElementById('row-alta-evento-select');
+
+        if (modalInput) {
+            modalInput.value = eventoId;
+        }
+        if (badgeContainer && badgeText) {
+            badgeText.innerText = "📍 Expo: " + eventoNombre;
+            badgeContainer.style.display = 'block';
+        }
+        if (selectRow) {
+            selectRow.style.display = 'none';
+        }
+
+        // Abrir modal
+        const modalAlta = document.getElementById('modal-alta');
+        if (modalAlta) {
+            modalAlta.style.display = 'block';
+        }
+    }
+
+    function limpiarAltaExpo() {
+        const modalInput = document.getElementById('alta-evento-id');
+        const badgeContainer = document.getElementById('alta-evento-badge-container');
+        const selectRow = document.getElementById('row-alta-evento-select');
+        const selectVal = document.getElementById('alta-evento-select');
+
+        if (modalInput) {
+            modalInput.value = '';
+        }
+        if (badgeContainer) {
+            badgeContainer.style.display = 'none';
+        }
+        if (selectRow) {
+            selectRow.style.display = 'none'; // Siempre oculto en esta página dedicada
+        }
+        if (selectVal) {
+            selectVal.value = '';
+        }
+    }
+</script>
+{% endblock %}

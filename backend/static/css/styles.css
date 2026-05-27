@@ -15,63 +15,78 @@
    .crm-font-outfit    →  Outfit
 ================================================================ */
 :root,
-.crm-font-ubuntu  { --crm-font-body: 'Ubuntu',  Cantarell, sans-serif; }
-.crm-font-inter   { --crm-font-body: 'Inter',   system-ui,  sans-serif; }
-.crm-font-roboto  { --crm-font-body: 'Roboto',  Arial,      sans-serif; }
-.crm-font-outfit  { --crm-font-body: 'Outfit',  Verdana,    sans-serif; }
+.crm-font-ubuntu {
+  --crm-font-body: 'Ubuntu', Cantarell, sans-serif;
+}
+
+.crm-font-inter {
+  --crm-font-body: 'Inter', system-ui, sans-serif;
+}
+
+.crm-font-roboto {
+  --crm-font-body: 'Roboto', Arial, sans-serif;
+}
+
+.crm-font-outfit {
+  --crm-font-body: 'Outfit', Verdana, sans-serif;
+}
 
 /* ==========================================================================
    DESIGN SYSTEM - PHASE 1: SEMANTIC VARIABLES
    ========================================================================== */
 
 :root {
-    /* Light Mode Default (Standard BS5 fallback) */
-    --ers-bg-main: #f0f2f5; /* Gris tenue y elegante para el cuerpo general, descansa la vista */
-    --ers-bg-card: #fbfbfb; /* Blanco atenuado "hueso" / gris ultra suave, no es #ffffff puro */
-    --ers-border: #e4e6ef; /* Borde más enfatizado en Light Mode */
-    --ers-text-primary: #181c32;
-    --ers-text-muted: #a1a5b7;
-    
-    /* Global Accents */
-    --ers-primary: #009ef7;
-    --ers-success: #50cd89;
-    --ers-warning: #ffc700;
-    --ers-danger: #f1416c;
+  /* Light Mode Default (Standard BS5 fallback) */
+  --ers-bg-main: #f0f2f5;
+  /* Gris tenue y elegante para el cuerpo general, descansa la vista */
+  --ers-bg-card: #fbfbfb;
+  /* Blanco atenuado "hueso" / gris ultra suave, no es #ffffff puro */
+  --ers-border: #e4e6ef;
+  /* Borde más enfatizado en Light Mode */
+  --ers-text-primary: #181c32;
+  --ers-text-muted: #a1a5b7;
 
-    /* PUENTE DE COMPATIBILIDAD (Arregla transparencias) */
-    --background: var(--ers-bg-main);
-    --surface: var(--ers-bg-card);
-    --border: var(--ers-border);
-    --text: var(--ers-text-primary);
-    --text-secondary: var(--ers-text-muted);
+  /* Global Accents */
+  --ers-primary: #009ef7;
+  --ers-success: #50cd89;
+  --ers-warning: #ffc700;
+  --ers-danger: #f1416c;
 
-    /* BS5 Overrides to let native components inherit the light theme */
-    --bs-body-bg: var(--ers-bg-main);
-    --bs-body-color: var(--ers-text-primary);
-    --bs-card-bg: var(--ers-bg-card);
-    --bs-border-color: var(--ers-border);
-    --bs-tertiary-bg: var(--ers-bg-card);
-    --bs-secondary-color: var(--ers-text-muted);
+  /* PUENTE DE COMPATIBILIDAD (Arregla transparencias) */
+  --background: var(--ers-bg-main);
+  --surface: var(--ers-bg-card);
+  --border: var(--ers-border);
+  --text: var(--ers-text-primary);
+  --text-secondary: var(--ers-text-muted);
+
+  /* BS5 Overrides to let native components inherit the light theme */
+  --bs-body-bg: var(--ers-bg-main);
+  --bs-body-color: var(--ers-text-primary);
+  --bs-card-bg: var(--ers-bg-card);
+  --bs-border-color: var(--ers-border);
+  --bs-tertiary-bg: var(--ers-bg-card);
+  --bs-secondary-color: var(--ers-text-muted);
 }
+
 /* ==========================================================================
    METRONIC DARK THEME (Bootstrap 5.3 Integration)
    ========================================================================== */
 
 [data-bs-theme="dark"] {
-    /* Metronic Colors Mapping */
-    --ers-bg-main: #151521;
-    --ers-bg-card: #1e1e2d;
-    --ers-border: #2b2b40;
-    --ers-text-primary: #e4e6ef;
-    --ers-text-muted: #a1a5b7;
-    
-    /* BS5 Overrides to let native components inherit the theme */
-    --bs-body-bg: var(--ers-bg-main);
-    --bs-body-color: var(--ers-text-primary);
-    --bs-card-bg: var(--ers-bg-card);
-    --bs-border-color: var(--ers-border);
-    --bs-tertiary-bg: var(--ers-bg-card);
-    --bs-secondary-color: var(--ers-text-muted);
+  /* Metronic Colors Mapping */
+  --ers-bg-main: #151521;
+  --ers-bg-card: #1e1e2d;
+  --ers-border: #2b2b40;
+  --ers-text-primary: #e4e6ef;
+  --ers-text-muted: #a1a5b7;
+
+  /* BS5 Overrides to let native components inherit the theme */
+  --bs-body-bg: var(--ers-bg-main);
+  --bs-body-color: var(--ers-text-primary);
+  --bs-card-bg: var(--ers-bg-card);
+  --bs-border-color: var(--ers-border);
+  --bs-tertiary-bg: var(--ers-bg-card);
+  --bs-secondary-color: var(--ers-text-muted);
 }
 
 /* ==========================================================================
@@ -79,31 +94,31 @@
    ========================================================================== */
 
 .card-ers {
-    background-color: var(--ers-bg-card);
-    border: 1px solid var(--ers-border);
-    border-radius: 0.75rem;
-    box-shadow: 0 0.1rem 1rem 0.25rem rgba(0, 0, 0, 0.05);
-    padding: 1.25rem;
+  background-color: var(--ers-bg-card);
+  border: 1px solid var(--ers-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.1rem 1rem 0.25rem rgba(0, 0, 0, 0.05);
+  padding: 1.25rem;
 }
 
 .text-ers-muted {
-    color: var(--ers-text-muted) !important;
+  color: var(--ers-text-muted) !important;
 }
 
 .table-ers {
-    --bs-table-bg: transparent;
-    --bs-table-color: var(--ers-text-primary);
-    --bs-table-border-color: var(--ers-border);
-    border-color: var(--ers-border);
+  --bs-table-bg: transparent;
+  --bs-table-color: var(--ers-text-primary);
+  --bs-table-border-color: var(--ers-border);
+  border-color: var(--ers-border);
 }
 
 .table-ers thead th {
-    background-color: rgba(0, 0, 0, 0.1);
-    color: var(--ers-text-muted);
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.75rem;
-    letter-spacing: 0.05rem;
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--ers-text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05rem;
 }
 
 /* ===== KPI CARDS — Altura fija del título ==============================
@@ -111,97 +126,106 @@
    El número queda alineado porque .card-body usa flex-column y mt-auto.
 ================================================================ */
 .kpi-title {
-    font-size: 0.72rem;
-    letter-spacing: 0.04em;
-    min-height: 2.8em;
-    display: flex;
-    align-items: flex-start;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  min-height: 2.8em;
+  display: flex;
+  align-items: flex-start;
 }
 
 /* Global Geometry for Templates and Modals */
-.card, .modal-content {
-    border: 1px solid var(--ers-border) !important;
-    border-radius: 5px !important;
+.card,
+.modal-content {
+  border: 1px solid var(--ers-border) !important;
+  border-radius: 5px !important;
 }
 
 /* UI Elements - Removed inline styles */
 .btn-theme-toggle {
-    padding: 0.2rem 0.5rem;
-    transition: 0.3s;
+  padding: 0.2rem 0.5rem;
+  transition: 0.3s;
 }
 
 .badge-notification {
-    font-size: 0.75rem;
-    transform: translate(-30%, -30%) !important;
+  font-size: 0.75rem;
+  transform: translate(-30%, -30%) !important;
 }
 
 /* Upload (Quirófano) Component */
 .upload-dropzone {
-    border: 2px dashed var(--ers-border);
-    padding: 30px;
-    border-radius: 10px;
-    background-color: var(--ers-bg-main);
-    transition: 0.3s ease;
+  border: 2px dashed var(--ers-border);
+  padding: 30px;
+  border-radius: 10px;
+  background-color: var(--ers-bg-main);
+  transition: 0.3s ease;
 }
 
 .upload-structure {
-    text-align: left;
-    background-color: rgba(0, 0, 0, 0.05);
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 0.9rem;
+  text-align: left;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-size: 0.9rem;
 }
 
 [data-bs-theme="dark"] .upload-structure {
-    background-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.2);
 }
 
 /* Base modifications */
 body {
-    font-family: var(--crm-font-body, 'Ubuntu', Cantarell, sans-serif);
-    font-size: 1rem;
-    background-color: var(--bs-body-bg);
-    color: var(--bs-body-color);
-    line-height: 1.6;
-    transition: background-color 0.3s ease, color 0.3s ease;
+  font-family: var(--crm-font-body, 'Ubuntu', Cantarell, sans-serif);
+  font-size: 1rem;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Header Icons Action Buttons */
 .icon-action-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 39px;
-    height: 39px;
-    border: 1px solid var(--ers-border) !important;
-    border-radius: 8px;
-    font-size: 1.0rem;
-    transition: all 0.25s ease;
-    background-color: transparent;
-    color: var(--ers-text-primary);
-    padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 39px;
+  height: 39px;
+  border: 1px solid var(--ers-border) !important;
+  border-radius: 8px;
+  font-size: 1.0rem;
+  transition: all 0.25s ease;
+  background-color: transparent;
+  color: var(--ers-text-primary);
+  padding: 0 !important;
 }
 
 .icon-action-btn:hover {
-    background-color: var(--ers-border);
+  background-color: var(--ers-border);
 }
 
 .icon-action-btn.active-alert {
-    border-color: var(--ers-primary) !important;
-    background-color: rgba(0, 158, 247, 0.08); 
-    color: var(--ers-primary) !important;
-    animation: alertPulse 2s infinite;
+  border-color: var(--ers-primary) !important;
+  background-color: rgba(0, 158, 247, 0.08);
+  color: var(--ers-primary) !important;
+  animation: alertPulse 2s infinite;
 }
 
 .icon-action-btn.active-alert i {
-    color: var(--ers-primary) !important;
+  color: var(--ers-primary) !important;
 }
 
 @keyframes alertPulse {
-    0% { box-shadow: 0 0 0 0 rgba(0, 158, 247, 0.5); }
-    70% { box-shadow: 0 0 0 8px rgba(0, 158, 247, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0, 158, 247, 0); }
+  0% {
+    box-shadow: 0 0 0 0 rgba(0, 158, 247, 0.5);
+  }
+
+  70% {
+    box-shadow: 0 0 0 8px rgba(0, 158, 247, 0);
+  }
+
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 158, 247, 0);
+  }
 }
 
 /* Header */
@@ -546,7 +570,7 @@ body {
   background-color: var(--surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   overflow: hidden;
   transition: background-color 0.3s ease;
 }
@@ -1419,7 +1443,7 @@ body {
 .leftmenu {
   color: var(--text);
   text-decoration: none;
-  display: block;  
+  display: block;
   border-radius: var(--radius);
   transition: all 0.2s;
   font-size: 1rem;
@@ -1452,85 +1476,90 @@ body {
   margin-top: 1rem;
 }
 
-  /* Estilos para el login - Tema Oscuro (Dark Theme) */
-    body.login-body {
-        margin: 0;
-        padding: 0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 80vh;
-        background-color: #4571b8        
-    }
-    .login-container {
-        width: 100%;
-        max-width: 400px;
-        padding: 20px;
-    }
-    .login-card {
-        background: var(--ers-bg-card);
-        padding: 40px;
-        border-radius: 12px;
-        box-shadow: 0 8px 30px rgba(0,0,0,0.5);
-        border: 1px solid var(--ers-border);
-    }
-    .login-header {
-        text-align: center; 
-        margin-bottom: 2rem;       
-    }
+/* Estilos para el login - Tema Oscuro (Dark Theme) */
+body.login-body {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #4571b8
+}
 
-    .login-header img {
-        max-width: 75px;
-        margin-bottom: 1rem;
-        border: 2px solid #9f1239;
-        border-radius: 5%;
-        background-color: azure;
-    }
-    .login-header h1 {
-        font-size: 1.5rem;
-        color: var(--ers-text-primary);
-        margin: 0;
-        font-weight: 700;
-        span {
-          color: rgba(204, 46, 46, 0.849);
-          font-size: 1.4rem;
-        }        
-    }
+.login-container {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
 
-    .login-header p {
-        color: var(--text-secondary);
-        font-size: 1.1rem;
-        font-weight: 500;
-    }
+.login-card {
+  background: var(--ers-bg-card);
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  border: 1px solid var(--ers-border);
+}
 
-    .login-form {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
+.login-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
 
-    .form-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-        margin-bottom: 20px;
-    }
+.login-header img {
+  max-width: 75px;
+  margin-bottom: 1rem;
+  border: 2px solid #9f1239;
+  border-radius: 5%;
+  background-color: azure;
+}
 
-     
-    .form-group input:focus {
-        border-color: var(--ers-primary);
-        outline: none;
-        box-shadow: 0 0 0 3px rgba(0, 158, 247, 0.25);
-    }
-    
-    .msg-sm{
-      font-size: small;
-    }
+.login-header h1 {
+  font-size: 1.5rem;
+  color: var(--ers-text-primary);
+  margin: 0;
+  font-weight: 700;
 
-    /* Added login page styles */
+  span {
+    color: rgba(204, 46, 46, 0.849);
+    font-size: 1.4rem;
+  }
+}
+
+.login-header p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 20px;
+}
+
+
+.form-group input:focus {
+  border-color: var(--ers-primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 158, 247, 0.25);
+}
+
+.msg-sm {
+  font-size: small;
+}
+
+/* Added login page styles */
 .form-group input,
 .form-group select {
-  
+
   padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 5px;
@@ -1572,7 +1601,7 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
   border: 1px solid var(--ers-primary);
-  color: rgba(118, 147, 209, 0.7);  
+  color: rgba(118, 147, 209, 0.7);
 }
 
 .login-footer {
@@ -1596,100 +1625,126 @@ body {
    WELCOME OVERLAY & SKELETON LOADING
    ========================================================================== */
 .welcome-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: var(--ers-bg-main);
-    z-index: 9999;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    transition: opacity 0.6s ease, visibility 0.6s;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: var(--ers-bg-main);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  transition: opacity 0.6s ease, visibility 0.6s;
 }
+
 .welcome-overlay.fade-out {
-    opacity: 0;
-    visibility: hidden;
+  opacity: 0;
+  visibility: hidden;
 }
+
 .welcome-content {
-    text-align: center;
-    animation: fadeInUp 0.8s ease forwards;
+  text-align: center;
+  animation: fadeInUp 0.8s ease forwards;
 }
+
 .welcome-spinner {
-    width: 50px;
-    height: 50px;
-    border: 3px solid var(--ers-border);
-    border-top-color: var(--ers-primary);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin: 0 auto 1.5rem auto;
+  width: 50px;
+  height: 50px;
+  border: 3px solid var(--ers-border);
+  border-top-color: var(--ers-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1.5rem auto;
 }
+
 .welcome-title {
-    color: var(--ers-text-primary);
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+  color: var(--ers-text-primary);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
 }
 
 .welcome-logo {
-    max-width: 100px;
-    margin-bottom: 1rem;
-    border: 2px solid #9f1239;
-    border-radius: 5%;
-    background-color: azure;
-    animation: fadeInUp 0.8s ease forwards;
+  max-width: 100px;
+  margin-bottom: 1rem;
+  border: 2px solid #9f1239;
+  border-radius: 5%;
+  background-color: azure;
+  animation: fadeInUp 0.8s ease forwards;
 }
 
 @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
+
 @keyframes spin {
-    to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* --- Skeleton Pulse Animation para Tarjetas y Tablas --- */
-.skeleton-active .card, 
+.skeleton-active .card,
 .skeleton-active .card-ers,
 .skeleton-active .table {
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
-.skeleton-active .card::after, 
+
+.skeleton-active .card::after,
 .skeleton-active .card-ers::after,
 .skeleton-active .table::after {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.03) 50%, transparent 100%);
-    background-size: 200% 100%;
-    animation: shimmerPulse 1.2s infinite linear;
-    z-index: 10;
-    pointer-events: none;
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.03) 50%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmerPulse 1.2s infinite linear;
+  z-index: 10;
+  pointer-events: none;
 }
+
 @keyframes shimmerPulse {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 /* ==========================================================================
    ULTRA MOBILE ADJUSTMENTS (< 415px)
    ========================================================================== */
 @media (max-width: 415px) {
+
   /* Reducir el gap entre los botones de la derecha */
   .header-container .d-flex.align-items-center.gap-3 {
     gap: 0.5rem !important;
   }
-  
+
   /* Ocultar el saludo "Hola, Usuario Admin" porque ocupa demasiado espacio horizontal */
   .header-container .text-secondary.small.ms-2 {
     display: none !important;
   }
-  
+
   /* Reducir el padding de los botones de acción para ganar espacio clave */
-  .btn-theme-toggle, .header-container .btn-outline-primary {
+  .btn-theme-toggle,
+  .header-container .btn-outline-primary {
     padding: 0.25rem 0.5rem !important;
     font-size: 0.85rem !important;
   }

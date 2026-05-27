@@ -85,6 +85,7 @@ urlpatterns = [
     
     path('alta/', AltaIndividualView.as_view(), name='alta_individual'),
     path('trabajo/<uuid:pk>/', FichaTrabajoView.as_view(), name='ficha_trabajo'),
+    path('agente/expo/<int:evento_id>/', leads_views.AgenteExpoCapturaView.as_view(), name='agente_expo_captura'),
     path('api/lead/<uuid:pk>/actualizar/', actualizar_lead_fsm, name='api_actualizar_lead'),
     path('', RedirectView.as_view(pattern_name='dashboard_agente'), name='root'),
 

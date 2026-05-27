@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="es" data-bs-theme="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +15,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.7">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.8">
     <link rel="stylesheet" href="{% static 'css/crm-mobile.css' %}?v=1.1">
     {% block extra_css %}{% endblock %}
 
@@ -36,26 +37,26 @@
         </div>
         <ul class="sidebar-nav ps-0 list-unstyled">
             {% if user.is_superuser %}
-                <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">Dirección</li>                
-                <li><a class="leftmenu" href="{% url 'director_dashboard' %}">📊 Dashboard</a></li>
-                <li><a class="leftmenu" href="{% url 'director_directorio' %}">🎯 Directorio</a></li>
-                <!-- <li><a class="leftmenu" href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li> -->
-                <li><a class="leftmenu" href="{% url 'director_fidelizacion' %}">🎯 Oportunidades 360°</a></li>                
-                <li><a class="leftmenu" href="{% url 'director_rescate' %}">🛟 Bandeja de revisión</a></li>
-                <li><a class="leftmenu" href="{% url 'director_eventos' %}">📅 Campañas y Eventos</a></li>
-            
+            <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">Dirección</li>
+            <li><a class="leftmenu" href="{% url 'director_dashboard' %}">📊 Dashboard</a></li>
+            <li><a class="leftmenu" href="{% url 'director_directorio' %}">🎯 Directorio</a></li>
+            <!-- <li><a class="leftmenu" href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li> -->
+            <li><a class="leftmenu" href="{% url 'director_fidelizacion' %}">🎯 Oportunidades 360°</a></li>
+            <li><a class="leftmenu" href="{% url 'director_rescate' %}">🛟 Bandeja de revisión</a></li>
+            <li><a class="leftmenu" href="{% url 'director_eventos' %}">📅 Campañas y Eventos</a></li>
+
             {% else %}
-                <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">V e n t a s</li>
-                <li><a class="leftmenu" href="{% url 'dashboard_agente' %}">🎯 Dashboard</a></li>
-                <li><a class="leftmenu" href="{% url 'ventas_360' %}">🔄 Ventas 360</a></li>
-                <li><a class="leftmenu" href="{% url 'ingesta_masiva' %}">📥 Carga de Prospectos</a></li>
-                <li><a class="leftmenu" href="{% url 'agente_staging_list' %}">🏥 Staging</a></li>
+            <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">V e n t a s</li>
+            <li><a class="leftmenu" href="{% url 'dashboard_agente' %}">🎯 Dashboard</a></li>
+            <li><a class="leftmenu" href="{% url 'ventas_360' %}">🔄 Ventas 360</a></li>
+            <li><a class="leftmenu" href="{% url 'ingesta_masiva' %}">📥 Carga de Prospectos</a></li>
+            <li><a class="leftmenu" href="{% url 'agente_staging_list' %}">🏥 Staging</a></li>
             {% endif %}
             {% if user.is_staff %}
-                <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">Administración</li>
-                <li><a class="leftmenu" href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li>
-                <li><a class="leftmenu" href="{% url 'director_ingesta' %}">📥 Ingesta Histórica</a></li>
-                <li><a class="leftmenu" href="{% url 'staging_list' %}">🏥 Staging</a></li>
+            <li class="menu-title text-muted fw-bold mb-2 mt-3 px-3">Administración</li>
+            <li><a class="leftmenu" href="{% url 'director_territorios' %}">🗺️ Asignación de Territorios</a></li>
+            <li><a class="leftmenu" href="{% url 'director_ingesta' %}">📥 Ingesta Histórica</a></li>
+            <li><a class="leftmenu" href="{% url 'staging_list' %}">🏥 Staging</a></li>
             {% endif %}
         </ul>
     </aside>
@@ -72,7 +73,8 @@
             <!-- Acciones Derecha -->
             <div class="d-flex align-items-center gap-3 ms-auto">
                 <!-- Theme Toggle Button -->
-                <button class="btn icon-action-btn btn-theme-toggle" id="themeToggleBtn" onclick="toggleCrmTheme()" title="Cambiar Tema">
+                <button class="btn icon-action-btn btn-theme-toggle" id="themeToggleBtn" onclick="toggleCrmTheme()"
+                    title="Cambiar Tema">
                     <i class="bi bi-moon-stars-fill text-body" id="themeIcon"></i>
                 </button>
 
@@ -80,14 +82,18 @@
                 <!-- Font Picker -->
                 <div class="dropdown" id="fontPickerDropdown">
                     <button class="btn icon-action-btn" id="fontPickerBtn" data-bs-toggle="dropdown"
-                            aria-expanded="false" title="Cambiar Fuente">
+                        aria-expanded="false" title="Cambiar Fuente">
                         <i class="bi bi-type"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2" style="min-width:210px;" aria-labelledby="fontPickerBtn">
-                        <li><h6 class="dropdown-header text-uppercase fw-bold small mb-1">Tipografía</h6></li>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg p-2" style="min-width:210px;"
+                        aria-labelledby="fontPickerBtn">
                         <li>
-                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt" data-font="ubuntu"
-                                    style="font-family:'Ubuntu',sans-serif;" onclick="setCrmFont('ubuntu')">
+                            <h6 class="dropdown-header text-uppercase fw-bold small mb-1">Tipografía</h6>
+                        </li>
+                        <li>
+                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt"
+                                data-font="ubuntu" style="font-family:'Ubuntu',sans-serif;"
+                                onclick="setCrmFont('ubuntu')">
                                 <span class="fs-5 fw-medium">Aa</span>
                                 <div>
                                     <div class="fw-semibold">Ubuntu</div>
@@ -97,8 +103,8 @@
                             </button>
                         </li>
                         <li>
-                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt" data-font="inter"
-                                    style="font-family:'Inter',sans-serif;" onclick="setCrmFont('inter')">
+                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt"
+                                data-font="inter" style="font-family:'Inter',sans-serif;" onclick="setCrmFont('inter')">
                                 <span class="fs-5 fw-medium">Aa</span>
                                 <div>
                                     <div class="fw-semibold">Inter</div>
@@ -108,8 +114,9 @@
                             </button>
                         </li>
                         <li>
-                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt" data-font="roboto"
-                                    style="font-family:'Roboto',sans-serif;" onclick="setCrmFont('roboto')">
+                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt"
+                                data-font="roboto" style="font-family:'Roboto',sans-serif;"
+                                onclick="setCrmFont('roboto')">
                                 <span class="fs-5 fw-medium">Aa</span>
                                 <div>
                                     <div class="fw-semibold">Roboto</div>
@@ -119,8 +126,9 @@
                             </button>
                         </li>
                         <li>
-                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt" data-font="outfit"
-                                    style="font-family:'Outfit',sans-serif;" onclick="setCrmFont('outfit')">
+                            <button class="dropdown-item d-flex align-items-center gap-2 rounded font-opt"
+                                data-font="outfit" style="font-family:'Outfit',sans-serif;"
+                                onclick="setCrmFont('outfit')">
                                 <span class="fs-5 fw-medium">Aa</span>
                                 <div>
                                     <div class="fw-semibold">Outfit</div>
@@ -133,64 +141,73 @@
                 </div>
                 {% endif %}
 
-                {% if user.is_authenticated %}  
-                    <!-- Dropdown Alertas -->
-                     {% if not user.is_superuser %}
-                    <div class="dropdown">
-                        <a class="nav-link position-relative icon-action-btn {% if notificaciones_no_leidas > 0 %}active-alert{% endif %}" href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-bell {% if notificaciones_no_leidas == 0 %}text-secondary{% endif %}"></i> 
-                            
-                            {% if notificaciones_no_leidas > 0 %}
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary px-1 border border-light" style="font-size: 0.65rem;">
-                                {{ notificaciones_no_leidas }}
-                            </span>
-                            {% endif %}
-                        </a>           
-                        <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="alertsDropdown">
-                            <li><h6 class="dropdown-header text-uppercase fw-bold">Centro de Alertas</h6></li>
-                            
-                            {% if lista_alertas %}
-                                {% for alerta in lista_alertas %}
-                                <li>
-                                    <a class="dropdown-item d-flex align-items-center py-2" href="#"
-                                       data-alerta-id="{{ alerta.id }}"
-                                       data-alerta-tipo="{{ alerta.tipo }}"
-                                       data-lead-id="{{ alerta.lead.id|default:'' }}"
-                                       onclick="atenderAlerta(this.dataset.alertaId, this.dataset.alertaTipo, this.dataset.leadId)">
-                                        <div class="me-3">
-                                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center p-2">
-                                                <i class="bi bi-exclamation-triangle"></i>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <span class="small text-muted">Hace {{ alerta.fecha_creacion|timesince }}</span>
-                                            <p class="mb-0 text-sm text-wrap">{{ alerta.mensaje }}</p>
-                                        </div>
-                                    </a>
-                                </li>
-                                {% endfor %}
-                            {% else %}
-                                <li><span class="dropdown-item text-center small text-muted py-3">No tienes alertas nuevas 🎉</span></li>
-                            {% endif %}
-                            
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-center small text-primary fw-bold py-2" href="#">Ver todas las alertas</a></li>
-                        </ul>   
-                    </div>
-                    {% endif %} 
+                {% if user.is_authenticated %}
+                <!-- Dropdown Alertas -->
+                {% if not user.is_superuser %}
+                <div class="dropdown">
+                    <a class="nav-link position-relative icon-action-btn {% if notificaciones_no_leidas > 0 %}active-alert{% endif %}"
+                        href="#" id="alertsDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell {% if notificaciones_no_leidas == 0 %}text-secondary{% endif %}"></i>
 
-                    <!-- Usuario -->
-                    <span class="text-secondary small ms-2">
-                        👤 Hola, <strong class="text-body">{{ user.first_name|title }}</strong>
-                        {% if user.is_superuser %}
-                            <span class="badge bg-success text-dark ms-1">Admin</span>
+                        {% if notificaciones_no_leidas > 0 %}
+                        <span
+                            class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary px-1 border border-light"
+                            style="font-size: 0.65rem;">
+                            {{ notificaciones_no_leidas }}
+                        </span>
                         {% endif %}
-                    </span>
-                    
-                    <!-- Botón Salir -->
-                    <a href="{% url 'logout' %}" class="btn btn-outline-primary btn-sm fw-bold ms-2">
-                        🚪 Salir
                     </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="alertsDropdown">
+                        <li>
+                            <h6 class="dropdown-header text-uppercase fw-bold">Centro de Alertas</h6>
+                        </li>
+
+                        {% if lista_alertas %}
+                        {% for alerta in lista_alertas %}
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center py-2" href="#"
+                                data-alerta-id="{{ alerta.id }}" data-alerta-tipo="{{ alerta.tipo }}"
+                                data-lead-id="{{ alerta.lead.id|default:'' }}"
+                                onclick="atenderAlerta(this.dataset.alertaId, this.dataset.alertaTipo, this.dataset.leadId)">
+                                <div class="me-3">
+                                    <div
+                                        class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center p-2">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                    </div>
+                                </div>
+                                <div>
+                                    <span class="small text-muted">Hace {{ alerta.fecha_creacion|timesince }}</span>
+                                    <p class="mb-0 text-sm text-wrap">{{ alerta.mensaje }}</p>
+                                </div>
+                            </a>
+                        </li>
+                        {% endfor %}
+                        {% else %}
+                        <li><span class="dropdown-item text-center small text-muted py-3">No tienes alertas nuevas
+                                🎉</span></li>
+                        {% endif %}
+
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li><a class="dropdown-item text-center small text-primary fw-bold py-2" href="#">Ver todas las
+                                alertas</a></li>
+                    </ul>
+                </div>
+                {% endif %}
+
+                <!-- Usuario -->
+                <span class="text-secondary small ms-2">
+                    👤 Hola, <strong class="text-body">{{ user.first_name|title }}</strong>
+                    {% if user.is_superuser %}
+                    <span class="badge bg-success text-dark ms-1">Admin</span>
+                    {% endif %}
+                </span>
+
+                <!-- Botón Salir -->
+                <a href="{% url 'logout' %}" class="btn btn-outline-primary btn-sm fw-bold ms-2">
+                    🚪 Salir
+                </a>
                 {% endif %}
             </div>
         </div>
@@ -216,11 +233,11 @@
 
     <!-- Script Responsivo del Layout -->
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // Inicializar Icono de Tema Correctamente
             const currentTheme = document.documentElement.getAttribute('data-bs-theme');
             const themeIcon = document.getElementById('themeIcon');
-            if(themeIcon) {
+            if (themeIcon) {
                 if (currentTheme === 'dark') {
                     themeIcon.className = 'bi bi-moon-stars-fill text-body';
                 } else {
@@ -232,7 +249,7 @@
             const sidebar = document.getElementById('sidebar');
 
             if (mobileMenuToggle && sidebar) {
-                mobileMenuToggle.addEventListener('click', function(e) {
+                mobileMenuToggle.addEventListener('click', function (e) {
                     e.preventDefault();
                     sidebar.classList.toggle('active');
                 });
@@ -244,151 +261,151 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <script>
-    function getCsrfFromCookie() {
-        const name = 'csrftoken';
-        const cookies = document.cookie.split(';');
-        for (let c of cookies) {
-            c = c.trim();
-            if (c.startsWith(name + '=')) return c.substring(name.length + 1);
+        function getCsrfFromCookie() {
+            const name = 'csrftoken';
+            const cookies = document.cookie.split(';');
+            for (let c of cookies) {
+                c = c.trim();
+                if (c.startsWith(name + '=')) return c.substring(name.length + 1);
+            }
+            return '';
         }
-        return '';
-    }
 
-    /* ─── FONT SYSTEM ─────────────────────────────────────── */
-    const CRM_FONTS = ['ubuntu', 'inter', 'roboto', 'outfit'];
+        /* ─── FONT SYSTEM ─────────────────────────────────────── */
+        const CRM_FONTS = ['ubuntu', 'inter', 'roboto', 'outfit'];
 
-    function _applyFontClass(fontKey) {
-        CRM_FONTS.forEach(f => document.documentElement.classList.remove('crm-font-' + f));
-        document.documentElement.classList.add('crm-font-' + fontKey);
-    }
+        function _applyFontClass(fontKey) {
+            CRM_FONTS.forEach(f => document.documentElement.classList.remove('crm-font-' + f));
+            document.documentElement.classList.add('crm-font-' + fontKey);
+        }
 
-    function _updateFontCheckmarks(activeFont) {
-        CRM_FONTS.forEach(f => {
-            const el = document.getElementById('check-' + f);
-            if (el) el.classList.toggle('d-none', f !== activeFont);
-        });
-    }
+        function _updateFontCheckmarks(activeFont) {
+            CRM_FONTS.forEach(f => {
+                const el = document.getElementById('check-' + f);
+                if (el) el.classList.toggle('d-none', f !== activeFont);
+            });
+        }
 
-    function setCrmFont(fontKey) {
-        if (!CRM_FONTS.includes(fontKey)) return;
-        
-        // Guardar la fuente globalmente (solo staff tiene este botón)
-        fetch('/api/set-global-font/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCsrfFromCookie()
-            },
-            body: JSON.stringify({ font: fontKey })
-        })
-        .then(r => r.json())
-        .then(res => {
-            if (res.status === 'success') {
-                _applyFontClass(fontKey);
-                _updateFontCheckmarks(fontKey);
-            } else {
-                Swal.fire('Error', res.error, 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error al guardar fuente global:', err);
-        });
-    }
-    /* ─────────────────────────────────────────────────────── */
+        function setCrmFont(fontKey) {
+            if (!CRM_FONTS.includes(fontKey)) return;
 
-    function atenderAlerta(alertaId, tipoAlerta, leadId) {
-        const tiposConMotivo = ['mantenimiento', 'calidad', 'capacitacion', 'estancamiento', 'no_cierre', 'fidelizacion'];
-        const esOperativo = tiposConMotivo.includes(tipoAlerta);
-
-        Swal.fire({
-            title: '📋 Atender Alerta',
-            html: `
-                <p class="text-muted small mb-2">Tipo: <strong>${tipoAlerta}</strong></p>
-                <textarea id="swal-motivo" class="swal2-textarea" rows="3"
-                    placeholder="${esOperativo ? 'Motivo obligatorio: describe el resultado o acción tomada...' : 'Motivo (opcional)...'}"></textarea>
-            `,
-            showCancelButton: true,
-            confirmButtonText: '✅ Confirmar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
-            preConfirm: () => {
-                const motivo = document.getElementById('swal-motivo').value.trim();
-                if (esOperativo && !motivo) {
-                    Swal.showValidationMessage('⚠️ El motivo es obligatorio para este tipo de alerta.');
-                    return false;
-                }
-                return motivo;
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                const motivo = result.value || '';
-                fetch(`/api/alerta/${alertaId}/atender/`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCsrfFromCookie()
-                    },
-                    body: JSON.stringify({ motivo: motivo })
-                })
+            // Guardar la fuente globalmente (solo staff tiene este botón)
+            fetch('/api/set-global-font/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfFromCookie()
+                },
+                body: JSON.stringify({ font: fontKey })
+            })
                 .then(r => r.json())
                 .then(res => {
                     if (res.status === 'success') {
-                        if (res.lead_id) {
-                            window.location.href = `/trabajo/${res.lead_id}/`;
-                        } else {
-                            location.reload();
-                        }
+                        _applyFontClass(fontKey);
+                        _updateFontCheckmarks(fontKey);
                     } else {
                         Swal.fire('Error', res.error, 'error');
                     }
                 })
-                .catch(() => Swal.fire('Error de Conexión', 'No se pudo comunicar con el servidor.', 'error'));
-            }
-        });
-    }
-    function toggleCrmTheme() {
-        const htmlTag = document.documentElement;
-        const currentTheme = htmlTag.getAttribute('data-bs-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        
-        // Aplicar y Guardar
-        htmlTag.setAttribute('data-bs-theme', newTheme);
-        localStorage.setItem('crm-theme', newTheme);
-        
-        // Cambiar el icono
-        const icon = document.getElementById('themeIcon');
-        if (newTheme === 'dark') {
-            icon.className = 'bi bi-moon-stars-fill text-body';
-        } else {
-            icon.className = 'bi bi-brightness-high-fill text-warning';
+                .catch(err => {
+                    console.error('Error al guardar fuente global:', err);
+                });
         }
-        
-        // Repintar gráficas automáticamente si existen (Dashboard)
-        if (typeof Chart !== 'undefined') {
-            const chartText = newTheme === 'dark' ? '#e4e6ef' : '#3f4254';
-            const chartGrid = newTheme === 'dark' ? '#2b2b40' : 'rgba(0,0,0,0.1)';
-            Object.values(Chart.instances).forEach(chart => {
-                if (chart.options.plugins && chart.options.plugins.legend) {
-                    chart.options.plugins.legend.labels.color = chartText;
-                }
-                if (chart.options.scales) {
-                    if (chart.options.scales.x) chart.options.scales.x.ticks.color = chartText;
-                    if (chart.options.scales.y) {
-                        chart.options.scales.y.ticks.color = chartText;
-                        chart.options.scales.y.grid.color = chartGrid;
+        /* ─────────────────────────────────────────────────────── */
+
+        function atenderAlerta(alertaId, tipoAlerta, leadId) {
+            const tiposConMotivo = ['mantenimiento', 'calidad', 'capacitacion', 'estancamiento', 'no_cierre', 'fidelizacion'];
+            const esOperativo = tiposConMotivo.includes(tipoAlerta);
+
+            Swal.fire({
+                title: '📋 Atender Alerta',
+                html: `
+                <p class="text-muted small mb-2">Tipo: <strong>${tipoAlerta}</strong></p>
+                <textarea id="swal-motivo" class="swal2-textarea" rows="3"
+                    placeholder="${esOperativo ? 'Motivo obligatorio: describe el resultado o acción tomada...' : 'Motivo (opcional)...'}"></textarea>
+            `,
+                showCancelButton: true,
+                confirmButtonText: '✅ Confirmar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                preConfirm: () => {
+                    const motivo = document.getElementById('swal-motivo').value.trim();
+                    if (esOperativo && !motivo) {
+                        Swal.showValidationMessage('⚠️ El motivo es obligatorio para este tipo de alerta.');
+                        return false;
                     }
+                    return motivo;
                 }
-                chart.update();
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const motivo = result.value || '';
+                    fetch(`/api/alerta/${alertaId}/atender/`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': getCsrfFromCookie()
+                        },
+                        body: JSON.stringify({ motivo: motivo })
+                    })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (res.status === 'success') {
+                                if (res.lead_id) {
+                                    window.location.href = `/trabajo/${res.lead_id}/`;
+                                } else {
+                                    location.reload();
+                                }
+                            } else {
+                                Swal.fire('Error', res.error, 'error');
+                            }
+                        })
+                        .catch(() => Swal.fire('Error de Conexión', 'No se pudo comunicar con el servidor.', 'error'));
+                }
             });
         }
-    }
+        function toggleCrmTheme() {
+            const htmlTag = document.documentElement;
+            const currentTheme = htmlTag.getAttribute('data-bs-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
 
-    // Inicializar checkmark de fuente activa al cargar el DOM
-    document.addEventListener('DOMContentLoaded', function () {
-        const activeFont = "{{ GLOBAL_CRM_FONT|default:'ubuntu' }}";
-        _updateFontCheckmarks(activeFont);
-    });
+            // Aplicar y Guardar
+            htmlTag.setAttribute('data-bs-theme', newTheme);
+            localStorage.setItem('crm-theme', newTheme);
+
+            // Cambiar el icono
+            const icon = document.getElementById('themeIcon');
+            if (newTheme === 'dark') {
+                icon.className = 'bi bi-moon-stars-fill text-body';
+            } else {
+                icon.className = 'bi bi-brightness-high-fill text-warning';
+            }
+
+            // Repintar gráficas automáticamente si existen (Dashboard)
+            if (typeof Chart !== 'undefined') {
+                const chartText = newTheme === 'dark' ? '#e4e6ef' : '#3f4254';
+                const chartGrid = newTheme === 'dark' ? '#2b2b40' : 'rgba(0,0,0,0.1)';
+                Object.values(Chart.instances).forEach(chart => {
+                    if (chart.options.plugins && chart.options.plugins.legend) {
+                        chart.options.plugins.legend.labels.color = chartText;
+                    }
+                    if (chart.options.scales) {
+                        if (chart.options.scales.x) chart.options.scales.x.ticks.color = chartText;
+                        if (chart.options.scales.y) {
+                            chart.options.scales.y.ticks.color = chartText;
+                            chart.options.scales.y.grid.color = chartGrid;
+                        }
+                    }
+                    chart.update();
+                });
+            }
+        }
+
+        // Inicializar checkmark de fuente activa al cargar el DOM
+        document.addEventListener('DOMContentLoaded', function () {
+            const activeFont = "{{ GLOBAL_CRM_FONT|default:'ubuntu' }}";
+            _updateFontCheckmarks(activeFont);
+        });
     </script>
 </body>
 

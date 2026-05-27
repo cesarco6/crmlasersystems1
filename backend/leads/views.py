@@ -86,26 +86,16 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
                     else:
                         qs = qs.filter(eventos_asociados__isnull=False).distinct()
                 elif filtro_rapido == 'expos':
-                    evento_id = self.request.GET.get('evento_id')
-                    if evento_id:
-                        from .models import Evento
-                        evento_seleccionado = Evento.objects.filter(id=evento_id, vendedores_asignados=self.request.user, tipo='EXPO').first()
-                        if evento_seleccionado:
-                            context['evento_seleccionado'] = evento_seleccionado
-                            qs = qs.filter(eventos_asociados__evento=evento_seleccionado)
-                        else:
-                            qs = CoreLead.objects.none()
+                    from .models import Evento
+                    filtro_expos = self.request.GET.get('filtro_expos', 'activas')
+                    qs_expos = Evento.objects.filter(vendedores_asignados=self.request.user, tipo='EXPO')
+                    if filtro_expos == 'finalizadas':
+                        qs_expos = qs_expos.filter(estatus='FINALIZADO')
                     else:
-                        from .models import Evento
-                        filtro_expos = self.request.GET.get('filtro_expos', 'activas')
-                        qs_expos = Evento.objects.filter(vendedores_asignados=self.request.user, tipo='EXPO')
-                        if filtro_expos == 'finalizadas':
-                            qs_expos = qs_expos.filter(estatus='FINALIZADO')
-                        else:
-                            qs_expos = qs_expos.filter(estatus='ACTIVO')
-                        context['expos_list'] = qs_expos.order_by('fecha_inicio')
-                        context['filtro_expos'] = filtro_expos
-                        qs = CoreLead.objects.none()
+                        qs_expos = qs_expos.filter(estatus='ACTIVO')
+                    context['expos_list'] = qs_expos.order_by('fecha_inicio')
+                    context['filtro_expos'] = filtro_expos
+                    qs = CoreLead.objects.none()
         
         # Ordenamos la consulta final
         qs = qs.order_by('-updated_at')
@@ -149,6 +139,47 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
             updated_at__month=mes_actual.month
         ).count()
 
+        return context
+
+@method_decorator(role_required(['VENDEDOR']), name='dispatch')
+class AgenteExpoCapturaView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
+    template_name = 'agente_expo_captura.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        evento_id = self.kwargs.get('evento_id')
+        
+        from .models import Evento
+        evento_seleccionado = get_object_or_404(
+            Evento, 
+            id=evento_id, 
+            vendedores_asignados=self.request.user, 
+            tipo='EXPO'
+        )
+        
+        # Filtramos los leads de este vendedor vinculados a este evento
+        qs = CoreLead.objects.filter(
+            owner=self.request.user,
+            eventos_asociados__evento=evento_seleccionado
+        ).order_by('-updated_at')
+        
+        # Dividimos en bloques de 7 registros por página
+        paginador = Paginator(qs, 7)
+        numero_pagina = self.request.GET.get('page')
+        pagina_obj = paginador.get_page(numero_pagina)
+        
+        context['evento_seleccionado'] = evento_seleccionado
+        context['leads'] = pagina_obj
+        context['page_obj'] = pagina_obj
+        
+        # Catálogos para el modal de alta rápida
+        context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+        context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+        context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
+        context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
+        
+        context['filtro_actual'] = 'expos'
+        
         return context
 
 @login_required
