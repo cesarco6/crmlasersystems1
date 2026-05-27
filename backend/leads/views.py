@@ -960,6 +960,7 @@ def procesar_alta_manual(request):
     
     try:
         data = json.loads(request.body)
+        print("DEBUG ALTA MANUAL PAYLOAD:", data)
         from leads.services.lead_creation_service import crear_prospecto_core
         
         # Delegamos TODA la lógica al Service Layer

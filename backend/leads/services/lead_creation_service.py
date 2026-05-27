@@ -94,11 +94,14 @@ def crear_prospecto_core(data: dict, user):
 
         # Vincular con un Evento/Expo si se proporcionó evento_id
         evento_id = data.get('evento_id')
+        print("DEBUG LINKING EVENTO - evento_id:", evento_id)
         if evento_id:
             from leads.models import Evento, LeadEvento
             evento_obj = Evento.objects.filter(id=evento_id).first()
+            print("DEBUG LINKING EVENTO - found evento:", evento_obj)
             if evento_obj:
-                LeadEvento.objects.get_or_create(evento=evento_obj, lead=nuevo_lead)
+                le_obj, created = LeadEvento.objects.get_or_create(evento=evento_obj, lead=nuevo_lead)
+                print("DEBUG LINKING EVENTO - LeadEvento record:", le_obj, "created:", created)
 
         return {"success": True, "lead_id": str(nuevo_lead.id), "mensaje": "Prospecto creado exitosamente"}
 
