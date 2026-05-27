@@ -61,7 +61,7 @@ function guardarLeadManual(event) {
     const ubicacion = document.getElementById('alta-ubicacion').value;
     const celular = document.getElementById('alta-celular').value;
     const email = document.getElementById('alta-email').value;
-    //const producto = document.getElementById('alta-producto') ? document.getElementById('alta-producto').value : '';
+    const eventoId = document.getElementById('alta-evento-id') ? document.getElementById('alta-evento-id').value : '';
 
     const payload = {
         tipo_entidad: tipoEntidad,
@@ -72,9 +72,9 @@ function guardarLeadManual(event) {
         apellido_materno: apellidoMaterno,
         especialidad: especialidad,
         ubicacion: ubicacion,
-        //producto: producto,
         celular: celular,
-        email: email
+        email: email,
+        evento_id: eventoId
     };
 
     function getCookie(name) {

@@ -6,6 +6,49 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/modals.css' %}?v=1.2">
 <link rel="stylesheet" href="{% static 'css/dashboard_agente.css' %}?v=1.1">
+<style>
+    .btn-pink {
+        background-color: #ec4899;
+        border-color: #ec4899;
+        color: #fff !important;
+    }
+    .btn-pink:hover {
+        background-color: #db2777;
+        border-color: #db2777;
+        color: #fff !important;
+    }
+    .btn-outline-pink {
+        border-color: #ec4899;
+        color: #ec4899 !important;
+    }
+    .btn-outline-pink:hover {
+        background-color: #ec4899;
+        border-color: #ec4899;
+        color: #fff !important;
+    }
+    .border-pink {
+        border-color: #ec4899 !important;
+    }
+    .text-pink {
+        color: #ec4899 !important;
+    }
+    .bg-pink-subtle {
+        background-color: rgba(236, 72, 153, 0.12) !important;
+    }
+    .border-pink-subtle {
+        border-color: rgba(236, 72, 153, 0.3) !important;
+    }
+    .card-expo {
+        border-radius: 14px;
+        border: 1px solid var(--bs-border-color);
+        background: var(--bs-card-bg, var(--bs-body-bg));
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card-expo:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 25px rgba(236, 72, 153, 0.15);
+    }
+</style>
 {% endblock %}
 
 {% block content %}
@@ -91,6 +134,10 @@
                 class="btn btn-sm {% if filtro_actual == 'urgentes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
                 🔴 Urgentes
             </a>
+            <a href="?filtro=expos" 
+                class="btn btn-sm {% if filtro_actual == 'expos' %}btn-pink text-white{% else %}btn-outline-pink{% endif %} shadow-sm">
+                📢 Mis Expos (Captura)
+            </a>
             <a href="{% url 'agente_exportar_leads' %}?filtro={{ filtro_actual }}&q={{ busqueda_actual }}"
                class="btn btn-sm btn-outline-primary shadow-sm" title="Descargar lista actual en Excel">
                 📥 Exportar XLSX
@@ -116,15 +163,105 @@
     </div>
 
 
+    <!-- 3. Expos y Congresos Grid / Detail Views -->
+    {% if filtro_actual == 'expos' and not evento_seleccionado %}
+    <div class="mb-4">
+        <!-- Sub-navegación para Expos Activas vs Finalizadas -->
+        <ul class="nav nav-pills gap-2 mb-4">
+            <li class="nav-item">
+                <a href="?filtro=expos&filtro_expos=activas" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_expos == 'activas' or not filtro_expos %}active bg-pink border-pink text-white{% else %}border-secondary text-body{% endif %}">🟢 Expos Activas</a>
+            </li>
+            <li class="nav-item">
+                <a href="?filtro=expos&filtro_expos=finalizadas" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_expos == 'finalizadas' %}active bg-secondary border-secondary text-white{% else %}border-secondary text-body{% endif %}">🏛️ Finalizadas</a>
+            </li>
+        </ul>
+
+        <div class="row g-4">
+            {% for expo in expos_list %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card shadow-sm border-0 h-100 card-expo">
+                    <div class="card-header bg-body border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <span class="badge bg-pink-subtle text-pink border border-pink-subtle"><i class="bi bi-building me-1"></i> EXPO</span>
+                        <small class="text-muted fw-bold">🎯 {{ expo.get_linea_producto_display }}</small>
+                    </div>
+                    <div class="card-body">
+                        <h5 class="fw-bold text-body mb-2">{{ expo.nombre }}</h5>
+                        <p class="text-muted small mb-3"><i class="bi bi-geo-alt text-pink"></i> {{ expo.lugar|default:"Ubicación no especificada" }}</p>
+                        
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-calendar-event text-secondary"></i>
+                            <span class="small fw-bold text-body">{{ expo.fecha_inicio|date:"d M Y" }}</span>
+                            <span class="small text-muted">al</span>
+                            <span class="small fw-bold text-body">{{ expo.fecha_fin|date:"d M Y" }}</span>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-top pt-3 pb-3">
+                        <a href="?filtro=expos&evento_id={{ expo.id }}" class="btn btn-outline-pink btn-sm w-100 fw-bold">
+                            Ver e Iniciar Captura
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5 text-muted bg-body rounded shadow-sm">
+                    <i class="bi bi-calendar-x fs-1 d-block mb-2 text-pink"></i>
+                    No tienes Expos o Congresos asignados en esta categoría.
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    {% if filtro_actual == 'expos' and evento_seleccionado %}
+    <div class="mb-4 d-flex flex-column gap-3">
+        <div>
+            <a href="?filtro=expos" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm">
+                <i class="bi bi-arrow-left"></i> Volver a Mis Expos
+            </a>
+        </div>
+        
+        <!-- Banner de Detalles de la Expo con Diseño Premium -->
+        <div class="card shadow-sm border-0 p-3 card-expo border-start border-pink border-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                <div>
+                    <span class="badge bg-pink-subtle text-pink border border-pink-subtle mb-2">📢 EXPO / CONGRESO</span>
+                    <h4 class="fw-bold text-body mb-1">{{ evento_seleccionado.nombre }}</h4>
+                    <p class="text-muted small mb-0"><i class="bi bi-geo-alt-fill text-pink me-1"></i> {{ evento_seleccionado.lugar|default:"Ubicación no especificada" }}</p>
+                </div>
+                <div class="text-md-end">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-calendar-event text-secondary"></i>
+                        <span class="small fw-bold">{{ evento_seleccionado.fecha_inicio|date:"d M Y" }}</span>
+                        <span class="small text-muted">al</span>
+                        <span class="small fw-bold">{{ evento_seleccionado.fecha_fin|date:"d M Y" }}</span>
+                    </div>
+                    {% if evento_seleccionado.ciudades_objetivo.exists %}
+                        <div class="small text-muted">
+                            <i class="bi bi-geo-fill text-muted"></i> Cobertura:
+                            {% for ubi in evento_seleccionado.ciudades_objetivo.all %}
+                                <span class="badge bg-secondary-subtle text-secondary">{{ ubi.ciudad }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- 3. La Tabla de Leads en formato nativo -->
+    {% if filtro_actual != 'expos' or evento_seleccionado %}
     <div class="card card-ers shadow-sm mb-4 border-2 
         {% if filtro_actual == 'activos' or not filtro_actual %}border-activos
         {% elif filtro_actual == 'frescos' %}border-prospecto
         {% elif filtro_actual == 'leads' %}border-lead
         {% elif filtro_actual == 'calificados' %}border-calificado
+        {% elif filtro_actual == 'expos' %}border-pink
         {% else %}border-0{% endif %}">
         
-        <div class="card-header border-bottom py-3">
+        <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
             <h5 class="fw-bold text-body m-0">
                 {% if filtro_actual == 'activos' or not filtro_actual %}
                     <i class="bi bi-briefcase-fill me-2" style="color: var(--bs-primary);"></i>Cartera Activa
@@ -138,10 +275,17 @@
                     🟡 Para Hoy
                 {% elif filtro_actual == 'urgentes' %}
                     🔴 Urgentes
+                {% elif filtro_actual == 'expos' and evento_seleccionado %}
+                    <i class="bi bi-megaphone-fill me-2" style="color: #ec4899;"></i>Prospectos de: {{ evento_seleccionado.nombre }}
                 {% else %}
                     📋 Mis Oportunidades
                 {% endif %}
             </h5>
+            {% if filtro_actual == 'expos' and evento_seleccionado %}
+                <button onclick="abrirModalAltaParaExpo('{{ evento_seleccionado.id }}', '{{ evento_seleccionado.nombre }}')" class="btn btn-sm btn-pink fw-bold shadow-sm">
+                    ➕ Registrar Prospecto en esta Expo
+                </button>
+            {% endif %}
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -256,6 +400,7 @@
             {% endif %}
         </div>
     </div>
+    {% endif %}
 
     {# 4. Modal de Alta Rápida (Componente DRY) #}
     {% include 'partials/modals/_modal_alta_rapida.html' %}
@@ -266,4 +411,49 @@
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="{% static 'js/modals.js' %}"></script>
+<script>
+function abrirModalAltaParaExpo(eventoId, eventoNombre) {
+    const modalInput = document.getElementById('alta-evento-id');
+    const badgeContainer = document.getElementById('alta-evento-badge-container');
+    const badgeText = document.getElementById('alta-evento-badge-text');
+    const selectRow = document.getElementById('row-alta-evento-select');
+    
+    if (modalInput) {
+        modalInput.value = eventoId;
+    }
+    if (badgeContainer && badgeText) {
+        badgeText.innerText = "📍 Expo: " + eventoNombre;
+        badgeContainer.style.display = 'block';
+    }
+    if (selectRow) {
+        selectRow.style.display = 'none';
+    }
+    
+    // Abrir modal
+    const modalAlta = document.getElementById('modal-alta');
+    if (modalAlta) {
+        modalAlta.style.display = 'block';
+    }
+}
+
+function limpiarAltaExpo() {
+    const modalInput = document.getElementById('alta-evento-id');
+    const badgeContainer = document.getElementById('alta-evento-badge-container');
+    const selectRow = document.getElementById('row-alta-evento-select');
+    const selectVal = document.getElementById('alta-evento-select');
+    
+    if (modalInput) {
+        modalInput.value = '';
+    }
+    if (badgeContainer) {
+        badgeContainer.style.display = 'none';
+    }
+    if (selectRow) {
+        selectRow.style.display = '';
+    }
+    if (selectVal) {
+        selectVal.value = '';
+    }
+}
+</script>
 {% endblock %}

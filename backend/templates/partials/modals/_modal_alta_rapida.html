@@ -8,13 +8,19 @@
         {# ===== HEADER ===== #}
         <div class="card-header border-bottom mb-3 pb-2 d-flex justify-content-between align-items-center">
             <h3 class="m-0">👤 Alta Rápida</h3>
-            <span onclick="document.getElementById('modal-alta').style.display='none'"
+            <span onclick="document.getElementById('modal-alta').style.display='none'; if(typeof limpiarAltaExpo === 'function') limpiarAltaExpo();"
                   class="modal-close-btn  fw-bold h4 m-0">&times;</span>
         </div>
 
         {# ===== BODY ===== #}
         <div class="card-body">
+            <!-- Badge de Vinculación con Expo -->
+            <div id="alta-evento-badge-container" class="mb-3" style="display: none;">
+                <span id="alta-evento-badge-text" class="badge p-2 d-block text-start w-100" style="font-size: 0.85em; border-radius: 6px; background-color: #ec4899; color: white; border: 1px solid #ec4899;"></span>
+            </div>
+
             <form id="form-alta-rapida" onsubmit="guardarLeadManual(event)">
+                <input type="hidden" id="alta-evento-id" name="evento_id">
 
                 {# --- Fila 1: Toggle Tipo de Entidad --- #}
                 <div class="row mb-3">
@@ -121,6 +127,19 @@
                             <option value="">-- Selecciona Ciudad --</option>
                             {% for ubi in ubicaciones_list %}
                                 <option value="{{ ubi }}">{{ ubi }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                {# --- Fila 5: Expo / Congreso (Opcional) --- #}
+                <div class="row mb-3 mt-2" id="row-alta-evento-select">
+                    <div class="col-12 col-md-12">
+                        <label class="form-label fw-bold ">Vincular a Expo / Congreso (Opcional)</label>
+                        <select id="alta-evento-select" class="form-select form-select-sm" onchange="document.getElementById('alta-evento-id').value = this.value;">
+                            <option value="">-- Selecciona una Expo Activa --</option>
+                            {% for expo in active_expos %}
+                                <option value="{{ expo.id }}">{{ expo.nombre }} ({{ expo.lugar|default:"Digital" }})</option>
                             {% endfor %}
                         </select>
                     </div>

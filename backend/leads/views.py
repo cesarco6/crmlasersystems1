@@ -85,6 +85,27 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
                         qs = qs.filter(eventos_asociados__evento_id=evento_id)
                     else:
                         qs = qs.filter(eventos_asociados__isnull=False).distinct()
+                elif filtro_rapido == 'expos':
+                    evento_id = self.request.GET.get('evento_id')
+                    if evento_id:
+                        from .models import Evento
+                        evento_seleccionado = Evento.objects.filter(id=evento_id, vendedores_asignados=self.request.user, tipo='EXPO').first()
+                        if evento_seleccionado:
+                            context['evento_seleccionado'] = evento_seleccionado
+                            qs = qs.filter(eventos_asociados__evento=evento_seleccionado)
+                        else:
+                            qs = CoreLead.objects.none()
+                    else:
+                        from .models import Evento
+                        filtro_expos = self.request.GET.get('filtro_expos', 'activas')
+                        qs_expos = Evento.objects.filter(vendedores_asignados=self.request.user, tipo='EXPO')
+                        if filtro_expos == 'finalizadas':
+                            qs_expos = qs_expos.filter(estatus='FINALIZADO')
+                        else:
+                            qs_expos = qs_expos.filter(estatus='ACTIVO')
+                        context['expos_list'] = qs_expos.order_by('fecha_inicio')
+                        context['filtro_expos'] = filtro_expos
+                        qs = CoreLead.objects.none()
         
         # Ordenamos la consulta final
         qs = qs.order_by('-updated_at')
@@ -108,6 +129,10 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['productos_list'] = CatProducto.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
         context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
         context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
+        
+        from .models import Evento
+        context['active_expos'] = Evento.objects.filter(vendedores_asignados=self.request.user, tipo='EXPO', estatus='ACTIVO').order_by('nombre')
+
         
         # KPIs del Embudo de Ventas — Fila superior del Dashboard
         qs_owner = CoreLead.objects.filter(owner=self.request.user)
@@ -217,7 +242,7 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         import datetime
         hoy = timezone.now().date()
         
-        qs_eventos = Evento.objects.filter(vendedores_asignados=self.request.user)
+        qs_eventos = Evento.objects.filter(vendedores_asignados=self.request.user).exclude(tipo='EXPO')
         
         if filtro_evento == 'proximos_7':
             limite = hoy + datetime.timedelta(days=7)
@@ -234,7 +259,7 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         # Manejo de Opción A: Prospectos in-place
         evento_id = self.request.GET.get('evento_id')
         if evento_id:
-            evento_seleccionado = Evento.objects.filter(id=evento_id).first()
+            evento_seleccionado = Evento.objects.filter(id=evento_id).exclude(tipo='EXPO').first()
             if evento_seleccionado:
                 context['evento_seleccionado'] = evento_seleccionado
                 from django.db.models import Q
@@ -273,7 +298,8 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         context['kpi_historicos']          = qs_base.filter(es_historico=True).count()
         context['kpi_campanas_activas']    = Evento.objects.filter(
             vendedores_asignados=self.request.user, estatus='ACTIVO'
-        ).count()
+        ).exclude(tipo='EXPO').count()
+
 
         return context
 

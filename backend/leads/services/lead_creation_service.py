@@ -92,7 +92,16 @@ def crear_prospecto_core(data: dict, user):
                 notas_variadas={"notas": [], "columnas_excel_historicas": {}}
             )
 
+        # Vincular con un Evento/Expo si se proporcionó evento_id
+        evento_id = data.get('evento_id')
+        if evento_id:
+            from leads.models import Evento, LeadEvento
+            evento_obj = Evento.objects.filter(id=evento_id).first()
+            if evento_obj:
+                LeadEvento.objects.get_or_create(evento=evento_obj, lead=nuevo_lead)
+
         return {"success": True, "lead_id": str(nuevo_lead.id), "mensaje": "Prospecto creado exitosamente"}
 
     except Exception as e:
         return {"success": False, "error": str(e), "status_code": 500}
+
