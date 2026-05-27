@@ -108,10 +108,10 @@
 
                 {# --- Fila 4: Catálogos --- #}
                 <div class="row mb-3">
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                    <div class="col-12 col-md-4 mb-2 mb-md-0">
                         <label class="form-label fw-bold ">Especialidad *</label>
                         <select id="alta-especialidad"
-                                class="form-select form-select-sm   "
+                                class="form-select form-select-sm"
                                 required>
                             <option value="">-- Selecciona Especialidad --</option>
                             {% for esp in especialidades_list %}
@@ -119,14 +119,25 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="col-12 col-md-6 mb-2 mb-md-0">
+                    <div class="col-12 col-md-4 mb-2 mb-md-0">
                         <label class="form-label fw-bold ">Ubicación (Ciudad) *</label>
                         <select id="alta-ubicacion"
-                                class="form-select form-select-sm   "
+                                class="form-select form-select-sm"
                                 required>
                             <option value="">-- Selecciona Ciudad --</option>
                             {% for ubi in ubicaciones_list %}
                                 <option value="{{ ubi }}">{{ ubi }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4 mb-2 mb-md-0">
+                        <label class="form-label fw-bold ">Producto *</label>
+                        <select id="alta-producto"
+                                class="form-select form-select-sm"
+                                required>
+                            <option value="">-- Selecciona Producto --</option>
+                            {% for prod in productos_list %}
+                                <option value="{{ prod }}">{{ prod }}</option>
                             {% endfor %}
                         </select>
                     </div>

@@ -70,11 +70,9 @@
     <div class="card shadow-sm border-0 p-3 card-expo border-start border-pink border-4 mb-2">
         <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
             <div>
-                <span class="badge bg-pink-subtle text-pink border border-pink-subtle mb-2">📢 EXPO / CONGRESO (CAPTURA
-                    DEDICADA)</span>
+                <span class="badge bg-pink-subtle text-pink border border-pink-subtle mb-2">📢 EXPO / CONGRESO</span>
                 <h4 class="fw-bold text-body mb-1">{{ evento_seleccionado.nombre }}</h4>
-                <p class="text-muted small mb-0"><i class="bi bi-geo-alt-fill text-pink me-1"></i> {{
-                    evento_seleccionado.lugar|default:"Ubicación no especificada" }}</p>
+                <p class="text-muted small mb-0"><i class="bi bi-geo-alt-fill text-pink me-1"></i> {{ evento_seleccionado.lugar|default:"Ubicación no especificada" }}</p>
             </div>
             <div class="text-md-end">
                 <div class="d-flex align-items-center gap-2 mb-2">
@@ -100,8 +98,7 @@
 
         <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
             <h5 class="fw-bold text-body m-0">
-                <i class="bi bi-megaphone-fill me-2" style="color: #ec4899;"></i>Prospectos de: {{
-                evento_seleccionado.nombre }}
+                <i class="bi bi-megaphone-fill me-2" style="color: #ec4899;"></i>Prospectos de: {{ evento_seleccionado.nombre }}
             </h5>
             <button onclick="abrirModalAltaParaExpo('{{ evento_seleccionado.id }}', '{{ evento_seleccionado.nombre }}')"
                 class="btn btn-sm btn-pink fw-bold shadow-sm">
@@ -154,8 +151,7 @@
                                     class="badge rounded-pill bg-secondary-subtle text-secondary border border-secondary-subtle"
                                     style="font-size:0.65em;">👤 Independiente</span>
                                 {% endif %}
-                                <small class="text-muted ms-1" style="font-size:0.72em;">{{ lead.phone_primary
-                                    }}</small>
+                                <small class="text-muted ms-1" style="font-size:0.72em;">{{ lead.phone_primary }}</small>
                             </td>
                             <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
                             <td>
@@ -163,8 +159,7 @@
                                 <span
                                     class="badge bg-warning-subtle text-warning border border-warning-subtle">OPORTUNIDAD</span>
                                 {% else %}
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{
-                                    lead.estatus }}</span>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ lead.estatus }}</span>
                                 {% endif %}
                             </td>
                             <td class="text-body small">{{ lead.producto_cat.nombre|default:"-" }}</td>

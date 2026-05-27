@@ -59,6 +59,7 @@ function guardarLeadManual(event) {
     
     const especialidad = document.getElementById('alta-especialidad').value;
     const ubicacion = document.getElementById('alta-ubicacion').value;
+    const producto = document.getElementById('alta-producto') ? document.getElementById('alta-producto').value : '';
     const celular = document.getElementById('alta-celular').value;
     const email = document.getElementById('alta-email').value;
     const eventoId = document.getElementById('alta-evento-id') ? document.getElementById('alta-evento-id').value : '';
@@ -72,6 +73,7 @@ function guardarLeadManual(event) {
         apellido_materno: apellidoMaterno,
         especialidad: especialidad,
         ubicacion: ubicacion,
+        producto: producto,
         celular: celular,
         email: email,
         evento_id: eventoId
