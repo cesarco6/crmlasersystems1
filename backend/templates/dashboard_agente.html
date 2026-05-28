@@ -270,6 +270,11 @@
                                     {% endif %}
                                     {{ lead.nombre_completo_mdm }}
                                 </span>
+                                {% if lead.revisado_hoy %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success ms-1" style="font-size: 0.65em;">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Revisado Hoy
+                                    </span>
+                                {% endif %}
                                 {% if lead.es_historico %}
                                     <span class="badge bg-secondary ms-1" style="font-size: 0.65em;">Histórico</span>
                                 {% endif %}

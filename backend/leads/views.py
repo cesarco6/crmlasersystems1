@@ -97,8 +97,15 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
                     context['filtro_expos'] = filtro_expos
                     qs = CoreLead.objects.none()
         
-        # Ordenamos la consulta final
-        qs = qs.order_by('-updated_at')
+        # Ordenamos la consulta final con el criterio de prioritización (revisados hoy al final)
+        from django.db.models import Case, When, Value, BooleanField
+        qs = qs.annotate(
+            revisado_hoy=Case(
+                When(updated_at__date=hoy, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()
+            )
+        ).order_by('revisado_hoy', '-updated_at')
 
         # Dividimos en bloques de 10 registros por página
         paginador = Paginator(qs, 7) 
@@ -157,11 +164,21 @@ class AgenteExpoCapturaView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView
             tipo='EXPO'
         )
         
-        # Filtramos los leads de este vendedor vinculados a este evento
+        # Filtramos los leads de este vendedor vinculados a este evento, ordenando prioritariamente
+        from django.db.models import Case, When, Value, BooleanField
+        from django.utils import timezone
+        hoy_fecha = timezone.localdate()
+        
         qs = CoreLead.objects.filter(
             owner=self.request.user,
             eventos_asociados__evento=evento_seleccionado
-        ).order_by('-updated_at')
+        ).annotate(
+            revisado_hoy=Case(
+                When(updated_at__date=hoy_fecha, then=Value(True)),
+                default=Value(False),
+                output_field=BooleanField()
+            )
+        ).order_by('revisado_hoy', '-updated_at')
         
         # Dividimos en bloques de 7 registros por página
         paginador = Paginator(qs, 7)
@@ -1518,7 +1535,21 @@ def director_eventos_view(request):
     if not request.user.is_superuser:
         return render(request, '403.html')
         
-    eventos = Evento.objects.prefetch_related('vendedores_asignados', 'ciudades_objetivo').order_by('-fecha_inicio')
+    ver_archivados = request.GET.get('ver_archivados') == '1'
+    
+    eventos_qs = Evento.objects.prefetch_related('vendedores_asignados', 'ciudades_objetivo')
+    if not ver_archivados:
+        eventos_qs = eventos_qs.exclude(estatus='ARCHIVADO')
+        
+    eventos = eventos_qs.order_by('-fecha_inicio')
+    
+    # Calcular estadísticas de prospectos y leads por evento
+    for ev in eventos:
+        ev.total_registros = ev.clientes_vinculados.count()
+        ev.registros_lead = ev.clientes_vinculados.filter(lead__estatus='LEAD').count()
+        ev.registros_calificado = ev.clientes_vinculados.filter(lead__estatus='LEAD_CALIFICADO').count()
+        ev.registros_ventas = ev.clientes_vinculados.filter(lead__estatus='CLIENTE').count()
+        
     vendedores = User.objects.filter(is_active=True, is_superuser=False).order_by('username')
     ciudades_list = CatUbicacion.objects.filter(is_active=True).order_by('estado', 'ciudad')
     
@@ -1526,6 +1557,7 @@ def director_eventos_view(request):
         'eventos': eventos,
         'vendedores': vendedores,
         'ciudades_list': ciudades_list,
+        'ver_archivados': ver_archivados,
     }
     return render(request, 'director_eventos.html', context)
 
@@ -1589,6 +1621,87 @@ def api_eliminar_evento(request, evento_id):
         return JsonResponse({'success': True})
     except Evento.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Evento no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@login_required
+@require_POST
+def api_editar_evento(request):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+        
+    try:
+        data = json.loads(request.body)
+        evento_id = data.get('id')
+        
+        evento = get_object_or_404(Evento, id=evento_id)
+        
+        nombre = data.get('nombre')
+        tipo = data.get('tipo', 'EXPO')
+        fecha_inicio = data.get('fecha_inicio')
+        fecha_fin = data.get('fecha_fin')
+        lugar = data.get('lugar')
+        linea_producto = data.get('linea_producto', 'TODAS')
+        estatus = data.get('estatus', 'ACTIVO')
+        ciudades_objetivo_ids = data.get('ciudades_objetivo', [])
+        vendedores_ids = data.get('vendedores_ids', [])
+        
+        if not all([nombre, fecha_inicio, fecha_fin]):
+            return JsonResponse({'success': False, 'error': 'Faltan campos obligatorios.'}, status=400)
+            
+        if tipo != 'CAMPAÑA' and not lugar:
+            return JsonResponse({'success': False, 'error': 'El lugar es obligatorio para Expos y Talleres.'}, status=400)
+            
+        if tipo == 'CAMPAÑA':
+            lugar = None
+            
+        evento.nombre = nombre
+        evento.tipo = tipo
+        evento.fecha_inicio = fecha_inicio
+        evento.fecha_fin = fecha_fin
+        evento.lugar = lugar
+        evento.linea_producto = linea_producto
+        evento.estatus = estatus
+        evento.save()
+        
+        evento.ciudades_objetivo.set(ciudades_objetivo_ids)
+        evento.vendedores_asignados.set(vendedores_ids)
+        
+        return JsonResponse({'success': True})
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def api_archivar_evento(request, evento_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+        
+    try:
+        evento = get_object_or_404(Evento, id=evento_id)
+        
+        # Leer la acción del body si viene como JSON
+        action = 'archive'
+        if request.body:
+            try:
+                data = json.loads(request.body)
+                action = data.get('action', 'archive')
+            except json.JSONDecodeError:
+                pass
+                
+        if action == 'unarchive':
+            from datetime import date
+            if evento.fecha_fin < date.today():
+                evento.estatus = 'FINALIZADO'
+            else:
+                evento.estatus = 'ACTIVO'
+        else:
+            evento.estatus = 'ARCHIVADO'
+            
+        evento.save()
+        return JsonResponse({'success': True})
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
 

@@ -6,9 +6,18 @@
     <div class="row mb-4 align-items-center">
         <div class="col-md-8">
             <h2 class="fw-bold text-body">📅 Gestión de Eventos y Campañas</h2>
-            <p class="text-body-secondary">Administra los próximos eventos, campañas o cursos , su duración y fuerza de ventas asignada.</p>
+            <p class="text-body-secondary">Administra los próximos eventos, su duración y fuerza de ventas asignada.</p>
         </div>
-        <div class="col-md-4 text-end">
+        <div class="col-md-4 text-end d-flex justify-content-end align-items-center gap-2">
+            {% if ver_archivados %}
+            <a href="{% url 'director_eventos' %}" class="btn btn-outline-secondary fw-bold px-3">
+                📂 Ocultar Archivados
+            </a>
+            {% else %}
+            <a href="{% url 'director_eventos' %}?ver_archivados=1" class="btn btn-outline-secondary fw-bold px-3">
+                📁 Ver Archivados
+            </a>
+            {% endif %}
             <button class="btn btn-secondary fw-bold px-4" data-bs-toggle="modal" data-bs-target="#modalCrearEvento">
                 ➕ Nuevo Evento
             </button>
@@ -34,57 +43,110 @@
                     <tbody>
                         {% for evento in eventos %}
                         <tr>
-                            <td class="fw-bold text-info">{{ evento.nombre }}</td>
+                            <td class="fw-bold text-info btn-stats-evento" style="cursor: pointer;"
+                                data-nombre="{{ evento.nombre }}"
+                                data-total="{{ evento.total_registros }}"
+                                data-leads="{{ evento.registros_lead }}"
+                                data-calificados="{{ evento.registros_calificado }}"
+                                data-ventas="{{ evento.registros_ventas }}"
+                                title="Ver Estadísticas">
+                                <i class="bi bi-bar-chart-line text-info me-1"></i> {{ evento.nombre }}
+                            </td>
                             <td>
                                 {% if evento.tipo == 'EXPO' %}
-                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-building me-1"></i> EXPO</span>
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i
+                                        class="bi bi-building me-1"></i> EXPO</span>
                                 {% elif evento.tipo == 'CAMPAÑA' %}
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-megaphone me-1"></i> CAMPAÑA</span>
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i
+                                        class="bi bi-megaphone me-1"></i> CAMPAÑA</span>
                                 {% else %}
-                                    <span class="badge bg-info-subtle text-info border border-info-subtle"><i class="bi bi-people me-1"></i> TALLER</span>
+                                <span class="badge bg-info-subtle text-info border border-info-subtle"><i
+                                        class="bi bi-people me-1"></i> TALLER</span>
                                 {% endif %}
                             </td>
                             <td class="text-muted">
                                 {% if evento.tipo == 'CAMPAÑA' %}
-                                    <span class="text-muted fst-italic">Digital / Varias</span>
+                                <span class="text-muted fst-italic">Digital / Varias</span>
                                 {% else %}
-                                    {{ evento.lugar }}
+                                {{ evento.lugar }}
                                 {% endif %}
                             </td>
                             <td>
                                 <span class="text-body small">
                                     <i class="bi bi-calendar4-week text-muted me-1"></i>
                                     {% if evento.fecha_inicio == evento.fecha_fin %}
-                                        {{ evento.fecha_inicio|date:"d M, Y" }}
+                                    {{ evento.fecha_inicio|date:"d M, Y" }}
                                     {% else %}
-                                        {{ evento.fecha_inicio|date:"d M" }} al {{ evento.fecha_fin|date:"d M, Y" }}
+                                    {{ evento.fecha_inicio|date:"d M" }} al {{ evento.fecha_fin|date:"d M, Y" }}
                                     {% endif %}
                                 </span>
                             </td>
                             <td>
                                 <div class="d-flex flex-wrap gap-1">
                                     {% for v in evento.vendedores_asignados.all %}
-                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
-                                            {% if v.first_name %}{{ v.first_name|title }} {{ v.last_name|title }}{% else %}{{ v.username|title }}{% endif %}
-                                        </span>
+                                    <span
+                                        class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">
+                                        {% if v.first_name %}{{ v.first_name|title }} {{ v.last_name|title }}{% else
+                                        %}{{ v.username|title }}{% endif %}
+                                    </span>
                                     {% empty %}
-                                        <span class="text-muted small">Sin asignar</span>
+                                    <span class="text-muted small">Sin asignar</span>
                                     {% endfor %}
                                 </div>
                             </td>
                             <td>
                                 {% if evento.estatus == 'ACTIVO' %}
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success">ACTIVO</span>
+                                <span
+                                    class="badge bg-success bg-opacity-10 text-success border border-success">ACTIVO</span>
                                 {% elif evento.estatus == 'FINALIZADO' %}
-                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">FINALIZADO</span>
+                                <span
+                                    class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary">FINALIZADO</span>
+                                {% elif evento.estatus == 'CANCELADO' %}
+                                <span
+                                    class="badge bg-danger bg-opacity-10 text-danger border border-danger">CANCELADO</span>
                                 {% else %}
-                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">CANCELADO</span>
+                                <span
+                                    class="badge bg-info bg-opacity-10 text-info border border-info">ARCHIVADO</span>
                                 {% endif %}
                             </td>
                             <td class="text-center">
-                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="confirmarEliminacionEvento('{{ evento.id }}')" title="Eliminar Evento">
+                                {% if evento.estatus == 'ARCHIVADO' %}
+                                <button type="button" class="btn btn-sm btn-outline-success btn-archivar-evento px-2"
+                                    data-id="{{ evento.id }}"
+                                    data-action="unarchive"
+                                    title="Desarchivar Evento">
+                                    <i class="bi bi-archive-fill me-1"></i> Desarchivar
+                                </button>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-secondary btn-editar-evento me-1"
+                                    data-id="{{ evento.id }}"
+                                    data-nombre="{{ evento.nombre }}"
+                                    data-tipo="{{ evento.tipo }}"
+                                    data-fecha-inicio="{{ evento.fecha_inicio|date:'Y-m-d' }}"
+                                    data-fecha-fin="{{ evento.fecha_fin|date:'Y-m-d' }}"
+                                    data-lugar="{{ evento.lugar|default:'' }}"
+                                    data-linea="{{ evento.linea_producto }}"
+                                    data-estatus="{{ evento.estatus }}"
+                                    data-ciudades="[{% for ubi in evento.ciudades_objetivo.all %}{{ ubi.id }}{% if not forloop.last %},{% endif %}{% endfor %}]"
+                                    data-vendedores="[{% for v in evento.vendedores_asignados.all %}{{ v.id }}{% if not forloop.last %},{% endif %}{% endfor %}]"
+                                    title="Editar Evento">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                {% if evento.estatus == 'CANCELADO' %}
+                                <button type="button" class="btn btn-sm btn-outline-danger btn-eliminar-evento"
+                                    data-id="{{ evento.id }}"
+                                    title="Eliminar Evento">
                                     <i class="bi bi-trash"></i>
                                 </button>
+                                {% else %}
+                                <button type="button" class="btn btn-sm btn-outline-warning btn-archivar-evento"
+                                    data-id="{{ evento.id }}"
+                                    data-action="archive"
+                                    title="Archivar Evento">
+                                    <i class="bi bi-archive"></i>
+                                </button>
+                                {% endif %}
+                                {% endif %}
                             </td>
                         </tr>
                         {% empty %}
@@ -114,7 +176,8 @@
                     <div class="row g-3">
                         <div class="col-md-8">
                             <label class="form-label text-muted">Nombre del Evento *</label>
-                            <input type="text" id="ev_nombre" class="form-control bg-body border-secondary shadow-none" required>
+                            <input type="text" id="ev_nombre" class="form-control bg-body border-secondary shadow-none"
+                                required>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label text-muted">Tipo de Evento *</label>
@@ -124,14 +187,16 @@
                                 <option value="CAMPAÑA">Campaña Digital / Marketing</option>
                             </select>
                         </div>
-                        
+
                         <div class="col-md-6">
                             <label class="form-label text-muted">Fecha de Inicio *</label>
-                            <input type="date" id="ev_fecha_inicio" class="form-control bg-body border-secondary shadow-none" required>
+                            <input type="date" id="ev_fecha_inicio"
+                                class="form-control bg-body border-secondary shadow-none" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label text-muted">Fecha de Fin *</label>
-                            <input type="date" id="ev_fecha_fin" class="form-control bg-body border-secondary shadow-none" required>
+                            <input type="date" id="ev_fecha_fin"
+                                class="form-control bg-body border-secondary shadow-none" required>
                         </div>
 
                         <div class="col-md-12" id="div_lugar">
@@ -156,19 +221,22 @@
                         <div class="col-md-6 mt-3">
                             <label class="form-label text-muted">Ciudades Objetivo</label>
                             <p class="small text-muted mb-1">Presiona Ctrl o Cmd para múltiples opciones.</p>
-                            <select id="ev_ciudades" class="form-select bg-body border-secondary shadow-none" multiple size="5">
+                            <select id="ev_ciudades" class="form-select bg-body border-secondary shadow-none" multiple
+                                size="5">
                                 {% for ubi in ciudades_list %}
-                                    <option value="{{ ubi.id }}">{{ ubi.ciudad }}, {{ ubi.estado }}</option>
+                                <option value="{{ ubi.id }}">{{ ubi.ciudad }}, {{ ubi.estado }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
                         <div class="col-md-12 mt-4">
                             <label class="form-label text-muted">Vendedores Asignados</label>
-                            <p class="small text-muted mb-1">Presiona Ctrl (Windows) o Cmd (Mac) para seleccionar varios.</p>
-                            <select id="ev_vendedores" class="form-select bg-body border-secondary shadow-none" multiple size="3" style="border-radius: 5px;">
+                            <p class="small text-muted mb-1">Presiona Ctrl (Windows) o Cmd (Mac) para seleccionar
+                                varios.</p>
+                            <select id="ev_vendedores" class="form-select bg-body border-secondary shadow-none" multiple
+                                size="3" style="border-radius: 5px;">
                                 {% for v in vendedores %}
-                                    <option value="{{ v.id }}">{{ v.username|title }}</option>
+                                <option value="{{ v.id }}">{{ v.username|title }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -177,25 +245,180 @@
             </div>
             <div class="modal-footer border-top-0 pt-4">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-outline-primary fw-bold px-4" onclick="guardarEvento()">💾 Guardar Evento</button>
+                <button type="button" class="btn btn-outline-primary fw-bold px-4" onclick="guardarEvento()">💾 Guardar
+                    Evento</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Editar Evento -->
+<div class="modal fade" id="modalEditarEvento" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold text-body">✏️ Editar Evento / Campaña</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <form id="formEditarEvento">
+                    <input type="hidden" id="edit_ev_id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Nombre del Evento *</label>
+                            <input type="text" id="edit_ev_nombre" class="form-control bg-body border-secondary shadow-none"
+                                required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted">Tipo *</label>
+                            <select id="edit_ev_tipo" class="form-select bg-body border-secondary shadow-none" required>
+                                <option value="EXPO">Expo / Congreso</option>
+                                <option value="TALLER">Taller / Capacitación</option>
+                                <option value="CAMPAÑA">Campaña Digital / Marketing</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label text-muted">Estatus *</label>
+                            <select id="edit_ev_estatus" class="form-select bg-body border-secondary shadow-none" required>
+                                <option value="ACTIVO">ACTIVO</option>
+                                <option value="FINALIZADO">FINALIZADO</option>
+                                <option value="CANCELADO">CANCELADO</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Fecha de Inicio *</label>
+                            <input type="date" id="edit_ev_fecha_inicio"
+                                class="form-control bg-body border-secondary shadow-none" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-muted">Fecha de Fin *</label>
+                            <input type="date" id="edit_ev_fecha_fin"
+                                class="form-control bg-body border-secondary shadow-none" required>
+                        </div>
+
+                        <div class="col-md-12" id="edit_div_lugar">
+                            <label class="form-label text-muted">Lugar o Sede (Ej: WTC CDMX) *</label>
+                            <input type="text" id="edit_ev_lugar" class="form-control bg-body border-secondary shadow-none">
+                        </div>
+
+                        <div class="col-md-6 mt-3">
+                            <label class="form-label text-muted">Línea de Negocio *</label>
+                            <select id="edit_ev_linea" class="form-select bg-body border-secondary shadow-none">
+                                <option value="SPORT">Línea Sport</option>
+                                <option value="PET">Línea Pet</option>
+                                <option value="DENTAL">Línea Dental</option>
+                                <option value="PODOLOGICO">Línea Podológica</option>
+                                <option value="BEAUTY">Línea Beauty</option>
+                                <option value="SERVICIO">Servicios</option>
+                                <option value="ACCESORIO">Accesorios</option>
+                                <option value="TODAS">Todas las Líneas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mt-3">
+                            <label class="form-label text-muted">Ciudades Objetivo</label>
+                            <p class="small text-muted mb-1">Presiona Ctrl o Cmd para múltiples opciones.</p>
+                            <select id="edit_ev_ciudades" class="form-select bg-body border-secondary shadow-none" multiple
+                                size="5">
+                                {% for ubi in ciudades_list %}
+                                <option value="{{ ubi.id }}">{{ ubi.ciudad }}, {{ ubi.estado }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-12 mt-4">
+                            <label class="form-label text-muted">Vendedores Asignados</label>
+                            <p class="small text-muted mb-1">Presiona Ctrl o Cmd para seleccionar varios.</p>
+                            <select id="edit_ev_vendedores" class="form-select bg-body border-secondary shadow-none" multiple
+                                size="3" style="border-radius: 5px;">
+                                {% for v in vendedores %}
+                                <option value="{{ v.id }}">{{ v.username|title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top-0 pt-4">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-outline-primary fw-bold px-4" onclick="guardarEdicionEvento()">💾 Guardar Cambios</button>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
         const evTipo = document.getElementById('ev_tipo');
-        if(evTipo) {
-            evTipo.addEventListener('change', function() {
+        if (evTipo) {
+            evTipo.addEventListener('change', function () {
                 const divLugar = document.getElementById('div_lugar');
-                if(this.value === 'CAMPAÑA') {
+                if (this.value === 'CAMPAÑA') {
                     divLugar.style.display = 'none';
                 } else {
                     divLugar.style.display = 'block';
                 }
             });
         }
+
+        const editEvTipo = document.getElementById('edit_ev_tipo');
+        if (editEvTipo) {
+            editEvTipo.addEventListener('change', function () {
+                const editDivLugar = document.getElementById('edit_div_lugar');
+                if (this.value === 'CAMPAÑA') {
+                    editDivLugar.style.display = 'none';
+                } else {
+                    editDivLugar.style.display = 'block';
+                }
+            });
+        }
+
+        // Listener para ver estadísticas
+        document.querySelectorAll('.btn-stats-evento').forEach(el => {
+            el.addEventListener('click', function () {
+                const nombre = this.getAttribute('data-nombre');
+                const total = this.getAttribute('data-total');
+                const leads = this.getAttribute('data-leads');
+                const calificados = this.getAttribute('data-calificados');
+                const ventas = this.getAttribute('data-ventas');
+                mostrarInfoEvento(nombre, total, leads, calificados, ventas);
+            });
+        });
+
+        // Listener para abrir modal de edición
+        document.querySelectorAll('.btn-editar-evento').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                const nombre = this.getAttribute('data-nombre');
+                const tipo = this.getAttribute('data-tipo');
+                const fecha_inicio = this.getAttribute('data-fecha-inicio');
+                const fecha_fin = this.getAttribute('data-fecha-fin');
+                const lugar = this.getAttribute('data-lugar');
+                const linea = this.getAttribute('data-linea');
+                const estatus = this.getAttribute('data-estatus');
+                const ciudades_ids = JSON.parse(this.getAttribute('data-ciudades') || '[]');
+                const vendedores_ids = JSON.parse(this.getAttribute('data-vendedores') || '[]');
+
+                abrirModalEditarEvento(id, nombre, tipo, fecha_inicio, fecha_fin, lugar, linea, ciudades_ids, vendedores_ids, estatus);
+            });
+        });
+
+        // Listener para archivar/desarchivar
+        document.querySelectorAll('.btn-archivar-evento').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                const action = this.getAttribute('data-action');
+                confirmarArchivadoEvento(id, action);
+            });
+        });
+
+        // Listener para eliminar evento
+        document.querySelectorAll('.btn-eliminar-evento').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const id = this.getAttribute('data-id');
+                confirmarEliminacionEvento(id);
+            });
+        });
     });
 
     function getCookie(name) {
@@ -215,138 +438,366 @@
     }
 
     function guardarEvento() {
-    // 1. Captura de datos (Igual a tu lógica actual)
-    const nombre = document.getElementById('ev_nombre').value.trim();
-    const tipo = document.getElementById('ev_tipo').value;
-    const fecha_inicio = document.getElementById('ev_fecha_inicio').value;
-    const fecha_fin = document.getElementById('ev_fecha_fin').value;
-    const lugar = document.getElementById('ev_lugar').value.trim();
-    const linea_producto = document.getElementById('ev_linea').value;
-    const ciudSelect = document.getElementById('ev_ciudades');
-    const ciudades_objetivo = Array.from(ciudSelect.selectedOptions).map(opt => parseInt(opt.value));
-    const vendSelect = document.getElementById('ev_vendedores');
-    const vendedores_ids = Array.from(vendSelect.selectedOptions).map(opt => parseInt(opt.value));
-    
-    // 2. Validaciones con SweetAlert2 (En lugar de alerts nativos)
-    if (!nombre || !fecha_inicio || !fecha_fin) {
-        Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor, completa los campos obligatorios.' });
-        return;
-    }
+        // 1. Captura de datos (Igual a tu lógica actual)
+        const nombre = document.getElementById('ev_nombre').value.trim();
+        const tipo = document.getElementById('ev_tipo').value;
+        const fecha_inicio = document.getElementById('ev_fecha_inicio').value;
+        const fecha_fin = document.getElementById('ev_fecha_fin').value;
+        const lugar = document.getElementById('ev_lugar').value.trim();
+        const linea_producto = document.getElementById('ev_linea').value;
+        const ciudSelect = document.getElementById('ev_ciudades');
+        const ciudades_objetivo = Array.from(ciudSelect.selectedOptions).map(opt => parseInt(opt.value));
+        const vendSelect = document.getElementById('ev_vendedores');
+        const vendedores_ids = Array.from(vendSelect.selectedOptions).map(opt => parseInt(opt.value));
 
-    if (tipo !== 'CAMPAÑA' && !lugar) {
-        Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'El Lugar o Sede es obligatorio para Expos y Talleres.' });
-        return;
-    }
-
-    if (fecha_inicio > fecha_fin) {
-        Swal.fire({ icon: 'error', title: 'Error en fechas', text: 'La fecha de inicio no puede ser mayor a la fecha de fin.' });
-        return;
-    }
-
-    // 3. Bloqueo de UI mientras se procesa (Evita clics dobles)
-    Swal.fire({
-        title: 'Guardando evento',
-        text: 'Estamos registrando la información en el sistema...',
-        allowOutsideClick: false,
-        didOpen: () => { Swal.showLoading(); }
-    });
-
-    const data = {
-        nombre: nombre,
-        tipo: tipo,
-        fecha_inicio: fecha_inicio,
-        fecha_fin: fecha_fin,
-        lugar: lugar,
-        linea_producto: linea_producto,
-        ciudades_objetivo: ciudades_objetivo,
-        vendedores_ids: vendedores_ids
-    };
-
-    const csrftoken = getCookie('csrftoken');
-
-    // 4. Envío de datos
-    fetch("{% url 'api_crear_evento' %}", {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': csrftoken
-        },
-        body: JSON.stringify(data)
-    })
-    .then(response => response.json())
-    .then(res => {
-        if (res.success) {
-            Swal.fire({
-                icon: 'success',
-                title: '¡Evento creado!',
-                text: 'Los datos se han guardado correctamente.',
-                timer: 1500,
-                showConfirmButton: false
-            }).then(() => {
-                location.reload(); // Recarga para ver el nuevo evento en la tabla
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'No se pudo guardar',
-                text: 'Error: ' + res.error
-            });
+        // 2. Validaciones con SweetAlert2 (En lugar de alerts nativos)
+        if (!nombre || !fecha_inicio || !fecha_fin) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor, completa los campos obligatorios.' });
+            return;
         }
-    })
-    .catch(err => {
-        console.error("Error en Fetch", err);
-        Swal.fire({ icon: 'error', title: 'Error de red', text: 'Hubo un problema al conectar con el servidor.' });
-    });
-}
 
-function confirmarEliminacionEvento(eventoId) {
-    Swal.fire({
-        title: '¿Eliminar Evento?',
-        text: "Esta acción no se puede deshacer.",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire({
-                title: 'Eliminando...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
+        if (tipo !== 'CAMPAÑA' && !lugar) {
+            Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'El Lugar o Sede es obligatorio para Expos y Talleres.' });
+            return;
+        }
 
-            const csrftoken = getCookie('csrftoken');
-            fetch(`/api/eventos/eliminar/${eventoId}/`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken
-                }
-            })
+        if (fecha_inicio > fecha_fin) {
+            Swal.fire({ icon: 'error', title: 'Error en fechas', text: 'La fecha de inicio no puede ser mayor a la fecha de fin.' });
+            return;
+        }
+
+        // 3. Bloqueo de UI mientras se procesa (Evita clics dobles)
+        Swal.fire({
+            title: 'Guardando evento',
+            text: 'Estamos registrando la información en el sistema...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        const data = {
+            nombre: nombre,
+            tipo: tipo,
+            fecha_inicio: fecha_inicio,
+            fecha_fin: fecha_fin,
+            lugar: lugar,
+            linea_producto: linea_producto,
+            ciudades_objetivo: ciudades_objetivo,
+            vendedores_ids: vendedores_ids
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        // 4. Envío de datos
+        fetch("{% url 'api_crear_evento' %}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(data)
+        })
             .then(response => response.json())
             .then(res => {
                 if (res.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: '¡Eliminado!',
-                        text: 'El evento ha sido eliminado.',
+                        title: '¡Evento creado!',
+                        text: 'Los datos se han guardado correctamente.',
+                        timer: 1500,
+                        showConfirmButton: false
+                    }).then(() => {
+                        location.reload(); // Recarga para ver el nuevo evento en la tabla
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No se pudo guardar',
+                        text: 'Error: ' + res.error
+                    });
+                }
+            })
+            .catch(err => {
+                console.error("Error en Fetch", err);
+                Swal.fire({ icon: 'error', title: 'Error de red', text: 'Hubo un problema al conectar con el servidor.' });
+            });
+    }
+
+    function confirmarEliminacionEvento(eventoId) {
+        Swal.fire({
+            title: '¿Eliminar Evento?',
+            text: "Esta acción no se puede deshacer.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Eliminando...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const csrftoken = getCookie('csrftoken');
+                fetch(`/api/eventos/eliminar/${eventoId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    }
+                })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡Eliminado!',
+                                text: 'El evento ha sido eliminado.',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', res.error || 'No se pudo eliminar el evento', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error", err);
+                        Swal.fire('Error de red', 'Hubo un problema de conexión', 'error');
+                    });
+            }
+        });
+    }
+
+    function mostrarInfoEvento(nombre, total, leads, calificados, ventas) {
+        Swal.fire({
+            title: `<h3 class="fw-bold mb-0 text-info text-start"><i class="bi bi-bar-chart-line-fill me-2"></i>Estadísticas</h3><h6 class="text-muted text-start mt-2">${nombre}</h6>`,
+            html: `
+                <div class="text-start mt-3">
+                    <div class="card bg-dark border-0 p-3 mb-3 text-white">
+                        <div class="row text-center">
+                            <div class="col-12">
+                                <span class="text-uppercase text-secondary small fw-bold">Total Registros del Evento</span>
+                                <h2 class="fw-bold text-info my-1">${total}</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush" style="border-radius: 10px; overflow: hidden;">
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-body-tertiary border-0 mb-2 py-3 px-4">
+                            <div>
+                                <i class="bi bi-funnel text-primary me-2 fs-5"></i>
+                                <span class="fw-semibold">Registros en Lead</span>
+                            </div>
+                            <span class="badge bg-primary rounded-pill fs-6 px-3">${leads}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-body-tertiary border-0 mb-2 py-3 px-4">
+                            <div>
+                                <i class="bi bi-patch-check text-warning me-2 fs-5"></i>
+                                <span class="fw-semibold">Registros Calificados</span>
+                            </div>
+                            <span class="badge bg-warning text-dark rounded-pill fs-6 px-3">${calificados}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center bg-body-tertiary border-0 mb-2 py-3 px-4">
+                            <div>
+                                <i class="bi bi-cash-stack text-success me-2 fs-5"></i>
+                                <span class="fw-semibold">Registros en Ventas</span>
+                            </div>
+                            <span class="badge bg-success rounded-pill fs-6 px-3">${ventas}</span>
+                        </li>
+                    </ul>
+                </div>
+            `,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#0dcaf0',
+            background: '#151722',
+            color: '#f8f9fa',
+            customClass: {
+                popup: 'rounded-4 shadow-lg border border-secondary',
+                confirmButton: 'btn btn-info fw-bold px-4 text-dark'
+            }
+        });
+    }
+
+    function abrirModalEditarEvento(id, nombre, tipo, fecha_inicio, fecha_fin, lugar, linea, ciudades_ids, vendedores_ids, estatus) {
+        document.getElementById('edit_ev_id').value = id;
+        document.getElementById('edit_ev_nombre').value = nombre;
+        document.getElementById('edit_ev_tipo').value = tipo;
+        document.getElementById('edit_ev_fecha_inicio').value = fecha_inicio;
+        document.getElementById('edit_ev_fecha_fin').value = fecha_fin;
+        document.getElementById('edit_ev_lugar').value = lugar;
+        document.getElementById('edit_ev_linea').value = linea;
+        document.getElementById('edit_ev_estatus').value = estatus;
+
+        // Ciudades
+        const ciudadesSelect = document.getElementById('edit_ev_ciudades');
+        Array.from(ciudadesSelect.options).forEach(option => {
+            option.selected = ciudades_ids.includes(parseInt(option.value));
+        });
+
+        // Vendedores
+        const vendedoresSelect = document.getElementById('edit_ev_vendedores');
+        Array.from(vendedoresSelect.options).forEach(option => {
+            option.selected = vendedores_ids.includes(parseInt(option.value));
+        });
+
+        // Toggle div lugar
+        const editDivLugar = document.getElementById('edit_div_lugar');
+        if (tipo === 'CAMPAÑA') {
+            editDivLugar.style.display = 'none';
+        } else {
+            editDivLugar.style.display = 'block';
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('modalEditarEvento'));
+        modal.show();
+    }
+
+    function guardarEdicionEvento() {
+        const id = document.getElementById('edit_ev_id').value;
+        const nombre = document.getElementById('edit_ev_nombre').value.trim();
+        const tipo = document.getElementById('edit_ev_tipo').value;
+        const fecha_inicio = document.getElementById('edit_ev_fecha_inicio').value;
+        const fecha_fin = document.getElementById('edit_ev_fecha_fin').value;
+        const lugar = document.getElementById('edit_ev_lugar').value.trim();
+        const linea_producto = document.getElementById('edit_ev_linea').value;
+        const estatus = document.getElementById('edit_ev_estatus').value;
+        const ciudSelect = document.getElementById('edit_ev_ciudades');
+        const ciudades_objetivo = Array.from(ciudSelect.selectedOptions).map(opt => parseInt(opt.value));
+        const vendSelect = document.getElementById('edit_ev_vendedores');
+        const vendedores_ids = Array.from(vendSelect.selectedOptions).map(opt => parseInt(opt.value));
+
+        if (!nombre || !fecha_inicio || !fecha_fin) {
+            Swal.fire({ icon: 'warning', title: 'Atención', text: 'Por favor, completa los campos obligatorios.' });
+            return;
+        }
+
+        if (tipo !== 'CAMPAÑA' && !lugar) {
+            Swal.fire({ icon: 'warning', title: 'Campo requerido', text: 'El Lugar o Sede es obligatorio para Expos y Talleres.' });
+            return;
+        }
+
+        if (fecha_inicio > fecha_fin) {
+            Swal.fire({ icon: 'error', title: 'Error en fechas', text: 'La fecha de inicio no puede ser mayor a la fecha de fin.' });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Guardando cambios',
+            text: 'Estamos actualizando el evento en el sistema...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        const data = {
+            id: id,
+            nombre: nombre,
+            tipo: tipo,
+            fecha_inicio: fecha_inicio,
+            fecha_fin: fecha_fin,
+            lugar: lugar,
+            linea_producto: linea_producto,
+            estatus: estatus,
+            ciudades_objetivo: ciudades_objetivo,
+            vendedores_ids: vendedores_ids
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        fetch("/api/eventos/editar/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrftoken
+            },
+            body: JSON.stringify(data)
+        })
+            .then(response => response.json())
+            .then(res => {
+                if (res.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Evento actualizado!',
+                        text: 'Los cambios se han guardado correctamente.',
                         timer: 1500,
                         showConfirmButton: false
                     }).then(() => {
                         location.reload();
                     });
                 } else {
-                    Swal.fire('Error', res.error || 'No se pudo eliminar el evento', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'No se pudo guardar',
+                        text: 'Error: ' + res.error
+                    });
                 }
             })
             .catch(err => {
-                console.error("Error", err);
-                Swal.fire('Error de red', 'Hubo un problema de conexión', 'error');
+                console.error("Error en Fetch", err);
+                Swal.fire({ icon: 'error', title: 'Error de red', text: 'Hubo un problema al conectar con el servidor.' });
             });
-        }
-    });
-}
+    }
+
+    function confirmarArchivadoEvento(eventoId, action) {
+        const isArchive = action === 'archive';
+        const titleText = isArchive ? '¿Archivar Evento?' : '¿Desarchivar Evento?';
+        const infoText = isArchive 
+            ? 'El evento se ocultará del listado activo principal.' 
+            : 'El evento volverá a aparecer en el listado activo principal.';
+        const confirmBtn = isArchive ? 'Sí, archivar' : 'Sí, desarchivar';
+        const successTitle = isArchive ? '¡Archivado!' : '¡Desarchivado!';
+        const successText = isArchive ? 'El evento ha sido archivado.' : 'El evento ha sido desarchivado.';
+
+        Swal.fire({
+            title: titleText,
+            text: infoText,
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonColor: '#0d6efd',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: confirmBtn,
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: isArchive ? 'Archivando...' : 'Desarchivando...',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                const csrftoken = getCookie('csrftoken');
+                fetch(`/api/eventos/archivar/${eventoId}/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken
+                    },
+                    body: JSON.stringify({ action: action })
+                })
+                    .then(response => response.json())
+                    .then(res => {
+                        if (res.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: successTitle,
+                                text: successText,
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire('Error', res.error || 'Ocurrió un error', 'error');
+                        }
+                    })
+                    .catch(err => {
+                        console.error("Error", err);
+                        Swal.fire('Error de red', 'Hubo un problema de conexión', 'error');
+                    });
+            }
+        });
+    }
 </script>
 {% endblock %}

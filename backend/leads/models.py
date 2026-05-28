@@ -307,6 +307,7 @@ class Evento(models.Model):
         ('ACTIVO', 'Activo'),
         ('FINALIZADO', 'Finalizado'),
         ('CANCELADO', 'Cancelado'),
+        ('ARCHIVADO', 'Archivado'),
     ]
     TIPO_CHOICES = [
         ('EXPO', 'Expo / Congreso'),
