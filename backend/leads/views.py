@@ -27,12 +27,17 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         # 1. CAPTURAR LO QUE EL VENDEDOR QUIERE VER
         busqueda = self.request.GET.get('q', '').strip()
         filtro_rapido = self.request.GET.get('filtro', 'activos') # 'activos' por defecto
+        producto_filtro = self.request.GET.get('producto', '').strip()
         
         #hoy = timezone.now().date()
         hoy = localtime(now()).date()   
 
         # 2. BASE DE SEGURIDAD: Solo los leads de ESTE vendedor
         qs = CoreLead.objects.filter(owner=self.request.user)
+
+        # Filtrar por producto (familia EQUIPO) si se especifica
+        if producto_filtro:
+            qs = qs.filter(producto_cat__nombre=producto_filtro)
 
         # ---------------------------------------------------------
         # ESCENARIO A: EL FRANCOTIRADOR (Buscando un registro específico)
@@ -119,6 +124,7 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         
         context['busqueda_actual'] = busqueda
         context['filtro_actual'] = filtro_rapido
+        context['producto_actual'] = producto_filtro
         
         context['total_activos'] = CoreLead.objects.filter(owner=self.request.user).exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
         # --- LÍNEAS NUEVAS PARA EL MODAL DE ALTA RÁPIDA ---
@@ -133,6 +139,8 @@ class DashboardAgenteView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         
         # KPIs del Embudo de Ventas — Fila superior del Dashboard
         qs_owner = CoreLead.objects.filter(owner=self.request.user)
+        if producto_filtro:
+            qs_owner = qs_owner.filter(producto_cat__nombre=producto_filtro)
         mes_actual = localtime(now())
 
         context['total_activos']     = qs_owner.exclude(estatus__in=['CLIENTE', 'NO_CIERRE']).exclude(plan='DESCARTADO').count()
@@ -204,9 +212,13 @@ def agente_exportar_leads_view(request):
     """Exporta los leads del agente logueado a XLSX, respetando los filtros del dashboard."""
     busqueda      = request.GET.get('q', '').strip()
     filtro_rapido = request.GET.get('filtro', 'activos')
+    producto_filtro = request.GET.get('producto', '').strip()
     hoy           = localtime(now()).date()
 
     qs = CoreLead.objects.filter(owner=request.user)
+
+    if producto_filtro:
+        qs = qs.filter(producto_cat__nombre=producto_filtro)
 
     if busqueda:
         qs = qs.filter(

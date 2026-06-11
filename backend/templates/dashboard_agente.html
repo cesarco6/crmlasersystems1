@@ -71,7 +71,7 @@
     <div class="row g-3 mb-3">
         <!-- Tarjeta 1: Cartera Activa -->
         <div class="col">
-            <a href="?filtro=activos" class="text-decoration-none">
+            <a href="?filtro=activos{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" class="text-decoration-none">
                 <div class="kpi-card kpi-activos shadow-sm {% if filtro_actual == 'activos' or not filtro_actual %}border-activos{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-briefcase-fill"></i></div>
                     <div class="kpi-num">{{ total_activos }}</div>
@@ -82,7 +82,7 @@
 
         <!-- Tarjeta 2: Prospectos -->
         <div class="col">
-            <a href="?filtro=frescos" class="text-decoration-none">
+            <a href="?filtro=frescos{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" class="text-decoration-none">
                 <div class="kpi-card kpi-prospecto shadow-sm {% if filtro_actual == 'frescos' %}border-prospecto{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-person-plus-fill"></i></div>
                     <div class="kpi-num">{{ total_prospectos }}</div>
@@ -93,7 +93,7 @@
 
         <!-- Tarjeta 3: Leads (identidad validada) -->
         <div class="col">
-            <a href="?filtro=leads" class="text-decoration-none">
+            <a href="?filtro=leads{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" class="text-decoration-none">
                 <div class="kpi-card kpi-lead shadow-sm {% if filtro_actual == 'leads' %}border-lead{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-person-check-fill"></i></div>
                     <div class="kpi-num">{{ total_leads }}</div>
@@ -104,7 +104,7 @@
 
         <!-- Tarjeta 4: Calificados -->
         <div class="col">
-            <a href="?filtro=calificados" class="text-decoration-none">
+            <a href="?filtro=calificados{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" class="text-decoration-none">
                 <div class="kpi-card kpi-calificado shadow-sm {% if filtro_actual == 'calificados' %}border-calificado{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-star-fill"></i></div>
                     <div class="kpi-num">{{ total_calificados }}</div>
@@ -126,35 +126,46 @@
     <!-- Filtros y Búsqueda -->
     <div class="filters mb-3 d-flex flex-wrap justify-content-between align-items-center gap-3">
         <div class="d-flex flex-wrap gap-2">
-            <a href="?filtro=hoy{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+            <a href="?filtro=hoy{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" 
                 class="btn btn-sm {% if filtro_actual == 'hoy' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
                 🟡 Para Hoy
             </a>
-            <a href="?filtro=urgentes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" 
+            <a href="?filtro=urgentes{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" 
                 class="btn btn-sm {% if filtro_actual == 'urgentes' %}btn-success{% else %}btn-outline-secondary text-body{% endif %} shadow-sm">
                 🔴 Urgentes
             </a>
-            <a href="?filtro=expos" 
+            <a href="?filtro=expos{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" 
                 class="btn btn-sm {% if filtro_actual == 'expos' %}btn-pink text-white{% else %}btn-outline-pink{% endif %} shadow-sm">
                 📢 Mis Expos (Captura)
             </a>
-            <a href="{% url 'agente_exportar_leads' %}?filtro={{ filtro_actual }}&q={{ busqueda_actual }}"
+            <a href="{% url 'agente_exportar_leads' %}?filtro={{ filtro_actual }}&q={{ busqueda_actual }}{% if producto_actual %}&producto={{ producto_actual }}{% endif %}"
                class="btn btn-sm btn-outline-primary shadow-sm" title="Descargar lista actual en Excel">
                 📥 Exportar XLSX
             </a>
         </div>
 
-        <form method="GET" class="d-flex w-100 mt-2 mt-md-0" style="max-width: 420px;">
+        <form method="GET" class="d-flex w-100 mt-2 mt-md-0 gap-2 flex-wrap flex-md-nowrap align-items-center" style="max-width: 650px;">
             {% if filtro_actual %}
                 <input type="hidden" name="filtro" value="{{ filtro_actual }}">
             {% endif %}
+            
+            <div class="input-group shadow-sm" style="max-width: 240px; min-width: 180px;">
+                <span class="input-group-text bg-body border-secondary text-muted border-end-0"><i class="bi bi-funnel-fill"></i></span>
+                <select name="producto" class="form-select bg-body border-secondary border-start-0 text-body shadow-none" onchange="this.form.submit()">
+                    <option value="">-- Todos los Equipos --</option>
+                    {% for prod in productos_list %}
+                        <option value="{{ prod }}" {% if prod == producto_actual %}selected{% endif %}>{{ prod }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
             <div class="input-group shadow-sm">
                 <span class="input-group-text bg-body border-secondary border-end-0"><i class="bi bi-search text-muted"></i></span>
                 <input type="text" name="q" class="form-control bg-body border-secondary border-start-0 ps-0 text-body shadow-none" 
                 placeholder="Buscar nombre, tel, correo..." value="{{ busqueda_actual|default:'' }}">
                 <button type="submit" class="btn btn-outline-primary fw-bold px-3">Buscar</button>
-                {% if busqueda_actual %}
-                    <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}" class="btn btn-outline-secondary border-secondary bg-body d-flex align-items-center justify-content-center" title="Limpiar búsqueda">
+                {% if busqueda_actual or producto_actual %}
+                    <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}" class="btn btn-outline-secondary border-secondary bg-body d-flex align-items-center justify-content-center" title="Limpiar filtros">
                         <i class="bi bi-x-lg"></i>
                     </a>
                 {% endif %}
@@ -337,7 +348,7 @@
             <nav aria-label="Navegación de leads">
                 <ul class="pagination justify-content-center mb-0 mt-2">
                     {% if page_obj.has_previous %}
-                        <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}">Anterior</a></li>
+                        <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.previous_page_number }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}{% if producto_actual %}&producto={{ producto_actual }}{% endif %}">Anterior</a></li>
                     {% else %}
                         <li class="page-item disabled"><span class="page-link shadow-sm">Anterior</span></li>
                     {% endif %}
@@ -346,12 +357,12 @@
                         {% if page_obj.number == num %}
                             <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
                         {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                            <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}">{{ num }}</a></li>
+                            <li class="page-item"><a class="page-link shadow-sm" href="?page={{ num }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}{% if producto_actual %}&producto={{ producto_actual }}{% endif %}">{{ num }}</a></li>
                         {% endif %}
                     {% endfor %}
 
                     {% if page_obj.has_next %}
-                        <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}">Siguiente</a></li>
+                        <li class="page-item"><a class="page-link shadow-sm" href="?page={{ page_obj.next_page_number }}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if filtro_actual %}&filtro={{ filtro_actual }}{% endif %}{% if producto_actual %}&producto={{ producto_actual }}{% endif %}">Siguiente</a></li>
                     {% else %}
                         <li class="page-item disabled"><span class="page-link shadow-sm">Siguiente</span></li>
                     {% endif %}
