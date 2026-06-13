@@ -48,6 +48,21 @@
         transform: translateY(-4px);
         box-shadow: 0 10px 25px rgba(236, 72, 153, 0.15);
     }
+    .hover-text-danger {
+        transition: color 0.15s ease-in-out;
+    }
+    .hover-text-danger:hover {
+        color: #dc3545 !important;
+    }
+    .border-cierre {
+        border-color: #10b981 !important;
+    }
+    .btn-xs {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+        line-height: 1;
+        border-radius: 0.2rem;
+    }
 </style>
 {% endblock %}
 
@@ -115,11 +130,13 @@
 
         <!-- Tarjeta 5: Cierres del mes -->
         <div class="col">
-            <div class="kpi-card kpi-cierre shadow-sm">
-                <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill"></i></div>
-                <div class="kpi-num">{{ total_cierres_mes }}</div>
-                <div class="kpi-label">Cierres / Mes</div>
-            </div>
+            <a href="?filtro=cierres{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" class="text-decoration-none">
+                <div class="kpi-card kpi-cierre shadow-sm {% if filtro_actual == 'cierres' %}border-cierre{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-trophy-fill"></i></div>
+                    <div class="kpi-num">{{ total_cierres_mes }}</div>
+                    <div class="kpi-label">Cierres / Mes</div>
+                </div>
+            </a>
         </div>
     </div>
 
@@ -232,9 +249,10 @@
         {% elif filtro_actual == 'frescos' %}border-prospecto
         {% elif filtro_actual == 'leads' %}border-lead
         {% elif filtro_actual == 'calificados' %}border-calificado
+        {% elif filtro_actual == 'cierres' %}border-cierre
         {% else %}border-0{% endif %}">
         
-        <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
+        <div class="card-header border-bottom py-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
             <h5 class="fw-bold text-body m-0">
                 {% if filtro_actual == 'activos' or not filtro_actual %}
                     <i class="bi bi-briefcase-fill me-2" style="color: var(--bs-primary);"></i>Cartera Activa
@@ -248,10 +266,49 @@
                     🟡 Para Hoy
                 {% elif filtro_actual == 'urgentes' %}
                     🔴 Urgentes
+                {% elif filtro_actual == 'cierres' %}
+                    🏆 Cierres del Mes
                 {% else %}
                     📋 Mis Oportunidades
                 {% endif %}
             </h5>
+
+            {% if busqueda_actual or producto_actual or filtro_actual != 'activos' and filtro_actual %}
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="text-muted small"><i class="bi bi-funnel-fill"></i> Filtros activos:</span>
+                
+                {% if filtro_actual and filtro_actual != 'activos' %}
+                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary d-flex align-items-center gap-1 py-1.5 px-2">
+                        {% if filtro_actual == 'hoy' %}🟡 Para Hoy
+                        {% elif filtro_actual == 'urgentes' %}🔴 Urgentes
+                        {% elif filtro_actual == 'frescos' %}👤 Prospectos
+                        {% elif filtro_actual == 'leads' %}✅ Leads
+                        {% elif filtro_actual == 'calificados' %}⭐ Calificados
+                        {% elif filtro_actual == 'cierres' %}🏆 Cierres/Mes
+                        {% else %}{{ filtro_actual|title }}{% endif %}
+                        <a href="?filtro=activos{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" class="text-secondary hover-text-danger text-decoration-none ms-1 lh-1" title="Quitar filtro" style="font-size: 1.15em;">&times;</a>
+                    </span>
+                {% endif %}
+                
+                {% if producto_actual %}
+                    <span class="badge bg-info bg-opacity-10 text-info border border-info d-flex align-items-center gap-1 py-1.5 px-2" style="color: #0d6efd !important; border-color: #0d6efd !important;">
+                        🧬 {{ producto_actual }}
+                        <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}{% if busqueda_actual %}&q={{ busqueda_actual }}{% endif %}" class="text-info hover-text-danger text-decoration-none ms-1 lh-1" title="Quitar filtro" style="font-size: 1.15em;">&times;</a>
+                    </span>
+                {% endif %}
+                
+                {% if busqueda_actual %}
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning d-flex align-items-center gap-1 py-1.5 px-2" style="color: #ffc107 !important; border-color: #ffc107 !important;">
+                        🔍 "{{ busqueda_actual }}"
+                        <a href="?{% if filtro_actual %}filtro={{ filtro_actual }}{% endif %}{% if producto_actual %}&producto={{ producto_actual }}{% endif %}" class="text-warning hover-text-danger text-decoration-none ms-1 lh-1" title="Quitar filtro" style="font-size: 1.15em;">&times;</a>
+                    </span>
+                {% endif %}
+                
+                <a href="?filtro=activos" class="btn btn-xs btn-outline-danger py-1 px-2 rounded-pill fw-bold text-decoration-none" style="font-size: 0.7rem;" title="Limpiar todos los filtros">
+                    Limpiar todo
+                </a>
+            </div>
+            {% endif %}
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">

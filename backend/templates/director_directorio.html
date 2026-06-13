@@ -1,6 +1,23 @@
 {% extends 'base.html' %}
 {% block title %}Directorio Maestro | Dirección{% endblock %}
 
+{% block extra_css %}
+<style>
+    .hover-text-danger {
+        transition: color 0.15s ease-in-out;
+    }
+    .hover-text-danger:hover {
+        color: #dc3545 !important;
+    }
+    .btn-xs {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+        line-height: 1;
+        border-radius: 0.2rem;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid mt-4">
     <div class="row mb-4">
@@ -61,6 +78,45 @@
 
     <!-- Tabla de Resultados -->
     <div class="card shadow-sm border-0 mb-4 card-ers">
+        {% if q or vendedor_id or estatus_filtro or calificacion %}
+        <div class="card-header border-bottom py-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <h5 class="fw-bold text-body m-0">🔍 Resultados Filtrados</h5>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <span class="text-muted small"><i class="bi bi-funnel-fill"></i> Filtros activos:</span>
+                {% if q %}
+                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning d-flex align-items-center gap-1 py-1.5 px-2" style="color: #ffc107 !important; border-color: #ffc107 !important;">
+                        🔍 "{{ q }}"
+                        <a href="?vendedor_id={{ vendedor_id }}&estatus={{ estatus_filtro }}&calificacion={{ calificacion }}" class="text-warning hover-text-danger text-decoration-none ms-1 lh-1" style="font-size: 1.15em;" title="Quitar filtro">&times;</a>
+                    </span>
+                {% endif %}
+                {% if vendedor_id %}
+                    {% for v in vendedores %}
+                        {% if vendedor_id == v.id|stringformat:"i" %}
+                            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary d-flex align-items-center gap-1 py-1.5 px-2" style="color: #0d6efd !important; border-color: #0d6efd !important;">
+                                👤 Vendedor: {{ v.username|title }}
+                                <a href="?q={{ q }}&estatus={{ estatus_filtro }}&calificacion={{ calificacion }}" class="text-primary hover-text-danger text-decoration-none ms-1 lh-1" style="font-size: 1.15em;" title="Quitar filtro">&times;</a>
+                            </span>
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                {% if estatus_filtro %}
+                    <span class="badge bg-info bg-opacity-10 text-info border border-info d-flex align-items-center gap-1 py-1.5 px-2" style="color: #0dcaf0 !important; border-color: #0dcaf0 !important;">
+                        ⚙️ Estatus: {{ estatus_filtro }}
+                        <a href="?q={{ q }}&vendedor_id={{ vendedor_id }}&calificacion={{ calificacion }}" class="text-info hover-text-danger text-decoration-none ms-1 lh-1" style="font-size: 1.15em;" title="Quitar filtro">&times;</a>
+                    </span>
+                {% endif %}
+                {% if calificacion %}
+                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger d-flex align-items-center gap-1 py-1.5 px-2" style="color: #dc3545 !important; border-color: #dc3545 !important;">
+                        {% if calificacion == '3' %}🔥 Alta{% elif calificacion == '2' %}🌤️ Media{% else %}⚪ Baja{% endif %}
+                        <a href="?q={{ q }}&vendedor_id={{ vendedor_id }}&estatus={{ estatus_filtro }}" class="text-danger hover-text-danger text-decoration-none ms-1 lh-1" style="font-size: 1.15em;" title="Quitar filtro">&times;</a>
+                    </span>
+                {% endif %}
+                <a href="{% url 'director_directorio' %}" class="btn btn-xs btn-outline-danger py-1 px-2 rounded-pill fw-bold text-decoration-none" style="font-size: 0.7rem;" title="Limpiar todos los filtros">
+                    Limpiar todo
+                </a>
+            </div>
+        </div>
+        {% endif %}
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 table-ers">
