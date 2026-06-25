@@ -94,7 +94,8 @@ urlpatterns = [
     path('api/lead/<uuid:pk>/no-cierre/', leads_views.api_marcar_no_cierre, name='api_no_cierre'),
     path('api/alerta/<int:alerta_id>/atender/', leads_views.api_atender_alerta, name='api_atender_alerta'),
     path('api/citas-dia/', leads_views.api_citas_dia, name='api_citas_dia'),
-
+    path('agente/ventas-360/vincular-evento/', leads_views.vincular_cliente_evento_view, name='vincular_cliente_evento'),
+    path('agente/ventas-360/eventos-cliente/', leads_views.obtener_eventos_cliente_view, name='eventos_cliente'),
 ]
 
 from django.conf import settings

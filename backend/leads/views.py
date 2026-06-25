@@ -294,7 +294,7 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         page_mis_clientes = self.request.GET.get('page_mis_clientes')
         context['mis_clientes_list'] = paginator_mis_clientes.get_page(page_mis_clientes)
         
-        # 3. Campañas y Eventos
+        # 3. Campañas y Eventos (Separados)
         filtro_evento = self.request.GET.get('filtro_evento', 'todos')
         context['filtro_evento'] = filtro_evento
         
@@ -302,7 +302,13 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         import datetime
         hoy = timezone.now().date()
         
-        qs_eventos = Evento.objects.filter(vendedores_asignados=self.request.user).exclude(tipo='EXPO')
+        qs_eventos = Evento.objects.filter(vendedores_asignados=self.request.user)
+        if context['active_tab'] == 'campanas':
+            qs_eventos = qs_eventos.filter(tipo='CAMPAÑA')
+        elif context['active_tab'] == 'talleres':
+            qs_eventos = qs_eventos.filter(tipo='TALLER')
+        else:
+            qs_eventos = qs_eventos.exclude(tipo='EXPO')
         
         if filtro_evento == 'proximos_7':
             limite = hoy + datetime.timedelta(days=7)
@@ -324,18 +330,18 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
                 context['evento_seleccionado'] = evento_seleccionado
                 from django.db.models import Q
                 
-                # Buscar leads asignados manualmente O clientes en las ciudades objetivo
+                # Buscar leads asignados manualmente O clientes en las ciudades objetivo, pero con estatus CLIENTE únicamente
                 ciudades_objetivo = evento_seleccionado.ciudades_objetivo.all()
                 if ciudades_objetivo.exists():
                     qs_prospectos = qs_base.filter(
                         Q(eventos_asociados__evento=evento_seleccionado) |
-                        Q(estatus='CLIENTE', ubicacion__in=ciudades_objetivo)
-                    ).distinct()
+                        Q(ubicacion__in=ciudades_objetivo)
+                    ).filter(estatus='CLIENTE').distinct()
                 else:
                     qs_prospectos = qs_base.filter(
                         Q(eventos_asociados__evento=evento_seleccionado) |
-                        Q(estatus='CLIENTE')
-                    ).distinct()
+                        Q(id__isnull=False)
+                    ).filter(estatus='CLIENTE').distinct()
 
                 # Excluir los leads que ya fueron abordados (tienen oportunidad 360 reciente)
                 import datetime
@@ -357,9 +363,11 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
         context['kpi_concretadas']         = qs_oport_all.filter(estatus='CONCRETADO').count()
         context['kpi_historicos']          = qs_base.filter(es_historico=True).count()
         context['kpi_campanas_activas']    = Evento.objects.filter(
-            vendedores_asignados=self.request.user, estatus='ACTIVO'
-        ).exclude(tipo='EXPO').count()
-
+            vendedores_asignados=self.request.user, estatus='ACTIVO', tipo='CAMPAÑA'
+        ).count()
+        context['kpi_talleres_activos']    = Evento.objects.filter(
+            vendedores_asignados=self.request.user, estatus='ACTIVO', tipo='TALLER'
+        ).count()
 
         return context
 
@@ -2123,4 +2131,100 @@ def api_citas_dia(request):
         return JsonResponse({'citas_programadas': citas_count})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+
+
+@login_required
+@require_POST
+def vincular_cliente_evento_view(request):
+    """
+    Endpoint para vincular o desvincular un cliente (estatus CLIENTE únicamente)
+    a/de un evento (Taller o Campaña) activo asignado al vendedor.
+    """
+    try:
+        data = json.loads(request.body)
+        lead_id = data.get('lead_id')
+        evento_id = data.get('evento_id')
+        accion = data.get('accion') # 'vincular' o 'desvincular'
+
+        if not all([lead_id, evento_id, accion]):
+            return JsonResponse({'success': False, 'error': 'Faltan parámetros obligatorios.'}, status=400)
+
+        if accion not in ['vincular', 'desvincular']:
+            return JsonResponse({'success': False, 'error': 'Acción no válida.'}, status=400)
+
+        from .models import CoreLead, Evento, LeadEvento
+        lead = get_object_or_404(CoreLead, id=lead_id)
+
+        # 1. Validación de propiedad
+        if lead.owner != request.user:
+            return JsonResponse({'success': False, 'error': 'No tienes permisos sobre este cliente.'}, status=403)
+
+        # 2. Validación de estatus CLIENTE únicamente
+        if lead.estatus != 'CLIENTE':
+            return JsonResponse({'success': False, 'error': 'Este evento solo está disponible para registros con estatus CLIENTE.'}, status=400)
+
+        # 3. Validación del Evento
+        evento = get_object_or_404(Evento, id=evento_id)
+        if evento.estatus != 'ACTIVO':
+            return JsonResponse({'success': False, 'error': 'El evento no está activo.'}, status=400)
+        
+        if evento.tipo not in ['TALLER', 'CAMPAÑA']:
+            return JsonResponse({'success': False, 'error': 'Tipo de evento no permitido.'}, status=400)
+
+        if not evento.vendedores_asignados.filter(id=request.user.id).exists():
+            return JsonResponse({'success': False, 'error': 'No estás asignado a este evento.'}, status=403)
+
+        # 4. Operación
+        if accion == 'vincular':
+            obj, created = LeadEvento.objects.get_or_create(evento=evento, lead=lead)
+            mensaje = 'Cliente vinculado con éxito.'
+        else:
+            LeadEvento.objects.filter(evento=evento, lead=lead).delete()
+            mensaje = 'Cliente desvinculado con éxito.'
+
+        return JsonResponse({'success': True, 'mensaje': mensaje})
+
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
+def obtener_eventos_cliente_view(request):
+    """
+    Retorna la lista de talleres y campañas activos del vendedor y si el cliente
+    (estatus CLIENTE únicamente) está vinculado a ellos.
+    """
+    lead_id = request.GET.get('lead_id')
+    if not lead_id:
+        return JsonResponse({'success': False, 'error': 'Falta el parámetro lead_id.'}, status=400)
+
+    from .models import CoreLead, Evento, LeadEvento
+    lead = get_object_or_404(CoreLead, id=lead_id)
+
+    if lead.owner != request.user:
+        return JsonResponse({'success': False, 'error': 'No tienes permisos sobre este cliente.'}, status=403)
+
+    if lead.estatus != 'CLIENTE':
+        return JsonResponse({'success': False, 'error': 'Este cliente no es de estatus CLIENTE.'}, status=400)
+
+    # Eventos activos asignados al vendedor (excluyendo EXPO)
+    eventos = Evento.objects.filter(vendedores_asignados=request.user, estatus='ACTIVO').exclude(tipo='EXPO').order_by('nombre')
+    
+    # IDs de eventos a los que el cliente ya está vinculado
+    eventos_vinculados_ids = set(LeadEvento.objects.filter(lead=lead).values_list('evento_id', flat=True))
+
+    eventos_data = []
+    for ev in eventos:
+        eventos_data.append({
+            'id': ev.id,
+            'nombre': ev.nombre,
+            'tipo': ev.tipo,
+            'tipo_display': ev.get_tipo_display(),
+            'fecha_inicio': ev.fecha_inicio.strftime('%d/%m/%Y'),
+            'fecha_fin': ev.fecha_fin.strftime('%d/%m/%Y'),
+            'vinculado': ev.id in eventos_vinculados_ids
+        })
+
+    return JsonResponse({'success': True, 'eventos': eventos_data})
+
 

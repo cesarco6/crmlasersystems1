@@ -23,6 +23,7 @@
             background: var(--bs-card-bg, var(--bs-body-bg));
             position: relative;
             overflow: hidden;
+            height: 100%;
         }
         .kpi-card:hover {
             transform: translateY(-3px);
@@ -39,12 +40,14 @@
         .kpi-card.kpi-concretada::before { background: #10b981; }
         .kpi-card.kpi-historico::before  { background: #8b5cf6; }
         .kpi-card.kpi-campana::before    { background: #ec4899; }
+        .kpi-card.kpi-taller::before     { background: #06b6d4; }
 
         .border-total { border-color: var(--bs-primary) !important; }
         .border-gestion { border-color: #f59e0b !important; }
         .border-concretada { border-color: #10b981 !important; }
         .border-historico { border-color: #8b5cf6 !important; }
         .border-campana { border-color: #ec4899 !important; }
+        .border-taller { border-color: #06b6d4 !important; }
 
         .bg-purple-subtle { background-color: rgba(139, 92, 246, 0.15) !important; }
         .text-purple { color: #8b5cf6 !important; }
@@ -54,6 +57,10 @@
         .text-pink { color: #ec4899 !important; }
         .border-pink-subtle { border-color: rgba(236, 72, 153, 0.3) !important; }
 
+        .bg-teal-subtle { background-color: rgba(6, 182, 212, 0.15) !important; }
+        .text-teal { color: #06b6d4 !important; }
+        .border-teal-subtle { border-color: rgba(6, 182, 212, 0.3) !important; }
+
         .kpi-icon { font-size: 1.6rem; line-height: 1; }
         .kpi-num  { font-size: 2rem; font-weight: 800; line-height: 1.1; }
         .kpi-label {
@@ -61,11 +68,17 @@
             letter-spacing: .06em; text-transform: uppercase;
             color: var(--bs-secondary-color);
         }
+        .btn-xs {
+            padding: 0.15rem 0.4rem;
+            font-size: 0.75rem;
+            line-height: 1.2;
+            border-radius: 4px;
+        }
     </style>
 
     <div class="row g-3 mb-4">
         <!-- Tarjeta 1: Total Oportunidades 360 -->
-        <div class="col">
+        <div class="col-6 col-md-4 col-lg-2">
             <a href="?tab=mis_clientes" class="text-decoration-none">
                 <div class="kpi-card kpi-total shadow-sm {% if active_tab == 'mis_clientes' %}border-primary{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-people-fill" style="color:var(--bs-primary);"></i></div>
@@ -76,7 +89,7 @@
         </div>
 
         <!-- Tarjeta 2: En Gestión (Pendiente + En_Gestion) -->
-        <div class="col">
+        <div class="col-6 col-md-4 col-lg-2">
             <a href="?tab=oportunidades&estatus=gestion" class="text-decoration-none">
                 <div class="kpi-card kpi-gestion shadow-sm {% if active_tab == 'oportunidades' and request.GET.estatus == 'gestion' %}border-warning{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-hourglass-split" style="color:#f59e0b;"></i></div>
@@ -87,7 +100,7 @@
         </div>
 
         <!-- Tarjeta 3: Concretadas -->
-        <div class="col">
+        <div class="col-6 col-md-4 col-lg-2">
             <a href="?tab=oportunidades&estatus=concretadas" class="text-decoration-none">
                 <div class="kpi-card kpi-concretada shadow-sm {% if active_tab == 'oportunidades' and request.GET.estatus == 'concretadas' %}border-success{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-patch-check-fill" style="color:#10b981;"></i></div>
@@ -98,7 +111,7 @@
         </div>
 
         <!-- Tarjeta 4: Históricos -->
-        <div class="col">
+        <div class="col-6 col-md-4 col-lg-2">
             <a href="?tab=historicos" class="text-decoration-none">
                 <div class="kpi-card kpi-historico shadow-sm {% if active_tab == 'historicos' %}border-purple{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-archive-fill" style="color:#8b5cf6;"></i></div>
@@ -109,12 +122,23 @@
         </div>
 
         <!-- Tarjeta 5: Campañas Activas -->
-        <div class="col">
+        <div class="col-6 col-md-4 col-lg-2">
             <a href="?tab=campanas" class="text-decoration-none">
                 <div class="kpi-card kpi-campana shadow-sm {% if active_tab == 'campanas' %}border-pink{% endif %}">
                     <div class="kpi-icon mb-1"><i class="bi bi-megaphone-fill" style="color:#ec4899;"></i></div>
                     <div class="kpi-num" style="color:#ec4899;">{{ kpi_campanas_activas }}</div>
                     <div class="kpi-label">Campañas</div>
+                </div>
+            </a>
+        </div>
+
+        <!-- Tarjeta 6: Talleres Activos -->
+        <div class="col-6 col-md-4 col-lg-2">
+            <a href="?tab=talleres" class="text-decoration-none">
+                <div class="kpi-card kpi-taller shadow-sm {% if active_tab == 'talleres' %}border-taller{% endif %}">
+                    <div class="kpi-icon mb-1"><i class="bi bi-mortarboard-fill text-teal"></i></div>
+                    <div class="kpi-num text-teal">{{ kpi_talleres_activos }}</div>
+                    <div class="kpi-label">Talleres</div>
                 </div>
             </a>
         </div>
@@ -162,6 +186,9 @@
                                     <td class="text-body small">{{ lead.especialidad_cat.nombre|default:"-" }}</td>
                                     <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
                                     <td class="text-end pe-4">
+                                        <button class="btn btn-sm btn-outline-info fw-bold px-3 shadow-sm me-1" onclick="abrirModalEventos('{{ lead.id }}', '{{ lead.nombre_completo_mdm|escapejs }}')">
+                                            📅 Eventos
+                                        </button>
                                         <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
                                             Gestionar
                                         </a>
@@ -210,21 +237,25 @@
             </div>
         </div>
         
-        <!-- Pestaña: CAMPAÑAS Y EVENTOS -->
-        <div class="tab-pane fade {% if active_tab == 'campanas' %}show active{% endif %}" id="campanas" role="tabpanel" aria-labelledby="campanas-tab">
+        <!-- Pestaña: CAMPAÑAS Y EVENTOS (DINÁMICA) -->
+        <div class="tab-pane fade {% if active_tab == 'campanas' or active_tab == 'talleres' %}show active{% endif %}" id="campanas" role="tabpanel" aria-labelledby="campanas-tab">
             {% if evento_seleccionado %}
                 <div class="mb-4">
-                    <a href="?tab=campanas" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm">
-                        <i class="bi bi-arrow-left"></i> Volver a Mis Campañas
+                    <a href="?tab={{ active_tab }}" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm">
+                        <i class="bi bi-arrow-left"></i> Volver a {% if active_tab == 'campanas' %}Mis Campañas{% else %}Mis Talleres{% endif %}
                     </a>
                     <h4 class="mt-4 fw-bold text-body">🎯 {{ evento_seleccionado.nombre }}</h4>
-                    <p class="text-muted small">Mostrando la lista de clientes/prospectos asignados a esta campaña.</p>
+                    <p class="text-muted small">Mostrando la lista de clientes vinculados a este {% if active_tab == 'campanas' %}evento/campaña{% else %}taller/capacitación{% endif %}.</p>
                 </div>
                 
-                <div class="card card-ers shadow-sm mb-4 border-2 border-campana">
+                <div class="card card-ers shadow-sm mb-4 border-2 {% if active_tab == 'campanas' %}border-campana{% else %}border-taller{% endif %}">
                     <div class="card-header border-bottom py-3">
                         <h5 class="fw-bold text-body m-0">
-                            <i class="bi bi-megaphone-fill me-2" style="color:#ec4899;"></i>Prospectos de Campaña
+                            {% if active_tab == 'campanas' %}
+                                <i class="bi bi-megaphone-fill me-2" style="color:#ec4899;"></i>Clientes de Campaña
+                            {% else %}
+                                <i class="bi bi-mortarboard-fill me-2 text-teal"></i>Clientes de Taller
+                            {% endif %}
                         </h5>
                     </div>
                     <div class="card-body p-0">
@@ -232,7 +263,7 @@
                             <table class="table table-hover table-ers mb-0 align-middle">
                                 <thead>
                                     <tr>
-                                        <th class="ps-4">Prospecto de Campaña</th>
+                                        <th class="ps-4">Cliente</th>
                                         <th>Última Acción</th>
                                         <th>Etapa</th>
                                         <th>Especialidad</th>
@@ -266,7 +297,7 @@
                                     <tr>
                                         <td colspan="6" class="text-center py-5 text-muted">
                                             <i class="bi bi-people fs-1 d-block mb-2"></i>
-                                            Aún no tienes prospectos asignados a esta campaña.
+                                            Aún no tienes clientes vinculados a este {% if active_tab == 'campanas' %}evento/campaña{% else %}taller/capacitación{% endif %}.
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -278,16 +309,16 @@
             {% else %}
             <ul class="nav nav-pills gap-2 mb-4">
                 <li class="nav-item">
-                    <a href="?tab=campanas&filtro_evento=proximos_7" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'proximos_7' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟢 Próximos 7 días</a>
+                    <a href="?tab={{ active_tab }}&filtro_evento=proximos_7" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'proximos_7' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟢 Próximos 7 días</a>
                 </li>
                 <li class="nav-item">
-                    <a href="?tab=campanas&filtro_evento=este_mes" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'este_mes' %}active border-primary{% else %}border-secondary text-body{% endif %}">🔵 Este Mes</a>
+                    <a href="?tab={{ active_tab }}&filtro_evento=este_mes" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'este_mes' %}active border-primary{% else %}border-secondary text-body{% endif %}">🔵 Este Mes</a>
                 </li>
                 <li class="nav-item">
-                    <a href="?tab=campanas&filtro_evento=todos" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'todos' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟡 Todos Activos</a>
+                    <a href="?tab={{ active_tab }}&filtro_evento=todos" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'todos' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟡 Todos Activos</a>
                 </li>
                 <li class="nav-item">
-                    <a href="?tab=campanas&filtro_evento=finalizados" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'finalizados' %}active bg-secondary border-secondary text-white{% else %}border-secondary text-body{% endif %}">🏛️ Finalizados</a>
+                    <a href="?tab={{ active_tab }}&filtro_evento=finalizados" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'finalizados' %}active bg-secondary border-secondary text-white{% else %}border-secondary text-body{% endif %}">🏛️ Finalizados</a>
                 </li>
             </ul>
             <div class="row g-4">
@@ -295,7 +326,7 @@
                 <div class="col-md-6 col-lg-4">
                     <div class="card shadow-sm border-0 h-100">
                         <div class="card-header bg-body border-bottom py-3 d-flex justify-content-between align-items-center">
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ evento.get_tipo_display }}</span>
+                            <span class="badge {% if active_tab == 'campanas' %}bg-primary-subtle text-primary border border-primary-subtle{% else %}bg-info-subtle text-info border border-info-subtle{% endif %}">{{ evento.get_tipo_display }}</span>
                             <small class="text-muted fw-bold">🎯 {{ evento.get_linea_producto_display }}</small>
                         </div>
                         <div class="card-body">
@@ -310,8 +341,8 @@
                             </div>
                         </div>
                         <div class="card-footer bg-transparent border-top pt-3 pb-3">
-                            <a href="?tab=campanas&evento_id={{ evento.id }}" class="btn btn-outline-primary btn-sm w-100 fw-bold">
-                                Ver Prospectos de Campaña
+                            <a href="?tab={{ active_tab }}&evento_id={{ evento.id }}" class="btn btn-outline-primary btn-sm w-100 fw-bold">
+                                Ver Clientes Vinculados
                             </a>
                         </div>
                     </div>
@@ -320,7 +351,7 @@
                 <div class="col-12">
                     <div class="text-center py-5 text-muted bg-body rounded shadow-sm">
                         <i class="bi bi-calendar-x fs-1 d-block mb-2"></i>
-                        ¡No tienes eventos ni campañas activas asignadas en este momento!
+                        ¡No tienes {% if active_tab == 'campanas' %}campañas activas{% else %}talleres activos{% endif %} asignados en este momento!
                     </div>
                 </div>
                 {% endfor %}
@@ -520,6 +551,187 @@
         </div>
 
     </div>
+
+    <!-- Modal de Gestión de Eventos del Cliente -->
+    <div class="modal fade" id="modalEventosCliente" tabindex="-1" aria-labelledby="modalEventosClienteLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content shadow-lg border-0" style="border-radius: 16px;">
+                <div class="modal-header border-bottom py-3">
+                    <h5 class="modal-title fw-bold text-body" id="modalEventosClienteLabel">
+                        📅 Gestión de Eventos: <span id="modalClienteNombre" class="text-primary"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="row">
+                        <!-- Columna Campañas -->
+                        <div class="col-md-6 border-end">
+                            <h6 class="fw-bold mb-3 text-pink uppercase d-flex align-items-center gap-2">
+                                <i class="bi bi-megaphone-fill"></i> Campañas Activas
+                            </h6>
+                            <div id="listaCampanas" class="list-group gap-2">
+                                <!-- Se llena dinámicamente con JS -->
+                            </div>
+                        </div>
+                        <!-- Columna Talleres -->
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3 text-teal uppercase d-flex align-items-center gap-2">
+                                <i class="bi bi-mortarboard-fill"></i> Talleres Activos
+                            </h6>
+                            <div id="listaTalleres" class="list-group gap-2">
+                                <!-- Se llena dinámicamente con JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary fw-bold px-4 rounded-pill" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const csrfToken = '{{ csrf_token }}';
+
+        function abrirModalEventos(leadId, clienteNombre) {
+            document.getElementById('modalClienteNombre').textContent = clienteNombre;
+            
+            const listaCampanas = document.getElementById('listaCampanas');
+            const listaTalleres = document.getElementById('listaTalleres');
+            
+            listaCampanas.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm text-pink" role="status"></div> Cargando...</div>';
+            listaTalleres.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm text-teal" role="status"></div> Cargando...</div>';
+
+            // Abrir modal usando Bootstrap modal
+            const modalEl = document.getElementById('modalEventosCliente');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            // Consultar eventos del cliente
+            fetch(`/agente/ventas-360/eventos-cliente/?lead_id=${leadId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        renderEventos(leadId, data.eventos);
+                    } else {
+                        Swal.fire('Error', data.error || 'No se pudieron cargar los eventos.', 'error');
+                        modal.hide();
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    Swal.fire('Error de Conexión', 'No se pudo comunicar con el servidor.', 'error');
+                    modal.hide();
+                });
+        }
+
+        function renderEventos(leadId, eventos) {
+            const listaCampanas = document.getElementById('listaCampanas');
+            const listaTalleres = document.getElementById('listaTalleres');
+            
+            listaCampanas.innerHTML = '';
+            listaTalleres.innerHTML = '';
+
+            const campanas = eventos.filter(ev => ev.tipo === 'CAMPAÑA');
+            const talleres = eventos.filter(ev => ev.tipo === 'TALLER');
+
+            if (campanas.length === 0) {
+                listaCampanas.innerHTML = '<div class="text-muted small text-center py-3">No hay campañas activas asignadas.</div>';
+            } else {
+                campanas.forEach(ev => {
+                    listaCampanas.appendChild(crearElementoEvento(leadId, ev));
+                });
+            }
+
+            if (talleres.length === 0) {
+                listaTalleres.innerHTML = '<div class="text-muted small text-center py-3">No hay talleres activos asignados.</div>';
+            } else {
+                talleres.forEach(ev => {
+                    listaTalleres.appendChild(crearElementoEvento(leadId, ev));
+                });
+            }
+        }
+
+        function crearElementoEvento(leadId, ev) {
+            const div = document.createElement('div');
+            div.className = 'list-group-item d-flex justify-content-between align-items-center border rounded p-2 mb-2 bg-body';
+            
+            const info = document.createElement('div');
+            info.className = 'pe-2';
+            info.innerHTML = `<strong class="small d-block text-body">${ev.nombre}</strong>
+                              <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-calendar"></i> ${ev.fecha_inicio} - ${ev.fecha_fin}</span>`;
+            
+            const btn = document.createElement('button');
+            if (ev.vinculado) {
+                btn.className = 'btn btn-xs btn-danger fw-bold px-2 py-1 small rounded-pill';
+                btn.innerHTML = '<i class="bi bi-x-circle"></i> Desvincular';
+                btn.onclick = () => toggleVinculacion(leadId, ev.id, 'desvincular', ev.nombre);
+            } else {
+                btn.className = 'btn btn-xs btn-outline-success fw-bold px-2 py-1 small rounded-pill';
+                btn.innerHTML = '<i class="bi bi-check-circle"></i> Vincular';
+                btn.onclick = () => toggleVinculacion(leadId, ev.id, 'vincular', ev.nombre);
+            }
+
+            div.appendChild(info);
+            div.appendChild(btn);
+            return div;
+        }
+
+        function toggleVinculacion(leadId, eventoId, accion, eventoNombre) {
+            const clienteNombre = document.getElementById('modalClienteNombre').textContent;
+            
+            // Deshabilitar botones temporalmente
+            const modalBody = document.querySelector('#modalEventosCliente .modal-body');
+            modalBody.style.pointerEvents = 'none';
+            modalBody.style.opacity = '0.6';
+
+            fetch('/agente/ventas-360/vincular-evento/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    lead_id: leadId,
+                    evento_id: eventoId,
+                    accion: accion
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                modalBody.style.pointerEvents = 'auto';
+                modalBody.style.opacity = '1';
+                
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Operación Exitosa!',
+                        text: data.mensaje,
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                    
+                    // Recargar eventos del cliente para actualizar el modal
+                    fetch(`/agente/ventas-360/eventos-cliente/?lead_id=${leadId}`)
+                        .then(res => res.json())
+                        .then(d => {
+                            if (d.success) {
+                                renderEventos(leadId, d.eventos);
+                            }
+                        });
+                } else {
+                    Swal.fire('Error', data.error || 'Ocurrió un error en la operación.', 'error');
+                }
+            })
+            .catch(err => {
+                modalBody.style.pointerEvents = 'auto';
+                modalBody.style.opacity = '1';
+                console.error(err);
+                Swal.fire('Error de Conexión', 'No se pudo procesar la solicitud.', 'error');
+            });
+        }
+    </script>
 
 </section>
 {% endblock %}
