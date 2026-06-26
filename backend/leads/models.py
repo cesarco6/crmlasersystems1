@@ -366,3 +366,30 @@ class LeadEvento(models.Model):
 
     def __str__(self):
         return f"{self.lead.nombre_completo_mdm} vinculado a {self.evento.nombre}"
+
+
+class ExcepcionEspecialidadLinea(models.Model):
+    LINEA_CHOICES = [
+        ('SPORT', 'Línea Sport'),
+        ('PET', 'Línea Pet'),
+        ('DENTAL', 'Línea Dental'),
+        ('PODOLOGICO', 'Línea Podológica'),
+        ('BEAUTY', 'Línea Beauty'),
+        ('SERVICIO', 'Servicios'),
+        ('ACCESORIO', 'Accesorios'),
+        ('TODAS', 'Todas las Líneas')
+    ]
+    
+    especialidad = models.ForeignKey('users.CatEspecialidad', on_delete=models.CASCADE, related_name='excepciones_linea')
+    linea_producto = models.CharField(max_length=20, choices=LINEA_CHOICES)
+    permitido = models.BooleanField(default=True, help_text="True para permitir la participación, False para bloquearla (incluso si por defecto estuviera permitida).")
+
+    class Meta:
+        verbose_name = 'Excepción de Especialidad por Línea'
+        verbose_name_plural = 'Excepciones de Especialidad por Línea'
+        unique_together = ('especialidad', 'linea_producto')
+
+    def __str__(self):
+        estado = "PERMITIDA" if self.permitido else "BLOQUEADA"
+        return f"{self.especialidad.nombre} en línea {self.linea_producto} -> {estado}"
+

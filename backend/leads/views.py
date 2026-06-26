@@ -330,17 +330,37 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
                 context['evento_seleccionado'] = evento_seleccionado
                 from django.db.models import Q
                 
-                # Buscar leads asignados manualmente O clientes en las ciudades objetivo, pero con estatus CLIENTE únicamente
+                linea = evento_seleccionado.linea_producto
+                ids_permitidos = obtener_especialidades_permitidas(linea)
+                
+                # Mapeo de Línea de Producto a palabras clave de Producto
+                MAP_LINEA_PRODUCTO = {
+                    'SPORT': 'Sport',
+                    'PET': 'Pet',
+                    'DENTAL': 'Dental',
+                    'PODOLOGICO': 'Podológico',
+                    'BEAUTY': 'Beauty'
+                }
+                keyword_producto = MAP_LINEA_PRODUCTO.get(linea)
+                
+                q_linea = Q(especialidad_cat_id__in=ids_permitidos)
+                if keyword_producto:
+                    q_linea &= Q(producto_cat__nombre__icontains=keyword_producto)
+
+                # Buscar leads asignados manualmente O clientes en las ciudades objetivo que cumplan con la línea de producto/especialidad, con estatus CLIENTE únicamente
                 ciudades_objetivo = evento_seleccionado.ciudades_objetivo.all()
                 if ciudades_objetivo.exists():
+                    q_filter = Q(ubicacion__in=ciudades_objetivo)
+                    q_filter &= q_linea
                     qs_prospectos = qs_base.filter(
                         Q(eventos_asociados__evento=evento_seleccionado) |
-                        Q(ubicacion__in=ciudades_objetivo)
+                        q_filter
                     ).filter(estatus='CLIENTE').distinct()
                 else:
+                    q_filter = q_linea
                     qs_prospectos = qs_base.filter(
                         Q(eventos_asociados__evento=evento_seleccionado) |
-                        Q(id__isnull=False)
+                        q_filter
                     ).filter(estatus='CLIENTE').distinct()
 
                 # Excluir los leads que ya fueron abordados (tienen oportunidad 360 reciente)
@@ -2193,6 +2213,7 @@ def obtener_eventos_cliente_view(request):
     """
     Retorna la lista de talleres y campañas activos del vendedor y si el cliente
     (estatus CLIENTE únicamente) está vinculado a ellos.
+    Filtra los eventos según la compatibilidad dinámica con la especialidad del cliente.
     """
     lead_id = request.GET.get('lead_id')
     if not lead_id:
@@ -2215,16 +2236,61 @@ def obtener_eventos_cliente_view(request):
 
     eventos_data = []
     for ev in eventos:
-        eventos_data.append({
-            'id': ev.id,
-            'nombre': ev.nombre,
-            'tipo': ev.tipo,
-            'tipo_display': ev.get_tipo_display(),
-            'fecha_inicio': ev.fecha_inicio.strftime('%d/%m/%Y'),
-            'fecha_fin': ev.fecha_fin.strftime('%d/%m/%Y'),
-            'vinculado': ev.id in eventos_vinculados_ids
-        })
+        # Filtrar si la especialidad del cliente está permitida para la línea del evento,
+        # o si el cliente ya está vinculado a él (permitiendo desvinculación)
+        ids_permitidos = obtener_especialidades_permitidas(ev.linea_producto)
+        if (lead.especialidad_cat_id in ids_permitidos) or (ev.id in eventos_vinculados_ids):
+            eventos_data.append({
+                'id': ev.id,
+                'nombre': ev.nombre,
+                'tipo': ev.tipo,
+                'tipo_display': ev.get_tipo_display(),
+                'fecha_inicio': ev.fecha_inicio.strftime('%d/%m/%Y'),
+                'fecha_fin': ev.fecha_fin.strftime('%d/%m/%Y'),
+                'vinculado': ev.id in eventos_vinculados_ids
+            })
 
     return JsonResponse({'success': True, 'eventos': eventos_data})
+
+
+def obtener_especialidades_permitidas(linea_producto):
+    """
+    Retorna la lista de IDs de especialidades permitidas para una línea de producto,
+    combinando las reglas por defecto con las excepciones registradas en la base de datos.
+    """
+    from users.models import CatEspecialidad
+    from .models import ExcepcionEspecialidadLinea
+    
+    # 1. Obtener todas las especialidades activas
+    todas_especialidades = list(CatEspecialidad.objects.filter(is_active=True))
+    
+    # 2. Mapeo de reglas por defecto
+    MAP_LINEA_DATOS = {
+        'SPORT': ['Fisioterapeuta', 'Medicina del Deporte', 'Acupuntorista', 'Alfabiotismo', 'Angiólogo', 'Quiropráctica', 'Ortopedista', 'Homeópata'],
+        'PET': ['Veterinario'],
+        'DENTAL': ['Cirujano Dentista', 'Dentista', 'Odontólogo'],
+        'PODOLOGICO': ['Podólogo'],
+        'BEAUTY': ['Cirujano Plástico', 'Cosmetóloga', 'Dermatólogo'],
+    }
+    especialidades_defecto = MAP_LINEA_DATOS.get(linea_producto, [])
+    
+    # 3. Obtener excepciones explícitas para esta línea de producto
+    excepciones = {exc.especialidad_id: exc.permitido for exc in ExcepcionEspecialidadLinea.objects.filter(linea_producto=linea_producto)}
+    
+    # 4. Construir la lista de IDs permitidos
+    ids_permitidos = []
+    for esp in todas_especialidades:
+        # Si tiene una excepción explícita, se usa el valor de la excepción (permitido True/False)
+        if esp.id in excepciones:
+            if excepciones[esp.id]:
+                ids_permitidos.append(esp.id)
+        # Si no tiene excepción, se usa la regla por defecto
+        else:
+            # Si la línea no tiene restricciones por defecto (ej. TODAS, SERVICIO, ACCESORIO), se permite
+            if not especialidades_defecto or esp.nombre in especialidades_defecto:
+                ids_permitidos.append(esp.id)
+                
+    return ids_permitidos
+
 
 
