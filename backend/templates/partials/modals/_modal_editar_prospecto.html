@@ -139,7 +139,8 @@
                     <div class="col-12 col-md-4 mb-2 mb-md-0">
                         <label class="form-label text-secondary fw-bold small">Ubicación</label>
                         <select id="edit-ubicacion"
-                                class="form-select form-select-sm   "
+                                class="form-select form-select-sm select2-buscar"
+                                style="width: 100%;"
                                 {% if lead.estatus != 'PROSPECTO' %}disabled title="Inmutable tras Fase 1"{% endif %}>
                             <option value="">-- Selecciona Ubicación --</option>
                             {% for ciudad in ubicaciones_list %}

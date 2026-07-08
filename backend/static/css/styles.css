@@ -1749,3 +1749,48 @@ body.login-body {
     font-size: 0.85rem !important;
   }
 }
+
+/* ==========================================================================
+   SELECT2 CUSTOM OVERRIDES FOR DARK/LIGHT THEME (BOOTSTRAP 5)
+   ========================================================================== */
+/* Asegurar que el contenedor de Select2 tenga z-index adecuado para estar sobre los modales */
+.select2-container {
+  z-index: 1060 !important;
+}
+
+/* Modificaciones específicas para Tema Oscuro */
+[data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-dropdown {
+  background-color: #1e1e2d;
+  color: #dee2e6;
+  border-color: #2b2b40;
+}
+
+[data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-dropdown .select2-search .select2-search__field {
+  background-color: #151521;
+  color: #dee2e6;
+  border-color: #2b2b40;
+}
+
+[data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option--highlighted {
+  background-color: #009ef7;
+  color: #ffffff;
+}
+
+[data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-dropdown .select2-results__options .select2-results__option[aria-selected="true"] {
+  background-color: #2b2b40;
+  color: #dee2e6;
+}
+
+[data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-selection {
+  background-color: #1e1e2d;
+  color: #dee2e6;
+  border-color: #2b2b40;
+}
+
+[data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-selection--single .select2-selection__rendered {
+  color: #dee2e6;
+}
+
+[data-bs-theme="dark"] .select2-container--bootstrap-5 .select2-selection__clear {
+  color: #dee2e6;
+}

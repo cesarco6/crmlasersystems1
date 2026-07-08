@@ -107,7 +107,7 @@
                     </div>
                     <div class="col-12 col-md-4 mb-2 mb-md-0">
                         <label class="form-label fw-bold ">Ubicación *</label>
-                        <select id="alta-ubicacion" class="form-select form-select-sm" required>
+                        <select id="alta-ubicacion" class="form-select form-select-sm select2-buscar" style="width: 100%;" required>
                             <option value="">-- Selecciona Ciudad --</option>
                             {% for ubi in ubicaciones_list %}
                             <option value="{{ ubi }}">{{ ubi }}</option>

@@ -145,7 +145,7 @@
                             </div>
                             <div class="col-md-6">
                                 <label class="form-label small fw-bold">Ubicación*</label>
-                                <select class="form-select form-select-sm" name="ubicacion_id" required>
+                                <select class="form-select form-select-sm select2-buscar" name="ubicacion_id" style="width: 100%;" required>
                                     <option value="">Selecciona...</option>
                                     {% for ub in ubicaciones_list %}
                                     <option value="{{ ub.id }}" {% if staging_lead.datos_crudos.ubicacion == ub.ciudad %}selected{% endif %}>{{ ub.ciudad }}</option>
