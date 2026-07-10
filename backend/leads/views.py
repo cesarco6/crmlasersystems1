@@ -1943,7 +1943,7 @@ def dashboard_fidelizacion_view(request):
 
     qs = qs.order_by('-fecha_venta')
 
-    # 2. KPIs (Volumen)
+    # 2. KPIs (Volumen y Financieros)
     total_ops = qs.count()
     pendientes = qs.filter(estatus='PENDIENTE').count()
     concretadas = qs.filter(estatus='CONCRETADO').count()
@@ -1954,6 +1954,45 @@ def dashboard_fidelizacion_view(request):
     ops_cerradas = concretadas + descartadas
     if ops_cerradas > 0:
         tasa_cierre = round((concretadas / ops_cerradas) * 100, 1)
+
+    from django.db.models import Sum, Avg
+    
+    # Facturación y Ticket Promedio
+    monto_concretado = qs.filter(estatus='CONCRETADO').aggregate(total=Sum('monto'))['total'] or 0
+    monto_concretado = round(monto_concretado, 2)
+    
+    ticket_promedio = qs.filter(estatus='CONCRETADO').aggregate(promedio=Avg('monto'))['promedio'] or 0
+    ticket_promedio = round(ticket_promedio, 2)
+
+    # Distribución por familia (concretadas)
+    acc_count = qs.filter(estatus='CONCRETADO', producto__familia='ACCESORIO').count()
+    ser_count = qs.filter(estatus='CONCRETADO', producto__familia='SERVICIO').count()
+    eve_count = qs.filter(estatus='CONCRETADO', producto__familia='EVENTO').count()
+    
+    chart_familia_data = json.dumps({
+        'labels': ['Accesorios', 'Servicios', 'Eventos'],
+        'data': [acc_count, ser_count, eve_count],
+        'colors': ['#ec4899', '#06b6d4', '#ffc107'], # Pink, Teal, Yellow
+    })
+
+    # Atribución por eventos (Talleres y Campañas)
+    # 1. Ventas concretadas influenciadas por Talleres
+    ventas_taller = qs.filter(
+        estatus='CONCRETADO',
+        lead__eventos_asociados__evento__tipo='TALLER'
+    ).distinct()
+    monto_taller = ventas_taller.aggregate(total=Sum('monto'))['total'] or 0
+    monto_taller = round(monto_taller, 2)
+    cantidad_taller = ventas_taller.count()
+
+    # 2. Ventas concretadas influenciadas por Campañas
+    ventas_campana = qs.filter(
+        estatus='CONCRETADO',
+        lead__eventos_asociados__evento__tipo='CAMPAÑA'
+    ).distinct()
+    monto_campana = ventas_campana.aggregate(total=Sum('monto'))['total'] or 0
+    monto_campana = round(monto_campana, 2)
+    cantidad_campana = ventas_campana.count()
 
     # 3. Datos para Chart.js (JSON seguro para el template)
     chart_data = json.dumps({
@@ -1980,7 +2019,14 @@ def dashboard_fidelizacion_view(request):
         'en_gestion': en_gestion,
         'descartadas': descartadas,
         'tasa_cierre': tasa_cierre,
+        'monto_concretado': monto_concretado,
+        'ticket_promedio': ticket_promedio,
         'chart_data': chart_data,
+        'chart_familia_data': chart_familia_data,
+        'monto_taller': monto_taller,
+        'cantidad_taller': cantidad_taller,
+        'monto_campana': monto_campana,
+        'cantidad_campana': cantidad_campana,
         'vendedores': vendedores_list,
         'familias': familias_list,
         'estatus_list': estatus_list,

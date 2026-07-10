@@ -382,3 +382,117 @@ class DetalleEventoAPITestCase(TestCase):
         # Debería redirigir al login
         self.assertEqual(response.status_code, 302)
 
+
+class DashboardFidelizacionTestCase(TestCase):
+    def setUp(self):
+        from leads.models import VentaTransaccional
+        # 1. Crear usuarios (Superuser y Vendedor)
+        self.director_user = User.objects.create_superuser(username='director', password='password123')
+        self.vendedor_user = User.objects.create_user(username='vendedor', password='password123')
+        
+        # 2. Crear Ubicación y Especialidad
+        self.ubicacion = CatUbicacion.objects.create(ciudad='Guadalajara', estado='Jalisco')
+        self.especialidad = CatEspecialidad.objects.create(nombre='Podólogo')
+        
+        # 3. Crear Productos
+        self.prod_acc = CatProducto.objects.create(nombre='Pieza de Mano Podológica', familia='ACCESORIO')
+        self.prod_ser = CatProducto.objects.create(nombre='Mantenimiento Anual', familia='SERVICIO')
+        
+        # 4. Crear Eventos (Taller y Campaña)
+        self.taller = Evento.objects.create(
+            nombre='Taller Láser Guadalajara',
+            tipo='TALLER',
+            fecha_inicio='2026-08-10',
+            fecha_fin='2026-08-12',
+            lugar='Expo Guadalajara',
+            linea_producto='PODOLOGICO'
+        )
+        self.campana = Evento.objects.create(
+            nombre='Campaña Podológica Verano',
+            tipo='CAMPAÑA',
+            fecha_inicio='2026-06-01',
+            fecha_fin='2026-06-30',
+            linea_producto='PODOLOGICO'
+        )
+        
+        # 5. Crear Clientes
+        self.cliente_taller = CoreLead.objects.create(
+            nombre_pila='Juan',
+            apellido_paterno='López',
+            phone_primary='1234567890',
+            estatus='CLIENTE',
+            owner=self.vendedor_user,
+            ubicacion=self.ubicacion,
+            especialidad_cat=self.especialidad
+        )
+        self.cliente_campana = CoreLead.objects.create(
+            nombre_pila='Maria',
+            apellido_paterno='Sánchez',
+            phone_primary='0987654321',
+            estatus='CLIENTE',
+            owner=self.vendedor_user,
+            ubicacion=self.ubicacion,
+            especialidad_cat=self.especialidad
+        )
+        
+        # 6. Vincular Clientes a Eventos
+        LeadEvento.objects.create(evento=self.taller, lead=self.cliente_taller)
+        LeadEvento.objects.create(evento=self.campana, lead=self.cliente_campana)
+        
+        # 7. Crear Ventas Transaccionales
+        # Venta concretada para cliente de taller
+        self.venta1 = VentaTransaccional.objects.create(
+            lead=self.cliente_taller,
+            producto=self.prod_acc,
+            vendedor=self.vendedor_user,
+            monto=1500.00,
+            estatus='CONCRETADO'
+        )
+        # Venta concretada para cliente de campaña
+        self.venta2 = VentaTransaccional.objects.create(
+            lead=self.cliente_campana,
+            producto=self.prod_ser,
+            vendedor=self.vendedor_user,
+            monto=3000.00,
+            estatus='CONCRETADO'
+        )
+        # Venta pendiente (no debería sumarse a facturado)
+        self.venta3 = VentaTransaccional.objects.create(
+            lead=self.cliente_taller,
+            producto=self.prod_acc,
+            vendedor=self.vendedor_user,
+            monto=800.00,
+            estatus='PENDIENTE'
+        )
+
+    def test_dashboard_fidelizacion_metrics_acceso_director(self):
+        self.client.login(username='director', password='password123')
+        url = reverse('director_fidelizacion')
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 200)
+        
+        # Verificar KPIs financieros en contexto
+        self.assertEqual(response.context['monto_concretado'], 4500.00) # 1500 + 3000
+        self.assertEqual(response.context['ticket_promedio'], 2250.00) # 4500 / 2
+        
+        # Verificar atribución
+        self.assertEqual(response.context['monto_taller'], 1500.00)
+        self.assertEqual(response.context['cantidad_taller'], 1)
+        self.assertEqual(response.context['monto_campana'], 3000.00)
+        self.assertEqual(response.context['cantidad_campana'], 1)
+        
+        # Verificar JSON de chart_familia_data
+        chart_fam_data = json.loads(response.context['chart_familia_data'])
+        self.assertEqual(chart_fam_data['labels'], ['Accesorios', 'Servicios', 'Eventos'])
+        self.assertEqual(chart_fam_data['data'], [1, 1, 0]) # 1 accesorio concretado, 1 servicio concretado
+
+    def test_dashboard_fidelizacion_acceso_denegado_vendedor(self):
+        self.client.login(username='vendedor', password='password123')
+        url = reverse('director_fidelizacion')
+        response = self.client.get(url)
+        # Debe redirigir o denegar (user_passes_test con login_url='dashboard_agente')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('dashboard/agente/', response.url or '')
+
+
