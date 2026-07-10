@@ -44,6 +44,8 @@
                         {% for evento in eventos %}
                         <tr>
                             <td class="fw-bold text-info btn-stats-evento" style="cursor: pointer;"
+                                data-id="{{ evento.id }}"
+                                data-tipo="{{ evento.tipo }}"
                                 data-nombre="{{ evento.nombre }}"
                                 data-total="{{ evento.total_registros }}"
                                 data-leads="{{ evento.registros_lead }}"
@@ -376,12 +378,19 @@
         // Listener para ver estadísticas
         document.querySelectorAll('.btn-stats-evento').forEach(el => {
             el.addEventListener('click', function () {
+                const tipo = this.getAttribute('data-tipo');
+                const id = this.getAttribute('data-id');
                 const nombre = this.getAttribute('data-nombre');
-                const total = this.getAttribute('data-total');
-                const leads = this.getAttribute('data-leads');
-                const calificados = this.getAttribute('data-calificados');
-                const ventas = this.getAttribute('data-ventas');
-                mostrarInfoEvento(nombre, total, leads, calificados, ventas);
+                
+                if (tipo === 'TALLER' || tipo === 'CAMPAÑA') {
+                    mostrarDetalleTallerCampana(id, nombre);
+                } else {
+                    const total = this.getAttribute('data-total');
+                    const leads = this.getAttribute('data-leads');
+                    const calificados = this.getAttribute('data-calificados');
+                    const ventas = this.getAttribute('data-ventas');
+                    mostrarInfoEvento(nombre, total, leads, calificados, ventas);
+                }
             });
         });
 
@@ -619,6 +628,242 @@
                 confirmButton: 'btn btn-info fw-bold px-4 text-dark'
             }
         });
+    }
+
+    function mostrarDetalleTallerCampana(id, nombre) {
+        Swal.fire({
+            title: 'Cargando información...',
+            html: '<div class="spinner-border text-info my-3" role="status"><span class="visually-hidden">Cargando...</span></div><div class="mt-2 text-secondary">Obteniendo detalles e invitados del evento...</div>',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            background: '#151722',
+            color: '#f8f9fa',
+            customClass: {
+                popup: 'rounded-4 shadow-lg border border-secondary'
+            },
+            didOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        fetch(`/api/eventos/detalle/${id}/`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al obtener los detalles del evento.');
+                }
+                return response.json();
+            })
+            .then(res => {
+                if (!res.success) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: res.error || 'No se pudieron cargar los detalles',
+                        background: '#151722',
+                        color: '#f8f9fa',
+                        confirmButtonColor: '#6c757d'
+                    });
+                    return;
+                }
+
+                const ev = res.evento;
+                const total = res.total_registros;
+                const stats = res.vendedores_stats;
+                const clientes = res.clientes;
+
+                // Generar filas para estadísticas de vendedores
+                let statsHtml = '';
+                if (stats.length === 0) {
+                    statsHtml = `<tr><td colspan="3" class="text-center text-muted py-4"><i class="bi bi-info-circle me-1"></i>No hay vendedores asignados o con registros.</td></tr>`;
+                } else {
+                    stats.forEach(v => {
+                        const pct = total > 0 ? Math.round((v.cantidad / total) * 100) : 0;
+                        statsHtml += `
+                            <tr style="border-bottom: 1px solid #2b3044;">
+                                <td class="py-3 text-start fw-semibold text-white">
+                                    <span class="d-block">${v.nombre}</span>
+                                    <span class="text-secondary small">@${v.username}</span>
+                                </td>
+                                <td class="py-3 text-center">
+                                    <span class="badge bg-info text-dark px-3 py-2 rounded-pill fw-bold">${v.cantidad}</span>
+                                </td>
+                                <td class="py-3">
+                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                        <div class="progress flex-grow-1" style="height: 8px; background-color: #2b3044; border-radius: 4px; overflow: hidden;">
+                                            <div class="progress-bar bg-info" role="progressbar" style="width: ${pct}%"></div>
+                                        </div>
+                                        <span class="small text-secondary fw-bold" style="min-width: 35px; text-align: right;">${pct}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // Generar filas para listado de clientes
+                let clientesHtml = '';
+                if (clientes.length === 0) {
+                    clientesHtml = `<tr><td colspan="5" class="text-center text-muted py-5"><i class="bi bi-people fs-2 d-block mb-2 text-secondary"></i>Aún no hay clientes vinculados a este evento.</td></tr>`;
+                } else {
+                    clientes.forEach(c => {
+                        clientesHtml += `
+                            <tr style="border-bottom: 1px solid #2b3044;">
+                                <td class="py-3 text-start">
+                                    <a href="/trabajo/${c.lead_id}/" target="_blank" class="text-info text-decoration-none fw-bold hover-underline d-inline-flex align-items-center">
+                                        <i class="bi bi-box-arrow-up-right me-1 small"></i> ${c.nombre}
+                                    </a>
+                                </td>
+                                <td class="py-3 text-start text-muted small">${c.especialidad}</td>
+                                <td class="py-3 text-start text-secondary small">${c.vendedor}</td>
+                                <td class="py-3 text-center text-muted small">${c.fecha_vinculacion}</td>
+                                <td class="py-3 text-start text-muted small" title="${c.comentarios}">
+                                    ${c.comentarios ? (c.comentarios.length > 25 ? c.comentarios.substring(0, 25) + '...' : c.comentarios) : '-'}
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                // Icono según el tipo
+                const iconHeader = ev.tipo === 'TALLER' 
+                    ? '<i class="bi bi-mortarboard-fill text-info me-2"></i>'
+                    : '<i class="bi bi-megaphone-fill text-warning me-2"></i>';
+                const labelColorClass = ev.tipo === 'TALLER' ? 'text-info' : 'text-warning';
+
+                Swal.fire({
+                    title: `<h3 class="fw-bold mb-0 text-start text-white">${iconHeader}Detalles e Invitados</h3><h6 class="text-muted text-start mt-2">${ev.nombre}</h6>`,
+                    html: `
+                        <div class="text-start mt-3">
+                            <!-- Ficha de Datos del Evento -->
+                            <div class="card border-0 p-3 mb-4 text-white" style="background-color: #1a1d29; border-radius: 12px;">
+                                <div class="row g-2">
+                                    <div class="col-6 col-md-3">
+                                        <span class="text-uppercase text-secondary small d-block">Tipo</span>
+                                        <span class="fw-bold ${labelColorClass}">${ev.tipo_display}</span>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <span class="text-uppercase text-secondary small d-block">Fechas</span>
+                                        <span class="fw-semibold text-white small">${ev.fecha_inicio} al ${ev.fecha_fin}</span>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <span class="text-uppercase text-secondary small d-block">Línea de Producto</span>
+                                        <span class="fw-semibold text-white small">${ev.linea_producto}</span>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <span class="text-uppercase text-secondary small d-block">Sede / Ubicación</span>
+                                        <span class="fw-semibold text-white small text-truncate d-block" title="${ev.lugar || 'Digital / Varias'}">${ev.lugar || 'Digital / Varias'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resumen del Evento -->
+                            <div class="row text-center mb-4">
+                                <div class="col-12">
+                                    <div class="p-3" style="background-color: #1a1d29; border-radius: 12px; border: 1px solid #2b3044;">
+                                        <span class="text-uppercase text-secondary small fw-bold">Total Clientes Vinculados</span>
+                                        <h1 class="fw-bold text-info my-1" style="font-size: 2.2rem;">${total}</h1>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Botones Tabuladores -->
+                            <div class="d-flex mb-3 p-1" style="background-color: #1a1d29; border-radius: 8px;">
+                                <button type="button" id="tab-vendedores-btn" onclick="window.switchSwalTab('vendedores')" class="btn w-50 fw-bold py-2" style="background-color: #0dcaf0; color: #151722; border-radius: 6px; border: none; transition: all 0.2s;">
+                                    <i class="bi bi-people-fill me-1"></i> Rendimiento Vendedores
+                                </button>
+                                <button type="button" id="tab-clientes-btn" onclick="window.switchSwalTab('clientes')" class="btn w-50 fw-bold py-2 text-white" style="background-color: transparent; border-radius: 6px; border: none; transition: all 0.2s;">
+                                    <i class="bi bi-journal-text me-1"></i> Lista de Clientes (${total})
+                                </button>
+                            </div>
+
+                            <!-- Panel Vendedores -->
+                            <div id="panel-vendedores" class="swal-tab-pane" style="display: block;">
+                                <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                    <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; border-color: #2b3044;">
+                                        <thead>
+                                            <tr style="border-bottom: 2px solid #2b3044; color: #6c757d; font-size: 0.85rem;">
+                                                <th class="py-2 text-start text-uppercase">Vendedor</th>
+                                                <th class="py-2 text-center text-uppercase" style="width: 100px;">Invitados</th>
+                                                <th class="py-2 text-start text-uppercase" style="width: 220px;">Rendimiento</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${statsHtml}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Panel Clientes -->
+                            <div id="panel-clientes" class="swal-tab-pane" style="display: none;">
+                                <div class="table-responsive" style="max-height: 280px; overflow-y: auto;">
+                                    <table class="table table-dark table-hover align-middle mb-0" style="--bs-table-bg: transparent; border-color: #2b3044; font-size: 0.85rem;">
+                                        <thead>
+                                            <tr style="border-bottom: 2px solid #2b3044; color: #6c757d; font-size: 0.8rem;">
+                                                <th class="py-2 text-start text-uppercase">Cliente</th>
+                                                <th class="py-2 text-start text-uppercase">Especialidad</th>
+                                                <th class="py-2 text-start text-uppercase">Registrado Por</th>
+                                                <th class="py-2 text-center text-uppercase" style="width: 90px;">Fecha Vincl.</th>
+                                                <th class="py-2 text-start text-uppercase" style="width: 120px;">Comentarios</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${clientesHtml}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    `,
+                    confirmButtonText: 'Cerrar',
+                    confirmButtonColor: '#6c757d',
+                    background: '#151722',
+                    color: '#f8f9fa',
+                    width: '850px',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg border border-secondary',
+                        confirmButton: 'btn btn-secondary fw-bold px-4'
+                    },
+                    didOpen: () => {
+                        window.switchSwalTab = function(tabName) {
+                            const btnVend = document.getElementById('tab-vendedores-btn');
+                            const btnClie = document.getElementById('tab-clientes-btn');
+                            const panelVend = document.getElementById('panel-vendedores');
+                            const panelClie = document.getElementById('panel-clientes');
+                            
+                            if (tabName === 'vendedores') {
+                                btnVend.style.backgroundColor = '#0dcaf0';
+                                btnVend.style.color = '#151722';
+                                btnClie.style.backgroundColor = 'transparent';
+                                btnClie.style.color = '#fff';
+                                panelVend.style.display = 'block';
+                                panelClie.style.display = 'none';
+                            } else {
+                                btnVend.style.backgroundColor = 'transparent';
+                                btnVend.style.color = '#fff';
+                                btnClie.style.backgroundColor = '#0dcaf0';
+                                btnClie.style.color = '#151722';
+                                panelVend.style.display = 'none';
+                                panelClie.style.display = 'block';
+                            }
+                        };
+                    },
+                    willClose: () => {
+                        delete window.switchSwalTab;
+                    }
+                });
+            })
+            .catch(err => {
+                console.error("Error al cargar detalles de evento", err);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error de red',
+                    text: 'Hubo un problema de conexión al cargar la información del evento.',
+                    background: '#151722',
+                    color: '#f8f9fa',
+                    confirmButtonColor: '#6c757d'
+                });
+            });
     }
 
     function abrirModalEditarEvento(id, nombre, tipo, fecha_inicio, fecha_fin, lugar, linea, ciudades_ids, vendedores_ids, estatus) {

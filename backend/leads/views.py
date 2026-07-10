@@ -1747,6 +1747,79 @@ def api_archivar_evento(request, evento_id):
 
 
 @login_required
+def api_detalle_evento(request, evento_id):
+    if not request.user.is_superuser:
+        return JsonResponse({'success': False, 'error': 'No autorizado'}, status=403)
+        
+    try:
+        evento = get_object_or_404(Evento, id=evento_id)
+        
+        # Obtener los clientes vinculados
+        vinculaciones = evento.clientes_vinculados.select_related('lead', 'lead__owner', 'lead__especialidad_cat').order_by('-fecha_vinculacion')
+        
+        clientes = []
+        vendedores_stats = {}
+        
+        # Inicializar vendedores asignados en las estadísticas
+        for v in evento.vendedores_asignados.all():
+            nombre_vendedor = f"{v.first_name} {v.last_name}".strip() or v.username
+            vendedores_stats[v.id] = {
+                'nombre': nombre_vendedor.title(),
+                'cantidad': 0,
+                'username': v.username
+            }
+            
+        for vinc in vinculaciones:
+            lead = vinc.lead
+            vendedor = lead.owner
+            
+            # Nombre completo del vendedor
+            vendedor_name = f"{vendedor.first_name} {vendedor.last_name}".strip() or vendedor.username
+            vendedor_name = vendedor_name.title()
+            
+            # Registrar/incrementar en estadísticas
+            if vendedor.id not in vendedores_stats:
+                vendedores_stats[vendedor.id] = {
+                    'nombre': vendedor_name,
+                    'cantidad': 0,
+                    'username': vendedor.username
+                }
+            vendedores_stats[vendedor.id]['cantidad'] += 1
+            
+            clientes.append({
+                'lead_id': str(lead.id),
+                'nombre': lead.nombre_completo_mdm,
+                'especialidad': lead.especialidad_cat.nombre if lead.especialidad_cat else '-',
+                'vendedor': vendedor_name,
+                'fecha_vinculacion': vinc.fecha_vinculacion.strftime('%d/%m/%Y'),
+                'comentarios': vinc.comentarios or ''
+            })
+            
+        # Convertir estadísticas de vendedores a una lista ordenada por cantidad descendente
+        vendedores_lista = sorted(list(vendedores_stats.values()), key=lambda x: x['cantidad'], reverse=True)
+        
+        return JsonResponse({
+            'success': True,
+            'evento': {
+                'id': evento.id,
+                'nombre': evento.nombre,
+                'tipo': evento.tipo,
+                'tipo_display': evento.get_tipo_display(),
+                'linea_producto': evento.get_linea_producto_display(),
+                'lugar': evento.lugar or '',
+                'fecha_inicio': evento.fecha_inicio.strftime('%d/%m/%Y'),
+                'fecha_fin': evento.fecha_fin.strftime('%d/%m/%Y'),
+            },
+            'total_registros': len(clientes),
+            'vendedores_stats': vendedores_lista,
+            'clientes': clientes
+        })
+        
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+
+@login_required
 @require_POST
 def actualizar_estatus_venta_extra(request, venta_id):
     """

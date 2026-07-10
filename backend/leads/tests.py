@@ -287,3 +287,98 @@ class EventosClienteViewsTestCase(TestCase):
         prospectos = list(response.context['prospectos_campana'])
         prospecto_ids = [p.id for p in prospectos]
         self.assertIn(cliente_vet_sport.id, prospecto_ids)
+
+
+class DetalleEventoAPITestCase(TestCase):
+    def setUp(self):
+        # 1. Crear usuarios (Superuser y Vendedor)
+        self.director_user = User.objects.create_superuser(username='director', password='password123')
+        self.vendedor_user = User.objects.create_user(username='vendedor', password='password123')
+        
+        # 2. Crear Ubicación y Especialidad
+        self.ubicacion = CatUbicacion.objects.create(ciudad='Guadalajara', estado='Jalisco')
+        self.especialidad = CatEspecialidad.objects.create(nombre='Podólogo')
+        
+        # 3. Crear Evento
+        self.evento = Evento.objects.create(
+            nombre='Taller Láser Guadalajara',
+            tipo='TALLER',
+            fecha_inicio='2026-08-10',
+            fecha_fin='2026-08-12',
+            lugar='Expo Guadalajara',
+            linea_producto='PODOLOGICO'
+        )
+        self.evento.vendedores_asignados.add(self.vendedor_user)
+        
+        # 4. Crear Clientes
+        self.cliente1 = CoreLead.objects.create(
+            nombre_pila='Juan',
+            apellido_paterno='López',
+            phone_primary='1234567890',
+            estatus='CLIENTE',
+            owner=self.vendedor_user,
+            ubicacion=self.ubicacion,
+            especialidad_cat=self.especialidad
+        )
+        
+        self.cliente2 = CoreLead.objects.create(
+            nombre_pila='Maria',
+            apellido_paterno='Sánchez',
+            phone_primary='0987654321',
+            estatus='CLIENTE',
+            owner=self.director_user, # Dejar al director como owner de este para tener dos dueños distintos
+            ubicacion=self.ubicacion,
+            especialidad_cat=self.especialidad
+        )
+        
+        # 5. Vincular Clientes al Evento
+        LeadEvento.objects.create(evento=self.evento, lead=self.cliente1, comentarios='Confirmado asistencia')
+        LeadEvento.objects.create(evento=self.evento, lead=self.cliente2, comentarios='Interesado en segunda parte')
+
+    def test_api_detalle_evento_acceso_director(self):
+        self.client.login(username='director', password='password123')
+        url = reverse('api_detalle_evento', kwargs={'evento_id': self.evento.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data['success'])
+        self.assertEqual(data['total_registros'], 2)
+        
+        # Verificar información del evento
+        self.assertEqual(data['evento']['nombre'], 'Taller Láser Guadalajara')
+        self.assertEqual(data['evento']['tipo'], 'TALLER')
+        
+        # Verificar listado de clientes
+        clientes = data['clientes']
+        nombres_clientes = [c['nombre'] for c in clientes]
+        self.assertIn('Juan López', nombres_clientes)
+        self.assertIn('Maria Sánchez', nombres_clientes)
+        
+        # Verificar comentarios
+        comentarios = [c['comentarios'] for c in clientes]
+        self.assertIn('Confirmado asistencia', comentarios)
+        
+        # Verificar estadísticas por vendedor
+        vendedores_stats = data['vendedores_stats']
+        # Deben reportarse contribuciones para ambos dueños
+        self.assertEqual(len(vendedores_stats), 2)
+        cantidades = [s['cantidad'] for s in vendedores_stats]
+        self.assertIn(1, cantidades)
+
+    def test_api_detalle_evento_acceso_denegado_vendedor(self):
+        self.client.login(username='vendedor', password='password123')
+        url = reverse('api_detalle_evento', kwargs={'evento_id': self.evento.id})
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, 403)
+        data = response.json()
+        self.assertFalse(data['success'])
+        self.assertEqual(data['error'], 'No autorizado')
+
+    def test_api_detalle_evento_no_autenticado(self):
+        url = reverse('api_detalle_evento', kwargs={'evento_id': self.evento.id})
+        response = self.client.get(url)
+        # Debería redirigir al login
+        self.assertEqual(response.status_code, 302)
+
