@@ -32,3 +32,10 @@ def despertar_lead(lead_id):
         pass
         
     return "Rutina de alertas ejecutada con éxito"
+
+def ejecutar_generar_alertas():
+    """
+    Función de envoltura para ejecutar el comando generar_alertas desde el planificador Django Q.
+    """
+    from django.core.management import call_command
+    call_command('generar_alertas')
