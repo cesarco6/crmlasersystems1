@@ -49,7 +49,7 @@
         
         <div>
             <div class="d-flex gap-2 justify-content-start justify-content-lg-end flex-wrap">
-                {% if es_cliente or lead.estatus == 'CLIENTE' or lead.estatus.strip == 'CLIENTE' %}
+                {% if lead.estatus.strip == 'CLIENTE' or lead.estatus == 'CLIENTE' %}
                     <button class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-venta-extra')">🎯 Oportunidad 360°</button>
                     
                 {% elif lead.estatus == 'PROSPECTO' %}
