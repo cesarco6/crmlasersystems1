@@ -925,8 +925,12 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['especialidad_segura'] = lead.especialidad_cat.nombre if lead.especialidad_cat else "No especificada"
         context['producto_seguro'] = lead.producto_cat.nombre if lead.producto_cat else "No especificado"
 
+        # --- Validación flexible de estatus CLIENTE ---
+        estatus_limpio = (lead.estatus or '').strip().upper()
+        context['es_cliente'] = (estatus_limpio == 'CLIENTE')
+
         # --- Auto-crear TrackingPostVenta si el lead es CLIENTE ---
-        if lead.estatus == 'CLIENTE':
+        if estatus_limpio == 'CLIENTE':
             from .models import TrackingPostVenta
             TrackingPostVenta.objects.get_or_create(lead=lead)
         

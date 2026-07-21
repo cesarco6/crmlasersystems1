@@ -19,8 +19,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-default-key')
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 # Lee los hosts permitidos del .env de forma segura
-allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost')
-ALLOWED_HOSTS = allowed_hosts_env.split(',')
+allowed_hosts_env = os.environ.get('ALLOWED_HOSTS', '127.0.0.1,localhost,crm-ls.lat,.crm-ls.lat,0.0.0.0')
+ALLOWED_HOSTS = [h.strip() for h in allowed_hosts_env.split(',') if h.strip()]
 
 # Orígenes de confianza para evitar errores de CSRF
 CSRF_TRUSTED_ORIGINS = [
