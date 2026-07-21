@@ -15,13 +15,14 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=1.8">
-    <link rel="stylesheet" href="{% static 'css/crm-mobile.css' %}?v=1.1">
-    
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=2.0">
+    <link rel="stylesheet" href="{% static 'css/crm-mobile.css' %}?v=1.2">
+
     <!-- Select2 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
-    
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css"
+        rel="stylesheet" />
+
     {% block extra_css %}{% endblock %}
 
     <!-- Escudo Anti-Flash (FOUC) del Tema Crítico -->
@@ -265,7 +266,7 @@
 
             // Inicializar Select2 en los inputs que tengan la clase .select2-buscar
             if (typeof $.fn.select2 !== 'undefined') {
-                $('.select2-buscar').each(function() {
+                $('.select2-buscar').each(function () {
                     let dropdownParent = $(this).closest('.modal-overlay');
                     if (!dropdownParent.length) {
                         dropdownParent = $(this).closest('.modal');
