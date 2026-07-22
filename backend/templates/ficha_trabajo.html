@@ -15,60 +15,66 @@
 <input type="hidden" id="dashboard_url_hidden" value="{% url 'dashboard_agente' %}">
 
 <section class="container-fluid px-2 px-md-4 py-3" id="module-ficha-trabajo">
-    <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center mb-3 gap-3">
-        <div class="d-flex flex-wrap align-items-center gap-2 gap-lg-3">
-            <div class="d-flex align-items-center flex-wrap gap-2">
-                <h3 class="fw-bold text-body mb-0">🛠️ Ficha: {{ lead.nombre_completo_mdm }}</h3>
-                {% if lead.clinica and not lead.apellido_paterno %}
-                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6">🏥 Clínica Corporativa</span>
-                {% elif lead.clinica %}
-                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6" title="Asociado a: {{ lead.clinica.nombre }}">👩‍⚕️ Médico de Clínica</span>
-                {% else %}
-                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6">👩‍⚕️ Médico Independiente</span>
-                {% endif %}
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted small text-nowrap">Estatus actual:</span>
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">{{ lead.estatus }}</span>
-            </div>
-            <div class="d-flex align-items-center gap-2">
-                <span class="text-muted small text-nowrap">Origen:</span>
-                {% with campanas=lead.campanas_activas %}
-                    {% if campanas %}
-                        {% for campana in campanas %}
-                            <span class="badge border px-3 py-1 fs-6" style="background-color: rgba(236, 72, 153, 0.15); color: #ec4899; border-color: rgba(236, 72, 153, 0.3);" title="Campaña">📢 {{ campana.nombre }}</span>
-                        {% endfor %}
-                    {% elif lead.es_historico %}
-                        <span class="badge border px-3 py-1 fs-6" style="background-color: rgba(139, 92, 246, 0.15); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3);">💜 Histórico</span>
+    <div class="d-flex flex-column mb-3 gap-2">
+        <!-- Top Row: Title, Status, and Actions (aligned with name) -->
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+            <div class="d-flex flex-wrap align-items-center gap-2 gap-lg-3">
+                <div class="d-flex align-items-center flex-wrap gap-2">
+                    <h3 class="fw-bold text-body mb-0">🛠️ Ficha: {{ lead.nombre_completo_mdm }}</h3>
+                    {% if lead.clinica and not lead.apellido_paterno %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6">🏥 Clínica Corporativa</span>
+                    {% elif lead.clinica %}
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6" title="Asociado a: {{ lead.clinica.nombre }}">👩‍⚕️ Médico de Clínica</span>
                     {% else %}
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">💼 Mis Clientes</span>
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6">👩‍⚕️ Médico Independiente</span>
                     {% endif %}
-                {% endwith %}
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small text-nowrap">Estatus actual:</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">{{ lead.estatus }}</span>
+                </div>
+            </div>
+            
+            <div>
+                <div class="d-flex gap-2 justify-content-start justify-content-lg-end flex-wrap">
+                    {% if lead.estatus.strip == 'CLIENTE' or lead.estatus == 'CLIENTE' %}
+                        <button class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-venta-extra')">🎯 Oportunidad 360°</button>
+                        
+                    {% elif lead.estatus == 'PROSPECTO' %}
+                        <button type="button" class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('VALIDAR', this)">✅ Validar Identidad</button>
+                        <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar</button>
+                        <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
+
+                    {% elif lead.estatus == 'LEAD' %}
+                        <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar</button>
+                        <button class="btn btn-info fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-calificar')">⭐ Calificar</button>
+                        <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
+                        
+                    {% elif lead.estatus == 'LEAD_CALIFICADO' %}
+                        <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-dark" onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
+                        <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
+                        <button type="button" id="btn-no-cierre" class="btn btn-outline-warning fw-bold px-3 py-2 shadow-sm" onclick="marcarNoCierre()">⚠️ No Cierre</button>
+                        
+                    {% endif %}
+                </div>
             </div>
         </div>
-        
-        <div>
-            <div class="d-flex gap-2 justify-content-start justify-content-lg-end flex-wrap">
-                {% if lead.estatus.strip == 'CLIENTE' or lead.estatus == 'CLIENTE' %}
-                    <button class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-venta-extra')">🎯 Oportunidad 360°</button>
-                    
-                {% elif lead.estatus == 'PROSPECTO' %}
-                    <button type="button" class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('VALIDAR', this)">✅ Validar Identidad</button>
-                    <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar</button>
-                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
 
-                {% elif lead.estatus == 'LEAD' %}
-                    <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar</button>
-                    <button class="btn btn-info fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-calificar')">⭐ Calificar</button>
-                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
-                    
-                {% elif lead.estatus == 'LEAD_CALIFICADO' %}
-                    <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-dark" onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
-                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
-                    <button type="button" id="btn-no-cierre" class="btn btn-outline-warning fw-bold px-3 py-2 shadow-sm" onclick="marcarNoCierre()">⚠️ No Cierre</button>
-                    
+        <!-- Bottom Row: Event announcements (stacked, 85% font size) -->
+        <div class="mt-1">
+            {% with campanas=lead.campanas_activas %}
+                {% if campanas %}
+                    <div class="d-flex flex-column gap-1 align-items-start">
+                        {% for campana in campanas %}
+                            <span class="badge border px-3 py-1 text-start" style="font-size: 0.85em; background-color: rgba(236, 72, 153, 0.15); color: #ec4899; border-color: rgba(236, 72, 153, 0.3);" title="Campaña">📢 {{ campana.nombre }}</span>
+                        {% endfor %}
+                    </div>
+                {% elif lead.es_historico %}
+                    <span class="badge border px-3 py-1" style="font-size: 0.85em; background-color: rgba(139, 92, 246, 0.15); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3);">💜 Histórico</span>
+                {% else %}
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1" style="font-size: 0.85em;">💼 Mis Clientes</span>
                 {% endif %}
-            </div>
+            {% endwith %}
         </div>
     </div>
 
