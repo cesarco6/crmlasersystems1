@@ -249,7 +249,7 @@
                 </div>
                 
                 <div class="card card-ers shadow-sm mb-4 border-2 {% if active_tab == 'campanas' %}border-campana{% else %}border-taller{% endif %}">
-                    <div class="card-header border-bottom py-3">
+                    <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
                         <h5 class="fw-bold text-body m-0">
                             {% if active_tab == 'campanas' %}
                                 <i class="bi bi-megaphone-fill me-2" style="color:#ec4899;"></i>Clientes de Campaña
@@ -257,6 +257,9 @@
                                 <i class="bi bi-mortarboard-fill me-2 text-teal"></i>Clientes de Taller
                             {% endif %}
                         </h5>
+                        <a href="{% url 'agente_exportar_talleres' %}?evento_id={{ evento_seleccionado.id }}&tab={{ active_tab }}" class="btn btn-sm btn-outline-success fw-bold shadow-sm">
+                            <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar Reporte Parcial
+                        </a>
                     </div>
                     <div class="card-body p-0">
                         <div class="table-responsive">
@@ -307,20 +310,25 @@
                     </div>
                 </div>
             {% else %}
-            <ul class="nav nav-pills gap-2 mb-4">
-                <li class="nav-item">
-                    <a href="?tab={{ active_tab }}&filtro_evento=proximos_7" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'proximos_7' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟢 Próximos 7 días</a>
-                </li>
-                <li class="nav-item">
-                    <a href="?tab={{ active_tab }}&filtro_evento=este_mes" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'este_mes' %}active border-primary{% else %}border-secondary text-body{% endif %}">🔵 Este Mes</a>
-                </li>
-                <li class="nav-item">
-                    <a href="?tab={{ active_tab }}&filtro_evento=todos" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'todos' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟡 Todos Activos</a>
-                </li>
-                <li class="nav-item">
-                    <a href="?tab={{ active_tab }}&filtro_evento=finalizados" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'finalizados' %}active bg-secondary border-secondary text-white{% else %}border-secondary text-body{% endif %}">🏛️ Finalizados</a>
-                </li>
-            </ul>
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                <ul class="nav nav-pills gap-2 mb-0">
+                    <li class="nav-item">
+                        <a href="?tab={{ active_tab }}&filtro_evento=proximos_7" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'proximos_7' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟢 Próximos 7 días</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="?tab={{ active_tab }}&filtro_evento=este_mes" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'este_mes' %}active border-primary{% else %}border-secondary text-body{% endif %}">🔵 Este Mes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="?tab={{ active_tab }}&filtro_evento=todos" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'todos' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟡 Todos Activos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="?tab={{ active_tab }}&filtro_evento=finalizados" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'finalizados' %}active bg-secondary border-secondary text-white{% else %}border-secondary text-body{% endif %}">🏛️ Finalizados</a>
+                    </li>
+                </ul>
+                <a href="{% url 'agente_exportar_talleres' %}?filtro_evento={{ filtro_evento }}&tab={{ active_tab }}" class="btn btn-outline-success fw-bold shadow-sm">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar Reporte Total ({% if active_tab == 'campanas' %}Campañas{% else %}Talleres{% endif %})
+                </a>
+            </div>
             <div class="row g-4">
                 {% for evento in eventos_activos %}
                 <div class="col-md-6 col-lg-4">

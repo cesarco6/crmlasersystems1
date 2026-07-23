@@ -495,4 +495,22 @@ class DashboardFidelizacionTestCase(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn('dashboard/agente/', response.url or '')
 
+    def test_agente_exportar_talleres_parcial(self):
+        self.taller.vendedores_asignados.add(self.vendedor_user)
+        self.client.login(username='vendedor', password='password123')
+        url = reverse('agente_exportar_talleres')
+        response = self.client.get(url, {'evento_id': self.taller.id, 'tab': 'talleres'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        self.assertIn('attachment; filename="reporte_parcial_', response['Content-Disposition'])
+
+    def test_agente_exportar_talleres_total(self):
+        self.taller.vendedores_asignados.add(self.vendedor_user)
+        self.client.login(username='vendedor', password='password123')
+        url = reverse('agente_exportar_talleres')
+        response = self.client.get(url, {'tab': 'talleres', 'filtro_evento': 'todos'})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        self.assertIn('attachment; filename="reporte_total_talleres_todos.xlsx"', response['Content-Disposition'])
+
 

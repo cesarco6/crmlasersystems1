@@ -256,6 +256,193 @@ def agente_exportar_leads_view(request):
     return generar_respuesta_xlsx(qs, f"mis_leads_{request.user.username}.xlsx")
 
 
+@login_required
+def agente_exportar_talleres_view(request):
+    """
+    Exporta los prospectos/clientes de talleres o campañas del vendedor a XLSX.
+    Soporta:
+    - Reporte Parcial: enviando ?evento_id=<id> (exporta solo ese evento)
+    - Reporte Total: sin evento_id, exporta todos los eventos del tipo según ?tab=campanas|talleres
+      respetando el filtro de tiempo ?filtro_evento=proximos_7|este_mes|finalizados|todos
+    """
+    from django.db.models import Q
+    from django.utils import timezone
+    from django.http import HttpResponse
+    import datetime
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    from .models import Evento, CoreLead, LeadEvento
+    
+    user = request.user
+    evento_id = request.GET.get('evento_id')
+    tab = request.GET.get('tab', 'talleres')
+    filtro_evento = request.GET.get('filtro_evento', 'todos')
+    
+    # Determinar tipo de evento
+    tipo_evento = 'TALLER'
+    if tab == 'campanas':
+        tipo_evento = 'CAMPAÑA'
+        
+    qs_eventos = Evento.objects.filter(vendedores_asignados=user)
+    
+    # Si viene evento_id, es reporte parcial
+    if evento_id:
+        evento_seleccionado = get_object_or_404(Evento, id=evento_id, vendedores_asignados=user)
+        eventos = [evento_seleccionado]
+        nombre_archivo = f"reporte_parcial_{evento_seleccionado.nombre}.xlsx"
+    else:
+        # Reporte total
+        qs_eventos = qs_eventos.filter(tipo=tipo_evento)
+        hoy = timezone.now().date()
+        
+        if filtro_evento == 'proximos_7':
+            limite = hoy + datetime.timedelta(days=7)
+            qs_eventos = qs_eventos.filter(estatus='ACTIVO', fecha_inicio__gte=hoy, fecha_inicio__lte=limite).order_by('fecha_inicio')
+        elif filtro_evento == 'este_mes':
+            qs_eventos = qs_eventos.filter(estatus='ACTIVO', fecha_inicio__year=hoy.year, fecha_inicio__month=hoy.month).order_by('fecha_inicio')
+        elif filtro_evento == 'finalizados':
+            qs_eventos = qs_eventos.filter(estatus='FINALIZADO').order_by('-fecha_inicio')
+        else:
+            qs_eventos = qs_eventos.filter(estatus='ACTIVO').order_by('fecha_inicio')
+            
+        eventos = list(qs_eventos)
+        tipo_label = "talleres" if tipo_evento == 'TALLER' else "campanas"
+        nombre_archivo = f"reporte_total_{tipo_label}_{filtro_evento}.xlsx"
+
+    # Preparar el Workbook
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Reporte Talleres" if tipo_evento == 'TALLER' else "Reporte Campañas"
+    
+    # Estilos
+    header_font = Font(bold=True, color="FFFFFF", size=11)
+    header_fill = PatternFill("solid", fgColor="1E293B") # Navy
+    header_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
+    
+    bold_font = Font(bold=True)
+    thin_border = Border(
+        left=Side(style='thin', color='DDDDDD'),
+        right=Side(style='thin', color='DDDDDD'),
+        top=Side(style='thin', color='DDDDDD'),
+        bottom=Side(style='thin', color='DDDDDD')
+    )
+    
+    fill_vinculado = PatternFill("solid", fgColor="E2F0D9") # Light Green
+    fill_candidato = PatternFill("solid", fgColor="F2F2F2") # Light Gray
+    
+    HEADERS = [
+        "Tipo de Evento", "Nombre de Evento/Taller", "Línea de Producto", 
+        "Fecha Inicio", "Fecha Fin", "Lugar/Sede", "Relación con Cliente",
+        "Nombre Completo Cliente", "Teléfono", "Celular", "Email",
+        "Estatus Lead", "Especialidad", "Ciudad", "Último Abordaje",
+        "Fecha Vinculación", "Comentarios de Vinculación"
+    ]
+    ws.append(HEADERS)
+    for cell in ws[1]:
+        cell.font = header_font
+        cell.fill = header_fill
+        cell.alignment = header_align
+    ws.row_dimensions[1].height = 28
+
+    # Recopilar todos los leads para los eventos
+    row_idx = 2
+    for ev in eventos:
+        qs_base = CoreLead.objects.filter(owner=user)
+        linea = ev.linea_producto
+        ids_permitidos = obtener_especialidades_permitidas(linea)
+        
+        MAP_LINEA_PRODUCTO = {
+            'SPORT': 'Sport',
+            'PET': 'Pet',
+            'DENTAL': 'Dental',
+            'PODOLOGICO': 'Podológico',
+            'BEAUTY': 'Beauty'
+        }
+        keyword_producto = MAP_LINEA_PRODUCTO.get(linea)
+        
+        q_linea = Q(especialidad_cat_id__in=ids_permitidos)
+        if keyword_producto:
+            q_linea &= Q(producto_cat__nombre__icontains=keyword_producto)
+
+        ciudades_objetivo = ev.ciudades_objetivo.all()
+        if ciudades_objetivo.exists():
+            q_filter = Q(ubicacion__in=ciudades_objetivo)
+            q_filter &= q_linea
+            qs_prospectos = qs_base.filter(
+                Q(eventos_asociados__evento=ev) |
+                q_filter
+            ).filter(estatus='CLIENTE').distinct()
+        else:
+            q_filter = q_linea
+            qs_prospectos = qs_base.filter(
+                Q(eventos_asociados__evento=ev) |
+                q_filter
+            ).filter(estatus='CLIENTE').distinct()
+
+        # Excluir los leads que ya fueron abordados (tienen oportunidad 360 reciente)
+        fecha_margen = ev.fecha_inicio - datetime.timedelta(days=15)
+        qs_prospectos = qs_prospectos.exclude(
+            compras_extra__vendedor=user,
+            compras_extra__fecha_venta__gte=fecha_margen
+        ).order_by('-updated_at')
+        
+        # Obtener vinculaciones manuales
+        vinculos_qs = LeadEvento.objects.filter(evento=ev, lead__in=qs_prospectos).select_related('lead')
+        vinculos_map = {v.lead_id: v for v in vinculos_qs}
+        
+        for lead in qs_prospectos:
+            vinculo = vinculos_map.get(lead.id)
+            relacion = "VINCULADO" if vinculo else "CANDIDATO POR PERFIL"
+            fecha_vinc_str = timezone.localtime(vinculo.fecha_vinculacion).strftime("%d/%m/%Y %H:%M") if vinculo else ""
+            comentarios_vinc = vinculo.comentarios or "" if vinculo else ""
+            
+            ws.append([
+                ev.get_tipo_display(),
+                ev.nombre,
+                ev.get_linea_producto_display(),
+                ev.fecha_inicio.strftime("%d/%m/%Y") if ev.fecha_inicio else "",
+                ev.fecha_fin.strftime("%d/%m/%Y") if ev.fecha_fin else "",
+                ev.lugar or "",
+                relacion,
+                lead.nombre_completo_mdm,
+                lead.phone_primary or "",
+                lead.celular or "",
+                lead.email or "",
+                lead.estatus,
+                lead.especialidad_cat.nombre if lead.especialidad_cat else "",
+                lead.ubicacion.ciudad if lead.ubicacion else "",
+                lead.updated_at.strftime("%d/%m/%Y") if lead.updated_at else "",
+                fecha_vinc_str,
+                comentarios_vinc
+            ])
+            
+            # Estilos de fila
+            fill_to_use = fill_vinculado if vinculo else fill_candidato
+            ws.cell(row=row_idx, column=7).font = bold_font
+            ws.cell(row=row_idx, column=7).fill = fill_to_use
+            
+            for col_idx in range(1, len(HEADERS) + 1):
+                cell = ws.cell(row=row_idx, column=col_idx)
+                cell.border = thin_border
+                
+            row_idx += 1
+
+    # Ajustar anchos
+    ANCHOS = [18, 30, 18, 14, 14, 25, 22, 32, 14, 14, 28, 14, 24, 20, 16, 20, 35]
+    for i, ancho in enumerate(ANCHOS, start=1):
+        ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = ancho
+
+    response = HttpResponse(
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
+    # Reemplazar espacios y caracteres raros en el nombre de archivo
+    import re
+    nombre_archivo_clean = re.sub(r'[^\w\.-]', '_', nombre_archivo)
+    response["Content-Disposition"] = f'attachment; filename="{nombre_archivo_clean}"'
+    wb.save(response)
+    return response
+
+
 @method_decorator(role_required(['VENDEDOR']), name='dispatch')
 class Ventas360View(LoginRequiredMixin, TemplateView):
     template_name = 'ventas_360.html'
