@@ -1123,6 +1123,21 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         lead_id = self.kwargs.get('pk') or self.kwargs.get('id')
         lead = get_object_or_404(CoreLead, id=lead_id)
         
+        evento_id = self.request.GET.get('evento_id')
+        context['evento_id'] = evento_id
+        
+        # Filtrar campañas activas del cliente
+        campanas = lead.campanas_activas
+        if evento_id:
+            campanas = campanas.filter(id=evento_id)
+        context['campanas_filtradas'] = campanas
+
+        # Filtrar compras transaccionales (Oportunidades 360)
+        compras_extra = lead.compras_extra.all()
+        if evento_id:
+            compras_extra = compras_extra.filter(evento_id=evento_id)
+        context['compras_extra_filtradas'] = compras_extra
+
         # Mandamos el objeto completo
         context['lead'] = lead
         # --- NUEVAS LÍNEAS PARA LOS DROPDOWNS ---

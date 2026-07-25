@@ -62,19 +62,17 @@
 
         <!-- Bottom Row: Event announcements (stacked, 85% font size) -->
         <div class="mt-1">
-            {% with campanas=lead.campanas_activas %}
-                {% if campanas %}
-                    <div class="d-flex flex-column gap-1 align-items-start">
-                        {% for campana in campanas %}
-                            <span class="badge border px-3 py-1 text-start" style="font-size: 0.85em; background-color: rgba(236, 72, 153, 0.15); color: #ec4899; border-color: rgba(236, 72, 153, 0.3);" title="Campaña">📢 {{ campana.nombre }}</span>
-                        {% endfor %}
-                    </div>
-                {% elif lead.es_historico %}
-                    <span class="badge border px-3 py-1" style="font-size: 0.85em; background-color: rgba(139, 92, 246, 0.15); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3);">💜 Histórico</span>
-                {% else %}
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1" style="font-size: 0.85em;">💼 Mis Clientes</span>
-                {% endif %}
-            {% endwith %}
+            {% if campanas_filtradas %}
+                <div class="d-flex flex-column gap-1 align-items-start">
+                    {% for campana in campanas_filtradas %}
+                        <span class="badge border px-3 py-1 text-start" style="font-size: 0.85em; background-color: rgba(236, 72, 153, 0.15); color: #ec4899; border-color: rgba(236, 72, 153, 0.3);" title="Campaña">📢 {{ campana.nombre }}</span>
+                    {% endfor %}
+                </div>
+            {% elif lead.es_historico %}
+                <span class="badge border px-3 py-1" style="font-size: 0.85em; background-color: rgba(139, 92, 246, 0.15); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3);">💜 Histórico</span>
+            {% else %}
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1" style="font-size: 0.85em;">💼 Mis Clientes</span>
+            {% endif %}
         </div>
     </div>
 
@@ -161,9 +159,9 @@
                     <div class="mt-4 p-3 bg-body-tertiary rounded border border-secondary border-opacity-25">
                         <h6 class="fw-bold mb-3 text-body small text-uppercase">📡 Radar 360° (Ventas Cruzadas)</h6>
                         
-                        {% if lead.compras_extra.all %}
+                        {% if compras_extra_filtradas %}
                             <ul class="list-unstyled m-0 small">
-                                {% for op in lead.compras_extra.all %}
+                                {% for op in compras_extra_filtradas %}
                                 <li class="mb-2 p-2 bg-body rounded border-start border-warning border-3 text-body d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
                                     <div>
                                         <strong class="d-block">{{ op.producto.nombre }}</strong>

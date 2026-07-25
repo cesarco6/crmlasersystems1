@@ -560,4 +560,60 @@ class DashboardFidelizacionTestCase(TestCase):
         prospectos_taller2 = response2.context['prospectos_campana']
         self.assertIn(self.cliente_campana, prospectos_taller2)
 
+    def test_ficha_trabajo_filtrado_por_evento_id(self):
+        from leads.models import VentaTransaccional, Evento, LeadEvento
+        
+        # Crear UserProfile para vendedor_user
+        from users.models import UserProfile
+        UserProfile.objects.create(user=self.vendedor_user, rol='VENDEDOR')
+        
+        # Crear un segundo taller
+        taller2 = Evento.objects.create(
+            nombre="Taller Independencia Test 2",
+            tipo="TALLER",
+            fecha_inicio=self.taller.fecha_inicio,
+            fecha_fin=self.taller.fecha_fin,
+            lugar="Sede Test 2",
+            linea_producto=self.taller.linea_producto,
+            estatus="ACTIVO"
+        )
+        
+        # Vincular cliente a ambos
+        LeadEvento.objects.create(lead=self.cliente_campana, evento=self.taller)
+        LeadEvento.objects.create(lead=self.cliente_campana, evento=taller2)
+        
+        # Crear oportunidad para taller 1
+        opt1 = VentaTransaccional.objects.create(
+            lead=self.cliente_campana,
+            producto=self.prod_acc,
+            vendedor=self.vendedor_user,
+            evento=self.taller,
+            estatus='PENDIENTE'
+        )
+        # Crear oportunidad para taller 2
+        opt2 = VentaTransaccional.objects.create(
+            lead=self.cliente_campana,
+            producto=self.prod_acc,
+            vendedor=self.vendedor_user,
+            evento=taller2,
+            estatus='EN_GESTION'
+        )
+        
+        self.client.login(username='vendedor', password='password123')
+        
+        # Consultar la ficha de trabajo del cliente pasando evento_id del taller 1
+        url = reverse('ficha_trabajo', kwargs={'pk': self.cliente_campana.id})
+        response = self.client.get(url, {'evento_id': self.taller.id})
+        self.assertEqual(response.status_code, 200)
+        
+        # Verificar que solo aparezca el taller 1 en campañas filtradas
+        campanas = response.context['campanas_filtradas']
+        self.assertIn(self.taller, campanas)
+        self.assertNotIn(taller2, campanas)
+        
+        # Verificar que solo aparezca la oportunidad del taller 1 en compras filtradas
+        compras = response.context['compras_extra_filtradas']
+        self.assertIn(opt1, compras)
+        self.assertNotIn(opt2, compras)
+
 
