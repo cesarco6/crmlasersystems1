@@ -446,13 +446,17 @@ function guardarOportunidad360(btn = null) {
         return;
     }
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const eventoId = urlParams.get('evento_id');
+
     const origText = disableButton(btn, 'Guardando...');
 
     const data = {
         lead_id: leadId,
         producto_id: productoId, 
         estatus: estatus,
-        notas: notas
+        notas: notas,
+        evento_id: eventoId
     };
 
     fetch(`/api/venta-extra/`, {

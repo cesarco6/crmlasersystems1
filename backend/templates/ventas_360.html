@@ -186,9 +186,6 @@
                                     <td class="text-body small">{{ lead.especialidad_cat.nombre|default:"-" }}</td>
                                     <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
                                     <td class="text-end pe-4">
-                                        <button class="btn btn-sm btn-outline-info fw-bold px-3 shadow-sm me-1" onclick="abrirModalEventos('{{ lead.id }}', '{{ lead.nombre_completo_mdm|escapejs }}')">
-                                            📅 Eventos
-                                        </button>
                                         <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
                                             Gestionar
                                         </a>
@@ -286,12 +283,22 @@
                                         </td>
                                         <td class="text-muted small">{{ lead.updated_at|date:"d M Y" }}</td>
                                         <td>
-                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">{{ lead.estatus }}</span>
+                                            {% if lead.oportunidad_estatus_raw == 'PENDIENTE' %}
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">🟡 Pendiente (Por contactar)</span>
+                                            {% elif lead.oportunidad_estatus_raw == 'EN_GESTION' %}
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">🔵 En Gestión</span>
+                                            {% elif lead.oportunidad_estatus_raw == 'CONCRETADO' %}
+                                                <span class="badge bg-success-subtle text-success border border-success-subtle">🟢 Concretado</span>
+                                            {% elif lead.oportunidad_estatus_raw == 'DESCARTADO' %}
+                                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">🔴 Descartado</span>
+                                            {% else %}
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">🟡 Pendiente (Por contactar)</span>
+                                            {% endif %}
                                         </td>
                                         <td class="text-body small">{{ lead.especialidad_cat.nombre|default:"-" }}</td>
                                         <td class="text-muted small">{{ lead.ubicacion.ciudad|default:"-" }}</td>
                                         <td class="text-end pe-4">
-                                            <a href="{% url 'ficha_trabajo' lead.id %}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
+                                            <a href="{% url 'ficha_trabajo' lead.id %}?evento_id={{ evento_seleccionado.id }}" class="btn btn-sm btn-outline-primary fw-bold px-3 shadow-sm">
                                                 Revisar
                                             </a>
                                         </td>
@@ -308,27 +315,51 @@
                             </table>
                         </div>
                     </div>
+                    
+                    <!-- Paginación de Clientes del Taller -->
+                    {% if prospectos_campana.has_other_pages %}
+                    <div class="card-footer bg-transparent py-3 border-top">
+                        <nav aria-label="Navegación de prospectos de taller">
+                            <ul class="pagination justify-content-center mb-0 mt-2">
+                                {% if prospectos_campana.has_previous %}
+                                    <li class="page-item"><a class="page-link shadow-sm" href="?tab={{ active_tab }}&evento_id={{ evento_seleccionado.id }}&page_prospectos={{ prospectos_campana.previous_page_number }}">Anterior</a></li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link shadow-sm">Anterior</span></li>
+                                {% endif %}
+
+                                {% for num in prospectos_campana.paginator.page_range %}
+                                    {% if prospectos_campana.number == num %}
+                                        <li class="page-item active"><span class="page-link shadow-sm">{{ num }}</span></li>
+                                    {% elif num > prospectos_campana.number|add:'-3' and num < prospectos_campana.number|add:'3' %}
+                                        <li class="page-item"><a class="page-link shadow-sm" href="?tab={{ active_tab }}&evento_id={{ evento_seleccionado.id }}&page_prospectos={{ num }}">{{ num }}</a></li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if prospectos_campana.has_next %}
+                                    <li class="page-item"><a class="page-link shadow-sm" href="?tab={{ active_tab }}&evento_id={{ evento_seleccionado.id }}&page_prospectos={{ prospectos_campana.next_page_number }}">Siguiente</a></li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link shadow-sm">Siguiente</span></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
+                    </div>
+                    {% endif %}
                 </div>
             {% else %}
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
-                <ul class="nav nav-pills gap-2 mb-0">
-                    <li class="nav-item">
-                        <a href="?tab={{ active_tab }}&filtro_evento=proximos_7" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'proximos_7' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟢 Próximos 7 días</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="?tab={{ active_tab }}&filtro_evento=este_mes" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'este_mes' %}active border-primary{% else %}border-secondary text-body{% endif %}">🔵 Este Mes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="?tab={{ active_tab }}&filtro_evento=todos" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'todos' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟡 Todos Activos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="?tab={{ active_tab }}&filtro_evento=finalizados" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'finalizados' %}active bg-secondary border-secondary text-white{% else %}border-secondary text-body{% endif %}">🏛️ Finalizados</a>
-                    </li>
-                </ul>
-                <a href="{% url 'agente_exportar_talleres' %}?filtro_evento={{ filtro_evento }}&tab={{ active_tab }}" class="btn btn-outline-success fw-bold shadow-sm">
-                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Exportar Reporte Total ({% if active_tab == 'campanas' %}Campañas{% else %}Talleres{% endif %})
-                </a>
-            </div>
+            <ul class="nav nav-pills gap-2 mb-4">
+                <li class="nav-item">
+                    <a href="?tab={{ active_tab }}&filtro_evento=proximos_7" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'proximos_7' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟢 Próximos 7 días</a>
+                </li>
+                <li class="nav-item">
+                    <a href="?tab={{ active_tab }}&filtro_evento=este_mes" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'este_mes' %}active border-primary{% else %}border-secondary text-body{% endif %}">🔵 Este Mes</a>
+                </li>
+                <li class="nav-item">
+                    <a href="?tab={{ active_tab }}&filtro_evento=todos" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'todos' %}active border-primary{% else %}border-secondary text-body{% endif %}">🟡 Todos Activos</a>
+                </li>
+                <li class="nav-item">
+                    <a href="?tab={{ active_tab }}&filtro_evento=finalizados" class="nav-link rounded-pill fw-bold border py-1 px-3 {% if filtro_evento == 'finalizados' %}active bg-secondary border-secondary text-white{% else %}border-secondary text-body{% endif %}">🏛️ Finalizados</a>
+                </li>
+            </ul>
             <div class="row g-4">
                 {% for evento in eventos_activos %}
                 <div class="col-md-6 col-lg-4">
@@ -560,186 +591,7 @@
 
     </div>
 
-    <!-- Modal de Gestión de Eventos del Cliente -->
-    <div class="modal fade" id="modalEventosCliente" tabindex="-1" aria-labelledby="modalEventosClienteLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content shadow-lg border-0" style="border-radius: 16px;">
-                <div class="modal-header border-bottom py-3">
-                    <h5 class="modal-title fw-bold text-body" id="modalEventosClienteLabel">
-                        📅 Gestión de Eventos: <span id="modalClienteNombre" class="text-primary"></span>
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="row">
-                        <!-- Columna Campañas -->
-                        <div class="col-md-6 border-end">
-                            <h6 class="fw-bold mb-3 text-pink uppercase d-flex align-items-center gap-2">
-                                <i class="bi bi-megaphone-fill"></i> Campañas Activas
-                            </h6>
-                            <div id="listaCampanas" class="list-group gap-2">
-                                <!-- Se llena dinámicamente con JS -->
-                            </div>
-                        </div>
-                        <!-- Columna Talleres -->
-                        <div class="col-md-6">
-                            <h6 class="fw-bold mb-3 text-teal uppercase d-flex align-items-center gap-2">
-                                <i class="bi bi-mortarboard-fill"></i> Talleres Activos
-                            </h6>
-                            <div id="listaTalleres" class="list-group gap-2">
-                                <!-- Se llena dinámicamente con JS -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer border-0">
-                    <button type="button" class="btn btn-secondary fw-bold px-4 rounded-pill" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <script>
-        const csrfToken = '{{ csrf_token }}';
-
-        function abrirModalEventos(leadId, clienteNombre) {
-            document.getElementById('modalClienteNombre').textContent = clienteNombre;
-            
-            const listaCampanas = document.getElementById('listaCampanas');
-            const listaTalleres = document.getElementById('listaTalleres');
-            
-            listaCampanas.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm text-pink" role="status"></div> Cargando...</div>';
-            listaTalleres.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm text-teal" role="status"></div> Cargando...</div>';
-
-            // Abrir modal usando Bootstrap modal
-            const modalEl = document.getElementById('modalEventosCliente');
-            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
-            modal.show();
-
-            // Consultar eventos del cliente
-            fetch(`/agente/ventas-360/eventos-cliente/?lead_id=${leadId}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.success) {
-                        renderEventos(leadId, data.eventos);
-                    } else {
-                        Swal.fire('Error', data.error || 'No se pudieron cargar los eventos.', 'error');
-                        modal.hide();
-                    }
-                })
-                .catch(err => {
-                    console.error(err);
-                    Swal.fire('Error de Conexión', 'No se pudo comunicar con el servidor.', 'error');
-                    modal.hide();
-                });
-        }
-
-        function renderEventos(leadId, eventos) {
-            const listaCampanas = document.getElementById('listaCampanas');
-            const listaTalleres = document.getElementById('listaTalleres');
-            
-            listaCampanas.innerHTML = '';
-            listaTalleres.innerHTML = '';
-
-            const campanas = eventos.filter(ev => ev.tipo === 'CAMPAÑA');
-            const talleres = eventos.filter(ev => ev.tipo === 'TALLER');
-
-            if (campanas.length === 0) {
-                listaCampanas.innerHTML = '<div class="text-muted small text-center py-3">No hay campañas activas asignadas.</div>';
-            } else {
-                campanas.forEach(ev => {
-                    listaCampanas.appendChild(crearElementoEvento(leadId, ev));
-                });
-            }
-
-            if (talleres.length === 0) {
-                listaTalleres.innerHTML = '<div class="text-muted small text-center py-3">No hay talleres activos asignados.</div>';
-            } else {
-                talleres.forEach(ev => {
-                    listaTalleres.appendChild(crearElementoEvento(leadId, ev));
-                });
-            }
-        }
-
-        function crearElementoEvento(leadId, ev) {
-            const div = document.createElement('div');
-            div.className = 'list-group-item d-flex justify-content-between align-items-center border rounded p-2 mb-2 bg-body';
-            
-            const info = document.createElement('div');
-            info.className = 'pe-2';
-            info.innerHTML = `<strong class="small d-block text-body">${ev.nombre}</strong>
-                              <span class="text-muted" style="font-size: 0.75rem;"><i class="bi bi-calendar"></i> ${ev.fecha_inicio} - ${ev.fecha_fin}</span>`;
-            
-            const btn = document.createElement('button');
-            if (ev.vinculado) {
-                btn.className = 'btn btn-xs btn-danger fw-bold px-2 py-1 small rounded-pill';
-                btn.innerHTML = '<i class="bi bi-x-circle"></i> Desvincular';
-                btn.onclick = () => toggleVinculacion(leadId, ev.id, 'desvincular', ev.nombre);
-            } else {
-                btn.className = 'btn btn-xs btn-outline-success fw-bold px-2 py-1 small rounded-pill';
-                btn.innerHTML = '<i class="bi bi-check-circle"></i> Vincular';
-                btn.onclick = () => toggleVinculacion(leadId, ev.id, 'vincular', ev.nombre);
-            }
-
-            div.appendChild(info);
-            div.appendChild(btn);
-            return div;
-        }
-
-        function toggleVinculacion(leadId, eventoId, accion, eventoNombre) {
-            const clienteNombre = document.getElementById('modalClienteNombre').textContent;
-            
-            // Deshabilitar botones temporalmente
-            const modalBody = document.querySelector('#modalEventosCliente .modal-body');
-            modalBody.style.pointerEvents = 'none';
-            modalBody.style.opacity = '0.6';
-
-            fetch('/agente/ventas-360/vincular-evento/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrfToken
-                },
-                body: JSON.stringify({
-                    lead_id: leadId,
-                    evento_id: eventoId,
-                    accion: accion
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                modalBody.style.pointerEvents = 'auto';
-                modalBody.style.opacity = '1';
-                
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Operación Exitosa!',
-                        text: data.mensaje,
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    
-                    // Recargar eventos del cliente para actualizar el modal
-                    fetch(`/agente/ventas-360/eventos-cliente/?lead_id=${leadId}`)
-                        .then(res => res.json())
-                        .then(d => {
-                            if (d.success) {
-                                renderEventos(leadId, d.eventos);
-                            }
-                        });
-                } else {
-                    Swal.fire('Error', data.error || 'Ocurrió un error en la operación.', 'error');
-                }
-            })
-            .catch(err => {
-                modalBody.style.pointerEvents = 'auto';
-                modalBody.style.opacity = '1';
-                console.error(err);
-                Swal.fire('Error de Conexión', 'No se pudo procesar la solicitud.', 'error');
-            });
-        }
-    </script>
 
 </section>
 {% endblock %}

@@ -259,11 +259,8 @@ def agente_exportar_leads_view(request):
 @login_required
 def agente_exportar_talleres_view(request):
     """
-    Exporta los prospectos/clientes de talleres o campañas del vendedor a XLSX.
-    Soporta:
-    - Reporte Parcial: enviando ?evento_id=<id> (exporta solo ese evento)
-    - Reporte Total: sin evento_id, exporta todos los eventos del tipo según ?tab=campanas|talleres
-      respetando el filtro de tiempo ?filtro_evento=proximos_7|este_mes|finalizados|todos
+    Exporta los prospectos/clientes de un taller o campaña específico del vendedor a XLSX.
+    Genera un Reporte Parcial con los datos del taller y el estatus de la Oportunidad 360° de cada cliente.
     """
     from django.db.models import Q
     from django.utils import timezone
@@ -271,55 +268,31 @@ def agente_exportar_talleres_view(request):
     import datetime
     from openpyxl import Workbook
     from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-    from .models import Evento, CoreLead, LeadEvento
+    from .models import Evento, CoreLead, LeadEvento, VentaTransaccional
     
     user = request.user
     evento_id = request.GET.get('evento_id')
-    tab = request.GET.get('tab', 'talleres')
-    filtro_evento = request.GET.get('filtro_evento', 'todos')
+    if not evento_id:
+        return HttpResponse("Falta el parámetro evento_id.", status=400)
+        
+    evento_seleccionado = get_object_or_404(Evento, id=evento_id, vendedores_asignados=user)
     
     # Determinar tipo de evento
-    tipo_evento = 'TALLER'
-    if tab == 'campanas':
-        tipo_evento = 'CAMPAÑA'
-        
-    qs_eventos = Evento.objects.filter(vendedores_asignados=user)
-    
-    # Si viene evento_id, es reporte parcial
-    if evento_id:
-        evento_seleccionado = get_object_or_404(Evento, id=evento_id, vendedores_asignados=user)
-        eventos = [evento_seleccionado]
-        nombre_archivo = f"reporte_parcial_{evento_seleccionado.nombre}.xlsx"
-    else:
-        # Reporte total
-        qs_eventos = qs_eventos.filter(tipo=tipo_evento)
-        hoy = timezone.now().date()
-        
-        if filtro_evento == 'proximos_7':
-            limite = hoy + datetime.timedelta(days=7)
-            qs_eventos = qs_eventos.filter(estatus='ACTIVO', fecha_inicio__gte=hoy, fecha_inicio__lte=limite).order_by('fecha_inicio')
-        elif filtro_evento == 'este_mes':
-            qs_eventos = qs_eventos.filter(estatus='ACTIVO', fecha_inicio__year=hoy.year, fecha_inicio__month=hoy.month).order_by('fecha_inicio')
-        elif filtro_evento == 'finalizados':
-            qs_eventos = qs_eventos.filter(estatus='FINALIZADO').order_by('-fecha_inicio')
-        else:
-            qs_eventos = qs_eventos.filter(estatus='ACTIVO').order_by('fecha_inicio')
-            
-        eventos = list(qs_eventos)
-        tipo_label = "talleres" if tipo_evento == 'TALLER' else "campanas"
-        nombre_archivo = f"reporte_total_{tipo_label}_{filtro_evento}.xlsx"
+    tipo_evento = evento_seleccionado.tipo
+    nombre_archivo = f"reporte_parcial_{evento_seleccionado.nombre}.xlsx"
 
     # Preparar el Workbook
     wb = Workbook()
     ws = wb.active
-    ws.title = "Reporte Talleres" if tipo_evento == 'TALLER' else "Reporte Campañas"
+    ws.title = "Reporte Taller" if tipo_evento == 'TALLER' else "Reporte Campaña"
     
     # Estilos
+    title_font = Font(bold=True, size=14, color="1E293B")
+    meta_font = Font(bold=True, size=11, color="475569")
     header_font = Font(bold=True, color="FFFFFF", size=11)
     header_fill = PatternFill("solid", fgColor="1E293B") # Navy
     header_align = Alignment(horizontal="center", vertical="center", wrap_text=True)
     
-    bold_font = Font(bold=True)
     thin_border = Border(
         left=Side(style='thin', color='DDDDDD'),
         right=Side(style='thin', color='DDDDDD'),
@@ -327,110 +300,137 @@ def agente_exportar_talleres_view(request):
         bottom=Side(style='thin', color='DDDDDD')
     )
     
-    fill_vinculado = PatternFill("solid", fgColor="E2F0D9") # Light Green
-    fill_candidato = PatternFill("solid", fgColor="F2F2F2") # Light Gray
+    # Estilos de estatus (con colores pasteles como insignias)
+    fill_map = {
+        'PENDIENTE': PatternFill("solid", fgColor="FEF3C7"), # Amarillo claro
+        'EN_GESTION': PatternFill("solid", fgColor="DBEAFE"), # Azul claro
+        'CONCRETADO': PatternFill("solid", fgColor="D1FAE5"), # Verde claro
+        'DESCARTADO': PatternFill("solid", fgColor="FEE2E2"), # Rojo claro
+    }
+    font_map = {
+        'PENDIENTE': Font(bold=True, color="D97706"),
+        'EN_GESTION': Font(bold=True, color="2563EB"),
+        'CONCRETADO': Font(bold=True, color="059669"),
+        'DESCARTADO': Font(bold=True, color="DC2626"),
+    }
     
+    # Escribir metadatos superiores
+    ws.cell(row=1, column=1, value=f"Taller / Campaña: {evento_seleccionado.nombre}").font = title_font
+    ws.cell(row=2, column=1, value=f"Fecha de Inicio: {evento_seleccionado.fecha_inicio.strftime('%d/%m/%Y') if evento_seleccionado.fecha_inicio else ''}").font = meta_font
+    ws.cell(row=3, column=1, value=f"Lugar / Sede: {evento_seleccionado.lugar or 'No especificado'}").font = meta_font
+    
+    # Dejar fila 4 en blanco
+    
+    # Fila 5: Encabezados
     HEADERS = [
-        "Tipo de Evento", "Nombre de Evento/Taller", "Línea de Producto", 
-        "Fecha Inicio", "Fecha Fin", "Lugar/Sede", "Relación con Cliente",
-        "Nombre Completo Cliente", "Teléfono", "Celular", "Email",
-        "Estatus Lead", "Especialidad", "Ciudad", "Último Abordaje",
-        "Fecha Vinculación", "Comentarios de Vinculación"
+        "Nombre Completo Cliente", 
+        "Teléfono", 
+        "Celular", 
+        "Email", 
+        "Ciudad", 
+        "Estatus Oportunidad 360°"
     ]
-    ws.append(HEADERS)
-    for cell in ws[1]:
+    ws.append([]) # Fila 4 en blanco
+    ws.append(HEADERS) # Fila 5
+    for col_idx, header in enumerate(HEADERS, start=1):
+        cell = ws.cell(row=5, column=col_idx)
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = header_align
-    ws.row_dimensions[1].height = 28
+    ws.row_dimensions[5].height = 28
 
-    # Recopilar todos los leads para los eventos
-    row_idx = 2
-    for ev in eventos:
-        qs_base = CoreLead.objects.filter(owner=user)
-        linea = ev.linea_producto
-        ids_permitidos = obtener_especialidades_permitidas(linea)
-        
-        MAP_LINEA_PRODUCTO = {
-            'SPORT': 'Sport',
-            'PET': 'Pet',
-            'DENTAL': 'Dental',
-            'PODOLOGICO': 'Podológico',
-            'BEAUTY': 'Beauty'
-        }
-        keyword_producto = MAP_LINEA_PRODUCTO.get(linea)
-        
-        q_linea = Q(especialidad_cat_id__in=ids_permitidos)
-        if keyword_producto:
-            q_linea &= Q(producto_cat__nombre__icontains=keyword_producto)
+    # Recopilar todos los leads para el evento
+    qs_base = CoreLead.objects.filter(owner=user)
+    linea = evento_seleccionado.linea_producto
+    ids_permitidos = obtener_especialidades_permitidas(linea)
+    
+    MAP_LINEA_PRODUCTO = {
+        'SPORT': 'Sport',
+        'PET': 'Pet',
+        'DENTAL': 'Dental',
+        'PODOLOGICO': 'Podológico',
+        'BEAUTY': 'Beauty'
+    }
+    keyword_producto = MAP_LINEA_PRODUCTO.get(linea)
+    
+    q_linea = Q(especialidad_cat_id__in=ids_permitidos)
+    if keyword_producto:
+        q_linea &= Q(producto_cat__nombre__icontains=keyword_producto)
 
-        ciudades_objetivo = ev.ciudades_objetivo.all()
-        if ciudades_objetivo.exists():
-            q_filter = Q(ubicacion__in=ciudades_objetivo)
-            q_filter &= q_linea
-            qs_prospectos = qs_base.filter(
-                Q(eventos_asociados__evento=ev) |
-                q_filter
-            ).filter(estatus='CLIENTE').distinct()
+    ciudades_objetivo = evento_seleccionado.ciudades_objetivo.all()
+    if ciudades_objetivo.exists():
+        q_filter = Q(ubicacion__in=ciudades_objetivo)
+        q_filter &= q_linea
+        qs_prospectos = qs_base.filter(
+            Q(eventos_asociados__evento=evento_seleccionado) |
+            q_filter
+        ).filter(estatus='CLIENTE').distinct()
+    else:
+        q_filter = q_linea
+        qs_prospectos = qs_base.filter(
+            Q(eventos_asociados__evento=evento_seleccionado) |
+            q_filter
+        ).filter(estatus='CLIENTE').distinct()
+
+    # Excluir leads que ya concretaron o descartaron la venta transaccional para este evento específico
+    excluir_ids = VentaTransaccional.objects.filter(
+        vendedor=user,
+        evento=evento_seleccionado,
+        estatus__in=['CONCRETADO', 'DESCARTADO']
+    ).values_list('lead_id', flat=True)
+
+    qs_prospectos = qs_prospectos.exclude(id__in=excluir_ids).order_by('-updated_at')
+    
+    row_idx = 6
+    for lead in qs_prospectos:
+        # Buscar oportunidad
+        oportunidad = lead.compras_extra.filter(
+            vendedor=user,
+            evento=evento_seleccionado
+        ).first()
+        
+        if not oportunidad and keyword_producto:
+            # Fallback a oportunidad general de la misma línea (sin evento asociado)
+            oportunidad = lead.compras_extra.filter(
+                vendedor=user,
+                evento__isnull=True,
+                producto__nombre__icontains=keyword_producto
+            ).order_by('-fecha_venta').first()
+        
+        if oportunidad:
+            estatus_raw = oportunidad.estatus
+            estatus_display = oportunidad.get_estatus_display()
         else:
-            q_filter = q_linea
-            qs_prospectos = qs_base.filter(
-                Q(eventos_asociados__evento=ev) |
-                q_filter
-            ).filter(estatus='CLIENTE').distinct()
-
-        # Excluir los leads que ya fueron abordados (tienen oportunidad 360 reciente)
-        fecha_margen = ev.fecha_inicio - datetime.timedelta(days=15)
-        qs_prospectos = qs_prospectos.exclude(
-            compras_extra__vendedor=user,
-            compras_extra__fecha_venta__gte=fecha_margen
-        ).order_by('-updated_at')
+            estatus_raw = 'PENDIENTE'
+            estatus_display = '🟡 Pendiente (Por contactar)'
+            
+        ws.append([
+            lead.nombre_completo_mdm,
+            lead.phone_primary or "",
+            lead.celular or "",
+            lead.email or "",
+            lead.ubicacion.ciudad if lead.ubicacion else "",
+            estatus_display
+        ])
         
-        # Obtener vinculaciones manuales
-        vinculos_qs = LeadEvento.objects.filter(evento=ev, lead__in=qs_prospectos).select_related('lead')
-        vinculos_map = {v.lead_id: v for v in vinculos_qs}
-        
-        for lead in qs_prospectos:
-            vinculo = vinculos_map.get(lead.id)
-            relacion = "VINCULADO" if vinculo else "CANDIDATO POR PERFIL"
-            fecha_vinc_str = timezone.localtime(vinculo.fecha_vinculacion).strftime("%d/%m/%Y %H:%M") if vinculo else ""
-            comentarios_vinc = vinculo.comentarios or "" if vinculo else ""
+        # Aplicar bordes a las celdas
+        for col_idx in range(1, len(HEADERS) + 1):
+            cell = ws.cell(row=row_idx, column=col_idx)
+            cell.border = thin_border
             
-            ws.append([
-                ev.get_tipo_display(),
-                ev.nombre,
-                ev.get_linea_producto_display(),
-                ev.fecha_inicio.strftime("%d/%m/%Y") if ev.fecha_inicio else "",
-                ev.fecha_fin.strftime("%d/%m/%Y") if ev.fecha_fin else "",
-                ev.lugar or "",
-                relacion,
-                lead.nombre_completo_mdm,
-                lead.phone_primary or "",
-                lead.celular or "",
-                lead.email or "",
-                lead.estatus,
-                lead.especialidad_cat.nombre if lead.especialidad_cat else "",
-                lead.ubicacion.ciudad if lead.ubicacion else "",
-                lead.updated_at.strftime("%d/%m/%Y") if lead.updated_at else "",
-                fecha_vinc_str,
-                comentarios_vinc
-            ])
+        # Darle color al estatus
+        cell_estatus = ws.cell(row=row_idx, column=6)
+        if estatus_raw in fill_map:
+            cell_estatus.fill = fill_map[estatus_raw]
+            cell_estatus.font = font_map[estatus_raw]
+            cell_estatus.alignment = Alignment(horizontal="center")
             
-            # Estilos de fila
-            fill_to_use = fill_vinculado if vinculo else fill_candidato
-            ws.cell(row=row_idx, column=7).font = bold_font
-            ws.cell(row=row_idx, column=7).fill = fill_to_use
-            
-            for col_idx in range(1, len(HEADERS) + 1):
-                cell = ws.cell(row=row_idx, column=col_idx)
-                cell.border = thin_border
-                
-            row_idx += 1
+        row_idx += 1
 
     # Ajustar anchos
-    ANCHOS = [18, 30, 18, 14, 14, 25, 22, 32, 14, 14, 28, 14, 24, 20, 16, 20, 35]
+    ANCHOS = [32, 14, 14, 28, 20, 26]
     for i, ancho in enumerate(ANCHOS, start=1):
-        ws.column_dimensions[ws.cell(row=1, column=i).column_letter].width = ancho
+        ws.column_dimensions[ws.cell(row=5, column=i).column_letter].width = ancho
 
     response = HttpResponse(
         content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -550,17 +550,41 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
                         q_filter
                     ).filter(estatus='CLIENTE').distinct()
 
-                # Excluir los leads que ya fueron abordados (tienen oportunidad 360 reciente)
-                import datetime
-                fecha_margen = evento_seleccionado.fecha_inicio - datetime.timedelta(days=15)
-                qs_prospectos = qs_prospectos.exclude(
-                    compras_extra__vendedor=self.request.user,
-                    compras_extra__fecha_venta__gte=fecha_margen
-                ).order_by('-updated_at')
+                # Excluir leads que ya concretaron o descartaron la venta transaccional para este evento específico
+                excluir_ids = VentaTransaccional.objects.filter(
+                    vendedor=self.request.user,
+                    evento=evento_seleccionado,
+                    estatus__in=['CONCRETADO', 'DESCARTADO']
+                ).values_list('lead_id', flat=True)
+
+                qs_prospectos = qs_prospectos.exclude(id__in=excluir_ids).order_by('-updated_at')
                 
                 paginator_prospectos = Paginator(qs_prospectos, 10)
                 page_prospectos = self.request.GET.get('page_prospectos')
-                context['prospectos_campana'] = paginator_prospectos.get_page(page_prospectos)
+                prospectos_page = paginator_prospectos.get_page(page_prospectos)
+                
+                for lead in prospectos_page:
+                    oportunidad = lead.compras_extra.filter(
+                        vendedor=self.request.user,
+                        evento=evento_seleccionado
+                    ).first()
+                    
+                    if not oportunidad and keyword_producto:
+                        # Fallback a oportunidad general de la misma línea (sin evento asociado)
+                        oportunidad = lead.compras_extra.filter(
+                            vendedor=self.request.user,
+                            evento__isnull=True,
+                            producto__nombre__icontains=keyword_producto
+                        ).order_by('-fecha_venta').first()
+                    
+                    if oportunidad:
+                        lead.oportunidad_estatus_raw = oportunidad.estatus
+                        lead.oportunidad_estatus_display = oportunidad.get_estatus_display()
+                    else:
+                        lead.oportunidad_estatus_raw = "PENDIENTE"
+                        lead.oportunidad_estatus_display = "🟡 Pendiente (Por contactar)"
+                        
+                context['prospectos_campana'] = prospectos_page
 
         # KPIs del resumen superior — Ventas 360
         context['kpi_mis_clientes']        = qs_base.filter(estatus='CLIENTE', es_historico=False).count()
@@ -1438,6 +1462,7 @@ def registrar_venta_extra(request):
         monto = data.get('monto')
         notas = data.get('notas', '')
         estatus = data.get('estatus', 'PENDIENTE') # Nuevo estatus
+        evento_id = data.get('evento_id')
 
         if not lead_id or not producto_id:
             return JsonResponse({"error": "Faltan datos obligatorios (lead_id, producto_id)."}, status=400)
@@ -1451,11 +1476,23 @@ def registrar_venta_extra(request):
 
         producto = get_object_or_404(CatProducto, id=producto_id)
 
+        evento = None
+        if evento_id:
+            from .models import Evento
+            evento = get_object_or_404(Evento, id=evento_id)
+
         # --- CANDADO ANTI-SPAM (Código de antiG) ---
         from .models import VentaTransaccional
+        from django.db.models import Q
         
-        if VentaTransaccional.objects.filter(lead=lead, producto=producto, estatus__in=['PENDIENTE', 'EN_GESTION']).exists():
-            return JsonResponse({"error": "Ya existe una oportunidad activa (Pendiente o En Gestión) para este producto."}, status=400)
+        q_spam = Q(lead=lead, producto=producto, estatus__in=['PENDIENTE', 'EN_GESTION'])
+        if evento:
+            q_spam &= Q(evento=evento)
+        else:
+            q_spam &= Q(evento__isnull=True)
+
+        if VentaTransaccional.objects.filter(q_spam).exists():
+            return JsonResponse({"error": "Ya existe una oportunidad activa (Pendiente o En Gestión) para este producto y evento."}, status=400)
         # ------------------------------------------
 
         # 2. Guardado de Independencia Transaccional
@@ -1463,6 +1500,7 @@ def registrar_venta_extra(request):
             lead=lead,
             producto=producto,
             vendedor=request.user,
+            evento=evento,
             estatus=estatus, 
             monto=monto if monto else None,
             notas=notas

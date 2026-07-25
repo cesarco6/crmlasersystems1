@@ -504,13 +504,60 @@ class DashboardFidelizacionTestCase(TestCase):
         self.assertEqual(response['Content-Type'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
         self.assertIn('attachment; filename="reporte_parcial_', response['Content-Disposition'])
 
-    def test_agente_exportar_talleres_total(self):
-        self.taller.vendedores_asignados.add(self.vendedor_user)
+    def test_agente_exportar_talleres_sin_evento_id(self):
         self.client.login(username='vendedor', password='password123')
         url = reverse('agente_exportar_talleres')
-        response = self.client.get(url, {'tab': 'talleres', 'filtro_evento': 'todos'})
+        response = self.client.get(url, {'tab': 'talleres'})
+        self.assertEqual(response.status_code, 400)
+
+    def test_independencia_eventos_oportunidad_360(self):
+        from leads.models import VentaTransaccional, Evento, LeadEvento
+        from users.models import UserProfile
+        
+        # Crear UserProfile para vendedor_user para evitar 403 Forbidden
+        UserProfile.objects.create(user=self.vendedor_user, rol='VENDEDOR')
+        
+        # Agregar el vendedor al taller
+        self.taller.vendedores_asignados.add(self.vendedor_user)
+        
+        # Crear un segundo taller
+        taller2 = Evento.objects.create(
+            nombre="Taller Independencia Test",
+            tipo="TALLER",
+            fecha_inicio=self.taller.fecha_inicio,
+            fecha_fin=self.taller.fecha_fin,
+            lugar="Sede Test 2",
+            linea_producto=self.taller.linea_producto,
+            estatus="ACTIVO"
+        )
+        taller2.vendedores_asignados.add(self.vendedor_user)
+        
+        # Vincular el cliente_campana al taller y taller2
+        LeadEvento.objects.create(lead=self.cliente_campana, evento=self.taller)
+        LeadEvento.objects.create(lead=self.cliente_campana, evento=taller2)
+        
+        # Registrar una oportunidad CONCRETADA vinculada al taller 1
+        VentaTransaccional.objects.create(
+            lead=self.cliente_campana,
+            producto=self.prod_acc,
+            vendedor=self.vendedor_user,
+            evento=self.taller,
+            estatus='CONCRETADO'
+        )
+        
+        self.client.login(username='vendedor', password='password123')
+        
+        url = reverse('ventas_360')
+        response = self.client.get(url, {'tab': 'talleres', 'evento_id': self.taller.id})
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response['Content-Type'], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        self.assertIn('attachment; filename="reporte_total_talleres_todos.xlsx"', response['Content-Disposition'])
+        
+        prospectos_taller1 = response.context['prospectos_campana']
+        self.assertNotIn(self.cliente_campana, prospectos_taller1)
+        
+        # Consultar taller 2 (debe seguir apareciendo en prospectos_campana del taller 2)
+        response2 = self.client.get(url, {'tab': 'talleres', 'evento_id': taller2.id})
+        self.assertEqual(response2.status_code, 200)
+        prospectos_taller2 = response2.context['prospectos_campana']
+        self.assertIn(self.cliente_campana, prospectos_taller2)
 
 

@@ -264,6 +264,7 @@ class VentaTransaccional(models.Model):
     lead = models.ForeignKey(CoreLead, on_delete=models.CASCADE, related_name='compras_extra')
     producto = models.ForeignKey(CatProducto, on_delete=models.PROTECT, related_name='ventas_transaccionales')
     vendedor = models.ForeignKey(User, on_delete=models.PROTECT, related_name='ventas_extra')
+    evento = models.ForeignKey('Evento', on_delete=models.SET_NULL, null=True, blank=True, related_name='oportunidades_asociadas')
     
     fecha_venta = models.DateTimeField(auto_now_add=True)
     monto = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)

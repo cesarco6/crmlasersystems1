@@ -12,6 +12,10 @@
     /* Toque elegante moderno */
     z-index: 1000;
     overflow: auto;
+    
+    /* Centrado vertical y horizontal para evitar estiramiento en Flexbox */
+    justify-content: center;
+    align-items: center;
 }
 
 .modal-box {
