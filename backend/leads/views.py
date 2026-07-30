@@ -1529,10 +1529,20 @@ def registrar_venta_extra(request):
         #timestamp = timezone.now().strftime("%Y-%m-%d %H:%M")
         timestamp = localtime(now()).strftime("%Y-%m-%d %H:%M")
         
+        if evento:
+            tipo_label = "Taller"
+            if evento.tipo == 'EXPO':
+                tipo_label = "Expo"
+            elif evento.tipo == 'CAMPAÑA':
+                tipo_label = "Campaña"
+            contenido_nota = f"🎯 Oportunidad 360° creada: {producto.nombre} - {tipo_label}: {evento.nombre} (Estatus: {estatus}).\n📝 Notas: {notas}"
+        else:
+            contenido_nota = f"🎯 Oportunidad 360° creada: {producto.nombre} (Estatus: {estatus}).\n📝 Notas: {notas}"
+
         nueva_nota = {
             "fecha": timestamp,
             "tipo": "sistema",  # Lo marcamos como sistema para que resalte
-            "contenido": f"🎯 Oportunidad 360° creada: {producto.nombre} (Estatus: {estatus}).\n📝 Notas: {notas}"
+            "contenido": contenido_nota
         }
 
         # Asegurarnos de que el diccionario de notas exista

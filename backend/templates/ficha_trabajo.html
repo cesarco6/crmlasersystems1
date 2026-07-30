@@ -17,44 +17,61 @@
 <section class="container-fluid px-2 px-md-4 py-3" id="module-ficha-trabajo">
     <div class="d-flex flex-column mb-3 gap-2">
         <!-- Top Row: Title, Status, and Actions (aligned with name) -->
-        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
+        <div
+            class="d-flex flex-column flex-lg-row justify-content-between align-items-start align-items-lg-center gap-3">
             <div class="d-flex flex-wrap align-items-center gap-2 gap-lg-3">
                 <div class="d-flex align-items-center flex-wrap gap-2">
                     <h3 class="fw-bold text-body mb-0">🛠️ Ficha: {{ lead.nombre_completo_mdm }}</h3>
                     {% if lead.clinica and not lead.apellido_paterno %}
-                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6">🏥 Clínica Corporativa</span>
+                    <span
+                        class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6">🏥
+                        Clínica Corporativa</span>
                     {% elif lead.clinica %}
-                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6" title="Asociado a: {{ lead.clinica.nombre }}">👩‍⚕️ Médico de Clínica</span>
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6"
+                        title="Asociado a: {{ lead.clinica.nombre }}">👩‍⚕️ Médico de Clínica</span>
                     {% else %}
-                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6">👩‍⚕️ Médico Independiente</span>
+                    <span
+                        class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1 fs-6">👩‍⚕️
+                        Médico Independiente</span>
                     {% endif %}
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="text-muted small text-nowrap">Estatus actual:</span>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">{{ lead.estatus }}</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">{{
+                        lead.estatus }}</span>
                 </div>
             </div>
-            
+
             <div>
                 <div class="d-flex gap-2 justify-content-start justify-content-lg-end flex-wrap">
                     {% if lead.estatus.strip == 'CLIENTE' or lead.estatus == 'CLIENTE' %}
-                        <button class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-venta-extra')">🎯 Oportunidad 360°</button>
-                        
+                    <button class="btn btn-success fw-bold px-3 py-2 shadow-sm"
+                        onclick="abrirModal('modal-venta-extra')">🎯 Oportunidad 360°</button>
+
                     {% elif lead.estatus == 'PROSPECTO' %}
-                        <button type="button" class="btn btn-success fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('VALIDAR', this)">✅ Validar Identidad</button>
-                        <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar</button>
-                        <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
+                    <button type="button" class="btn btn-success fw-bold px-3 py-2 shadow-sm"
+                        onclick="ejecutarRitual('VALIDAR', this)">✅ Validar Identidad</button>
+                    <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm"
+                        onclick="ejecutarRitual('DESECHAR')">🗑️ Desechar</button>
+                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm"
+                        onclick="abrirModal('modal-agendar')">📅 Agendar</button>
 
                     {% elif lead.estatus == 'LEAD' %}
-                        <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm" onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar</button>
-                        <button class="btn btn-info fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-calificar')">⭐ Calificar</button>
-                        <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
-                        
+                    <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm"
+                        onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar</button>
+                    <button class="btn btn-info fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-calificar')">⭐
+                        Calificar</button>
+                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm"
+                        onclick="abrirModal('modal-agendar')">📅 Agendar</button>
+
                     {% elif lead.estatus == 'LEAD_CALIFICADO' %}
-                        <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-dark" onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
-                        <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-agendar')">📅 Agendar</button>
-                        <button type="button" id="btn-no-cierre" class="btn btn-outline-warning fw-bold px-3 py-2 shadow-sm" onclick="marcarNoCierre()">⚠️ No Cierre</button>
-                        
+                    <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-dark"
+                        onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
+                    <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm"
+                        onclick="abrirModal('modal-agendar')">📅 Agendar</button>
+                    <button type="button" id="btn-no-cierre" class="btn btn-outline-warning fw-bold px-3 py-2 shadow-sm"
+                        onclick="marcarNoCierre()">⚠️ No Cierre</button>
+
                     {% endif %}
                 </div>
             </div>
@@ -63,80 +80,97 @@
         <!-- Bottom Row: Event announcements (stacked, 85% font size) -->
         <div class="mt-1">
             {% if campanas_filtradas %}
-                <div class="d-flex flex-column gap-1 align-items-start">
-                    {% for campana in campanas_filtradas %}
-                        <span class="badge border px-3 py-1 text-start" style="font-size: 0.85em; background-color: rgba(236, 72, 153, 0.15); color: #ec4899; border-color: rgba(236, 72, 153, 0.3);" title="Campaña">📢 {{ campana.nombre }}</span>
-                    {% endfor %}
-                </div>
+            <div class="d-flex flex-column gap-1 align-items-start">
+                {% for campana in campanas_filtradas %}
+                <span class="badge border px-3 py-1 text-start"
+                    style="font-size: 0.85em; background-color: rgba(236, 72, 153, 0.15); color: #ec4899; border-color: rgba(236, 72, 153, 0.3);"
+                    title="Campaña">📢 {{ campana.nombre }}</span>
+                {% endfor %}
+            </div>
             {% elif lead.es_historico %}
-                <span class="badge border px-3 py-1" style="font-size: 0.85em; background-color: rgba(139, 92, 246, 0.15); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3);">💜 Histórico</span>
+            <span class="badge border px-3 py-1"
+                style="font-size: 0.85em; background-color: rgba(139, 92, 246, 0.15); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3);">💜
+                Histórico</span>
             {% else %}
-                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1" style="font-size: 0.85em;">💼 Mis Clientes</span>
+            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1"
+                style="font-size: 0.85em;">💼 Mis Clientes</span>
             {% endif %}
         </div>
     </div>
 
     <div class="row g-4">
-        
+
         <div class="col-md-6">
             <div class="card card-ers h-100 shadow-sm border-0">
                 <div class="card-header border-bottom py-3 d-flex justify-content-between align-items-center">
                     <h5 class="fw-bold text-body m-0">📋 Datos de Identidad</h5>
-                    <button class="btn btn-sm btn-outline-secondary fw-bold px-3" onclick="abrirModal('modal-editar')">✏️ Editar</button>
+                    <button class="btn btn-sm btn-outline-secondary fw-bold px-3"
+                        onclick="abrirModal('modal-editar')">✏️ Editar</button>
                 </div>
-                
+
                 <div class="card-body">
                     <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Teléfono Principal</label>
-                            <p class="text-body fw-semibold mb-3"><i class="bi bi-telephone text-primary me-2"></i> {{ lead.phone_primary }}</p>
-                            
+                            <label class="text-muted small fw-bold text-uppercase d-block mb-1">Teléfono
+                                Principal</label>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-telephone text-primary me-2"></i> {{
+                                lead.phone_primary }}</p>
+
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Celular</label>
                             {% if lead.celular %}
-                                <p class="text-body fw-semibold mb-3"><i class="bi bi-whatsapp text-success me-2"></i> {{ lead.celular }}</p>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-whatsapp text-success me-2"></i> {{
+                                lead.celular }}</p>
                             {% else %}
-                                <p class="text-danger small mb-3"><i class="bi bi-exclamation-circle me-1"></i> Falta celular</p>
+                            <p class="text-danger small mb-3"><i class="bi bi-exclamation-circle me-1"></i> Falta
+                                celular</p>
                             {% endif %}
-                            
+
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Email</label>
                             {% if lead.email %}
-                                <p class="text-body fw-semibold mb-0"><i class="bi bi-envelope text-info me-2"></i> {{ lead.email }}</p>
+                            <p class="text-body fw-semibold mb-0"><i class="bi bi-envelope text-info me-2"></i> {{
+                                lead.email }}</p>
                             {% else %}
-                                <p class="text-danger small mb-0"><i class="bi bi-exclamation-circle me-1"></i> Falta correo</p>
+                            <p class="text-danger small mb-0"><i class="bi bi-exclamation-circle me-1"></i> Falta correo
+                            </p>
                             {% endif %}
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Especialidad</label>
-                            <p class="text-body fw-semibold mb-3"><i class="bi bi-briefcase text-muted me-2"></i> {{ especialidad_segura }}</p>
-                            
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-briefcase text-muted me-2"></i> {{
+                                especialidad_segura }}</p>
+
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Ubicación</label>
-                            <p class="text-body fw-semibold mb-3"><i class="bi bi-geo-alt text-danger me-2"></i> {{ lead.ubicacion.ciudad }}</p>
-                            
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-geo-alt text-danger me-2"></i> {{
+                                lead.ubicacion.ciudad }}</p>
+
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Dirección</label>
                             {% if lead.direccion_completa %}
-                                <p class="text-body small mb-0">{{ lead.direccion_completa }}</p>
+                            <p class="text-body small mb-0">{{ lead.direccion_completa }}</p>
                             {% else %}
-                                <p class="text-warning small mb-0"><i class="bi bi-hourglass-split me-1"></i> Falta dirección</p>
+                            <p class="text-warning small mb-0"><i class="bi bi-hourglass-split me-1"></i> Falta
+                                dirección</p>
                             {% endif %}
                         </div>
                     </div>
-                    
+
                     <div class="pt-3 border-top">
                         <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted small fw-bold text-uppercase">Producto de Interés</span>
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3">{{ producto_seguro }}</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3">{{
+                                producto_seguro }}</span>
                         </div>
                     </div>
-                    
+
                     {% if lead.estatus != 'CLIENTE' %}
-                    <div class="mt-4 p-3 bg-body-tertiary rounded border border-secondary border-opacity-25 shadow-inner">
+                    <div
+                        class="mt-4 p-3 bg-body-tertiary rounded border border-secondary border-opacity-25 shadow-inner">
                         <h6 class="fw-bold mb-3 text-body small text-uppercase">⚙️ Estado Operativo</h6>
-                        
+
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted small">Plan Actual:</span>
                             <span class="text-info fw-bold small">{{ lead.plan|default:"SEGUIMIENTO" }}</span>
                         </div>
-                        
+
                         <div class="d-flex justify-content-between mb-2">
                             <span class="text-muted small">Calificación:</span>
                             <span class="text-body small fw-semibold">
@@ -146,7 +180,7 @@
                                 {% else %}⚪ Sin calificar{% endif %}
                             </span>
                         </div>
-                        
+
                         {% if lead.next_action_date %}
                         <div class="d-flex justify-content-between">
                             <span class="text-muted small">Próximo Contacto:</span>
@@ -154,46 +188,71 @@
                         </div>
                         {% endif %}
                     </div>
-                    
+
                     {% else %}
                     <div class="mt-4 p-3 bg-body-tertiary rounded border border-secondary border-opacity-25">
-                        <h6 class="fw-bold mb-3 text-body small text-uppercase">📡 Radar 360° (Ventas Cruzadas)</h6>
-                        
+                        <h6 class="fw-bold mb-3 text-body small text-uppercase">📡 Radar 360°</h6>
+
                         {% if compras_extra_filtradas %}
-                            <ul class="list-unstyled m-0 small">
-                                {% for op in compras_extra_filtradas %}
-                                <li class="mb-2 p-2 bg-body rounded border-start border-warning border-3 text-body d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
-                                    <div>
-                                        <strong class="d-block">{{ op.producto.nombre }}</strong>
-                                        <span class="text-muted small">Apertura: {{ op.fecha_venta|date:"d M Y" }}</span>
-                                    </div>
+                        <ul class="list-unstyled m-0 small">
+                            {% for op in compras_extra_filtradas %}
+                            <li
+                                class="mb-2 p-2 bg-body rounded border-start border-warning border-3 text-body d-flex justify-content-between align-items-center flex-wrap gap-2 shadow-sm">
+                                <div>
+                                    <strong class="d-block">
+                                        {% if op.evento %}
+                                            {% if op.evento.tipo == 'EXPO' %}
+                                                Expo: {{ op.evento.nombre }}
+                                            {% elif op.evento.tipo == 'TALLER' %}
+                                                Taller: {{ op.evento.nombre }}
+                                            {% elif op.evento.tipo == 'CAMPAÑA' %}
+                                                Campaña: {{ op.evento.nombre }}
+                                            {% else %}
+                                                Evento: {{ op.evento.nombre }}
+                                            {% endif %}
+                                        {% else %}
+                                            {% if op.producto.familia == 'ACCESORIO' %}
+                                                Venta Cruzada: {{ op.producto.nombre }}
+                                            {% elif op.producto.familia == 'SERVICIO' %}
+                                                Servicio: {{ op.producto.nombre }}
+                                            {% else %}
+                                                Oportunidad 360°: {{ op.producto.nombre }}
+                                            {% endif %}
+                                        {% endif %}
+                                    </strong>
+                                    <span class="text-muted small">Apertura: {{ op.fecha_venta|date:"d M Y" }}</span>
+                                </div>
 
-                                    {# --- Estados terminales: Badge fijo (sin interacción) --- #}
-                                    {% if op.estatus == 'CONCRETADO' %}
-                                        <span class="badge bg-success-subtle text-success border border-success-subtle">🟢 Concretado</span>
-                                    {% elif op.estatus == 'DESCARTADO' %}
-                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">🔴 Descartado</span>
+                                {# --- Estados terminales: Badge fijo (sin interacción) --- #}
+                                {% if op.estatus == 'CONCRETADO' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">🟢
+                                    Concretado</span>
+                                {% elif op.estatus == 'DESCARTADO' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">🔴
+                                    Descartado</span>
 
-                                    {# --- Estados activos: Select con transiciones válidas --- #}
-                                    {% elif op.estatus == 'PENDIENTE' %}
-                                        <select class="form-select form-select-sm bg-body border-secondary text-body w-auto shadow-none"
-                                                onchange="actualizarEstatus360('{{ op.id }}', this, '{{ op.estatus }}')">
-                                            <option value="PENDIENTE" selected>🟡 Pendiente</option>
-                                            <option value="EN_GESTION">🔵 En Gestión →</option>
-                                        </select>
-                                    {% elif op.estatus == 'EN_GESTION' %}
-                                        <select class="form-select form-select-sm bg-body border-secondary text-body w-auto shadow-none"
-                                                onchange="actualizarEstatus360('{{ op.id }}', this, '{{ op.estatus }}')">
-                                            <option value="EN_GESTION" selected>🔵 En Gestión</option>
-                                            <option value="CONCRETADO">🟢 Concretado →</option>
-                                            <option value="DESCARTADO">🔴 Descartado →</option>
-                                        </select>
-                                    {% endif %}
-                                </li>
-                                {% endfor %}
-                            </ul>
+                                {# --- Estados activos: Select con transiciones válidas --- #}
+                                {% elif op.estatus == 'PENDIENTE' %}
+                                <select
+                                    class="form-select form-select-sm bg-body border-secondary text-body w-auto shadow-none"
+                                    onchange="actualizarEstatus360('{{ op.id }}', this, '{{ op.estatus }}')">
+                                    <option value="PENDIENTE" selected>🟡 Pendiente</option>
+                                    <option value="EN_GESTION">🔵 En Gestión →</option>
+                                </select>
+                                {% elif op.estatus == 'EN_GESTION' %}
+                                <select
+                                    class="form-select form-select-sm bg-body border-secondary text-body w-auto shadow-none"
+                                    onchange="actualizarEstatus360('{{ op.id }}', this, '{{ op.estatus }}')">
+                                    <option value="EN_GESTION" selected>🔵 En Gestión</option>
+                                    <option value="CONCRETADO">🟢 Concretado →</option>
+                                    <option value="DESCARTADO">🔴 Descartado →</option>
+                                </select>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
                         {% else %}
-                            <p class="text-muted small m-0">No hay oportunidades 360 activas.</p>
+                        <p class="text-muted small m-0">No hay oportunidades 360 activas.</p>
                         {% endif %}
                     </div>
 
@@ -204,36 +263,42 @@
                         <div class="d-flex flex-column gap-2 small">
 
                             {# Hito 1: Capacitación #}
-                            <div class="p-2 bg-body rounded border-start border-3 text-body d-flex justify-content-between align-items-center shadow-sm
+                            <div
+                                class="p-2 bg-body rounded border-start border-3 text-body d-flex justify-content-between align-items-center shadow-sm
                                         {% if lead.tracking_postventa.capacitacion_dada %}border-success{% else %}border-warning{% endif %}">
                                 <div>
                                     <strong class="d-block">🎓 Capacitación</strong>
                                     <span class="text-muted small">(8 días post-venta)</span>
                                 </div>
                                 {% if lead.tracking_postventa.capacitacion_dada %}
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fw-bold">✅ {{ lead.tracking_postventa.fecha_capacitacion|date:"d M Y" }}</span>
+                                <span
+                                    class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fw-bold">✅
+                                    {{ lead.tracking_postventa.fecha_capacitacion|date:"d M Y" }}</span>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-warning fw-bold px-3"
-                                            onclick="marcarHitoPostVenta('capacitacion', '{{ lead.id }}')">
-                                        Marcar ✓
-                                    </button>
+                                <button class="btn btn-sm btn-outline-warning fw-bold px-3"
+                                    onclick="marcarHitoPostVenta('capacitacion', '{{ lead.id }}')">
+                                    Marcar ✓
+                                </button>
                                 {% endif %}
                             </div>
 
                             {# Hito 2: Llamada de Calidad #}
-                            <div class="p-2 bg-body rounded border-start border-3 text-body d-flex justify-content-between align-items-center shadow-sm
+                            <div
+                                class="p-2 bg-body rounded border-start border-3 text-body d-flex justify-content-between align-items-center shadow-sm
                                         {% if lead.tracking_postventa.calidad_hecha %}border-success{% else %}border-info{% endif %}">
                                 <div>
                                     <strong class="d-block">📞 Llamada de Calidad</strong>
                                     <span class="text-muted small">(180 días post-venta)</span>
                                 </div>
                                 {% if lead.tracking_postventa.calidad_hecha %}
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fw-bold">✅ {{ lead.tracking_postventa.fecha_calidad|date:"d M Y" }}</span>
+                                <span
+                                    class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 fw-bold">✅
+                                    {{ lead.tracking_postventa.fecha_calidad|date:"d M Y" }}</span>
                                 {% else %}
-                                    <button class="btn btn-sm btn-outline-info fw-bold px-3"
-                                            onclick="marcarHitoPostVenta('calidad', '{{ lead.id }}')">
-                                        Marcar ✓
-                                    </button>
+                                <button class="btn btn-sm btn-outline-info fw-bold px-3"
+                                    onclick="marcarHitoPostVenta('calidad', '{{ lead.id }}')">
+                                    Marcar ✓
+                                </button>
                                 {% endif %}
                             </div>
 
@@ -254,25 +319,35 @@
                 </div>
                 <div class="card-body d-flex flex-column">
                     <!-- Panel contenedor con altura fija y scroll -->
-                    <div id="panel-notas" class="flex-grow-1 bg-body-tertiary p-3 rounded border border-secondary border-opacity-25 d-flex flex-column gap-3 mb-3" style="max-height: 55vh; overflow-y: auto;">
+                    <div id="panel-notas"
+                        class="flex-grow-1 bg-body-tertiary p-3 rounded border border-secondary border-opacity-25 d-flex flex-column gap-3 mb-3"
+                        style="max-height: 55vh; overflow-y: auto;">
                         {% for nota in lead.notas_variadas.notas reversed %}
-                            {% if nota.tipo == 'sistema' %}
-                                <div class="bg-body border border-info border-opacity-25 p-2 rounded shadow-sm border-start border-info border-4">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <strong class="small text-info text-uppercase fw-bold">🤖 Sistema <span class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0 }}]</span></strong>
-                                        <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span>
-                                    </div>
-                                    <span class="small text-body">{{ nota.contenido|safe }}</span>
-                                </div>
-                            {% else %}
-                                <div class="bg-body border border-success border-opacity-25 p-2 rounded shadow-sm border-start border-success border-4">
-                                    <div class="d-flex justify-content-between mb-1">
-                                        <strong class="small text-success text-uppercase fw-bold">👤 Vendedor <span class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0 }}]</span></strong>
-                                        <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span>
-                                    </div>
-                                    <span class="small text-body">{{ nota.contenido }}</span>
-                                </div>
-                            {% endif %}
+                        {% if nota.tipo == 'sistema' %}
+                        <div
+                            class="bg-body border border-info border-opacity-25 p-2 rounded shadow-sm border-start border-info border-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <strong class="small text-info text-uppercase fw-bold">🤖 Sistema <span
+                                        class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0
+                                        }}]</span></strong>
+                                <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{
+                                    nota.fecha|slice:"11:16" }}</span>
+                            </div>
+                            <span class="small text-body">{{ nota.contenido|safe }}</span>
+                        </div>
+                        {% else %}
+                        <div
+                            class="bg-body border border-success border-opacity-25 p-2 rounded shadow-sm border-start border-success border-4">
+                            <div class="d-flex justify-content-between mb-1">
+                                <strong class="small text-success text-uppercase fw-bold">👤 Vendedor <span
+                                        class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0
+                                        }}]</span></strong>
+                                <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{
+                                    nota.fecha|slice:"11:16" }}</span>
+                            </div>
+                            <span class="small text-body">{{ nota.contenido }}</span>
+                        </div>
+                        {% endif %}
                         {% empty %}
                         <div class="text-center py-5">
                             <i class="bi bi-chat-left-dots fs-1 text-muted opacity-25"></i>
@@ -280,22 +355,28 @@
                         </div>
                         {% endfor %}
                     </div>
-                    
+
                     <div class="mt-auto">
                         <div class="mb-2">
-                            <select class="form-select form-select-sm bg-body border-secondary text-body shadow-none" onchange="insertarRespuestaRapida(this, 'input-nueva-nota')">
+                            <select class="form-select form-select-sm bg-body border-secondary text-body shadow-none"
+                                onchange="insertarRespuestaRapida(this, 'input-nueva-nota')">
                                 <option value="">-- Respuestas Rápidas --</option>
                                 <option value="Manda a buzón">Manda a buzón</option>
-                                <option value="No contesta">No contesta</option>                                
-                                <option value="Interesado, pide llamar más tarde">Interesado, pide llamar más tarde</option>
+                                <option value="No contesta">No contesta</option>
+                                <option value="Interesado, pide llamar más tarde">Interesado, pide llamar más tarde
+                                </option>
                                 <option value="Se envió información">Se envió información</option>
                                 <option value="Sin presupuesto por el momento">Sin presupuesto por el momento</option>
                                 <option value="Rechazo Definitivo">Rechazo Definitivo</option>
                             </select>
                         </div>
                         <div class="d-flex gap-2">
-                            <input type="text" id="input-nueva-nota" class="form-control bg-body border-secondary text-body shadow-none" placeholder="Escribir nueva nota..." onkeypress="if(event.key === 'Enter') ejecutarAccionFase2('AGREGAR_NOTA')">
-                            <button class="btn btn-sm btn-outline-secondary fw-bold px-4" onclick="ejecutarAccionFase2('AGREGAR_NOTA')">Agregar</button>
+                            <input type="text" id="input-nueva-nota"
+                                class="form-control bg-body border-secondary text-body shadow-none"
+                                placeholder="Escribir nueva nota..."
+                                onkeypress="if(event.key === 'Enter') ejecutarAccionFase2('AGREGAR_NOTA')">
+                            <button class="btn btn-sm btn-outline-secondary fw-bold px-4"
+                                onclick="ejecutarAccionFase2('AGREGAR_NOTA')">Agregar</button>
                         </div>
                     </div>
                 </div>
@@ -304,7 +385,7 @@
     </div>
 
     <!-- =============== MODALES =============== -->
-    
+
     {# Modal Editar Prospecto (Componente DRY) #}
     {% include 'partials/modals/_modal_editar_prospecto.html' %}
 
@@ -326,5 +407,5 @@
 <!-- SweetAlert2 CDN -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <!-- Vinculamos el JavaScript modularizado -->
-<script src="{% static 'js/ficha_trabajo.js' %}"></script>
+<script src="{% static 'js/ficha_trabajo.js' %}?v=1.4"></script>
 {% endblock %}
