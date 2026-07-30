@@ -1153,6 +1153,7 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
 
         # --- Validación flexible de estatus CLIENTE ---
         estatus_limpio = (lead.estatus or '').strip().upper()
+        context['estatus_limpio'] = estatus_limpio
         context['es_cliente'] = (estatus_limpio == 'CLIENTE')
 
         # --- Auto-crear TrackingPostVenta si el lead es CLIENTE ---

@@ -37,18 +37,17 @@
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="text-muted small text-nowrap">Estatus actual:</span>
-                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">{{
-                        lead.estatus }}</span>
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1 fs-6">{{ estatus_limpio }}</span>
                 </div>
             </div>
 
             <div>
                 <div class="d-flex gap-2 justify-content-start justify-content-lg-end flex-wrap">
-                    {% if lead.estatus.strip == 'CLIENTE' or lead.estatus == 'CLIENTE' %}
+                    {% if estatus_limpio == 'CLIENTE' %}
                     <button class="btn btn-success fw-bold px-3 py-2 shadow-sm"
                         onclick="abrirModal('modal-venta-extra')">🎯 Oportunidad 360°</button>
 
-                    {% elif lead.estatus == 'PROSPECTO' %}
+                    {% elif estatus_limpio == 'PROSPECTO' %}
                     <button type="button" class="btn btn-success fw-bold px-3 py-2 shadow-sm"
                         onclick="ejecutarRitual('VALIDAR', this)">✅ Validar Identidad</button>
                     <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm"
@@ -56,7 +55,7 @@
                     <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm"
                         onclick="abrirModal('modal-agendar')">📅 Agendar</button>
 
-                    {% elif lead.estatus == 'LEAD' %}
+                    {% elif estatus_limpio == 'LEAD' %}
                     <button type="button" class="btn btn-danger fw-bold px-3 py-2 shadow-sm"
                         onclick="ejecutarRitual('DESCARTAR')">🚫 Descartar</button>
                     <button class="btn btn-info fw-bold px-3 py-2 shadow-sm" onclick="abrirModal('modal-calificar')">⭐
@@ -64,7 +63,7 @@
                     <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm"
                         onclick="abrirModal('modal-agendar')">📅 Agendar</button>
 
-                    {% elif lead.estatus == 'LEAD_CALIFICADO' %}
+                    {% elif estatus_limpio == 'LEAD_CALIFICADO' %}
                     <button class="btn btn-warning fw-bold px-4 py-2 shadow-sm text-dark"
                         onclick="abrirModal('modal-cerrar-venta')">🏆 Cerrar Venta</button>
                     <button class="btn btn-secondary fw-bold px-3 py-2 shadow-sm"
@@ -113,13 +112,11 @@
                         <div class="col-md-6">
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Teléfono
                                 Principal</label>
-                            <p class="text-body fw-semibold mb-3"><i class="bi bi-telephone text-primary me-2"></i> {{
-                                lead.phone_primary }}</p>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-telephone text-primary me-2"></i> {{ lead.phone_primary }}</p>
 
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Celular</label>
                             {% if lead.celular %}
-                            <p class="text-body fw-semibold mb-3"><i class="bi bi-whatsapp text-success me-2"></i> {{
-                                lead.celular }}</p>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-whatsapp text-success me-2"></i> {{ lead.celular }}</p>
                             {% else %}
                             <p class="text-danger small mb-3"><i class="bi bi-exclamation-circle me-1"></i> Falta
                                 celular</p>
@@ -127,8 +124,7 @@
 
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Email</label>
                             {% if lead.email %}
-                            <p class="text-body fw-semibold mb-0"><i class="bi bi-envelope text-info me-2"></i> {{
-                                lead.email }}</p>
+                            <p class="text-body fw-semibold mb-0"><i class="bi bi-envelope text-info me-2"></i> {{ lead.email }}</p>
                             {% else %}
                             <p class="text-danger small mb-0"><i class="bi bi-exclamation-circle me-1"></i> Falta correo
                             </p>
@@ -136,12 +132,10 @@
                         </div>
                         <div class="col-md-6">
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Especialidad</label>
-                            <p class="text-body fw-semibold mb-3"><i class="bi bi-briefcase text-muted me-2"></i> {{
-                                especialidad_segura }}</p>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-briefcase text-muted me-2"></i> {{ especialidad_segura }}</p>
 
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Ubicación</label>
-                            <p class="text-body fw-semibold mb-3"><i class="bi bi-geo-alt text-danger me-2"></i> {{
-                                lead.ubicacion.ciudad }}</p>
+                            <p class="text-body fw-semibold mb-3"><i class="bi bi-geo-alt text-danger me-2"></i> {{ lead.ubicacion.ciudad }}</p>
 
                             <label class="text-muted small fw-bold text-uppercase d-block mb-1">Dirección</label>
                             {% if lead.direccion_completa %}
@@ -156,12 +150,11 @@
                     <div class="pt-3 border-top">
                         <div class="d-flex align-items-center justify-content-between">
                             <span class="text-muted small fw-bold text-uppercase">Producto de Interés</span>
-                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3">{{
-                                producto_seguro }}</span>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3">{{ producto_seguro }}</span>
                         </div>
                     </div>
 
-                    {% if lead.estatus != 'CLIENTE' %}
+                    {% if estatus_limpio != 'CLIENTE' %}
                     <div
                         class="mt-4 p-3 bg-body-tertiary rounded border border-secondary border-opacity-25 shadow-inner">
                         <h6 class="fw-bold mb-3 text-body small text-uppercase">⚙️ Estado Operativo</h6>
@@ -328,10 +321,8 @@
                             class="bg-body border border-info border-opacity-25 p-2 rounded shadow-sm border-start border-info border-4">
                             <div class="d-flex justify-content-between mb-1">
                                 <strong class="small text-info text-uppercase fw-bold">🤖 Sistema <span
-                                        class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0
-                                        }}]</span></strong>
-                                <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{
-                                    nota.fecha|slice:"11:16" }}</span>
+                                        class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0 }}]</span></strong>
+                                <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span>
                             </div>
                             <span class="small text-body">{{ nota.contenido|safe }}</span>
                         </div>
@@ -340,10 +331,8 @@
                             class="bg-body border border-success border-opacity-25 p-2 rounded shadow-sm border-start border-success border-4">
                             <div class="d-flex justify-content-between mb-1">
                                 <strong class="small text-success text-uppercase fw-bold">👤 Vendedor <span
-                                        class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0
-                                        }}]</span></strong>
-                                <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{
-                                    nota.fecha|slice:"11:16" }}</span>
+                                        class="text-secondary opacity-50 ms-1">#[{{ forloop.revcounter0 }}]</span></strong>
+                                <span class="text-muted" style="font-size: 0.75rem;">{{ nota.fecha|slice:":10" }} {{ nota.fecha|slice:"11:16" }}</span>
                             </div>
                             <span class="small text-body">{{ nota.contenido }}</span>
                         </div>
