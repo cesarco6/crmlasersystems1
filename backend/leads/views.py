@@ -560,6 +560,9 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
                     estatus__in=['CONCRETADO', 'DESCARTADO']
                 ).values_list('lead_id', flat=True)
 
+                # Snooze: Excluir los prospectos con fecha de próximo contacto a futuro
+                qs_prospectos = qs_prospectos.exclude(next_action_date__gt=hoy)
+
                 qs_prospectos = qs_prospectos.exclude(id__in=excluir_ids).order_by('-updated_at')
                 
                 paginator_prospectos = Paginator(qs_prospectos, 10)

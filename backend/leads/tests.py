@@ -656,4 +656,37 @@ class DashboardFidelizacionTestCase(TestCase):
         self.assertEqual(ultima_nota['tipo'], 'contacto')
         self.assertIn('Test nota de vendedor', ultima_nota['contenido'])
 
+    def test_ventas_360_snooze_agendados_futuro(self):
+        from leads.models import CoreLead, LeadEvento
+        from django.utils import timezone
+        import datetime
+        from users.models import UserProfile
+        UserProfile.objects.get_or_create(user=self.vendedor_user, defaults={'rol': 'VENDEDOR'})
+
+        # Vincular cliente al taller
+        LeadEvento.objects.create(lead=self.cliente_campana, evento=self.taller)
+        self.taller.vendedores_asignados.add(self.vendedor_user)
+
+        self.client.login(username='vendedor', password='password123')
+
+        # 1. Comprobar que el cliente aparece inicialmente en la lista web de Ventas 360
+        url = reverse('ventas_360')
+        response = self.client.get(url, {'tab': 'talleres', 'evento_id': self.taller.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(self.cliente_campana, response.context['prospectos_campana'])
+
+        # 2. Agendar a futuro (mañana)
+        mañana = timezone.now().date() + datetime.timedelta(days=1)
+        self.cliente_campana.next_action_date = mañana
+        self.cliente_campana.save()
+
+        # 3. Comprobar que ya no aparece en el listado web de Ventas 360 (snoozed)
+        response_snoozed = self.client.get(url, {'tab': 'talleres', 'evento_id': self.taller.id})
+        self.assertNotIn(self.cliente_campana, response_snoozed.context['prospectos_campana'])
+
+        # 4. Comprobar que en el reporte de exportación SÍ aparece
+        url_export = reverse('agente_exportar_talleres')
+        response_export = self.client.get(url_export, {'evento_id': self.taller.id})
+        self.assertEqual(response_export.status_code, 200)
+
 
