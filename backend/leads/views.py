@@ -2698,13 +2698,13 @@ def obtener_especialidades_permitidas(linea_producto):
     # 1. Obtener todas las especialidades activas
     todas_especialidades = list(CatEspecialidad.objects.filter(is_active=True))
     
-    # 2. Mapeo de reglas por defecto
+    # 2. Mapeo de reglas por defecto (Sincronizado con nombres reales y variaciones profesionales en base de datos)
     MAP_LINEA_DATOS = {
-        'SPORT': ['Fisioterapeuta', 'Medicina del Deporte', 'Acupuntorista', 'Alfabiotismo', 'Angiólogo', 'Quiropráctica', 'Ortopedista', 'Homeópata'],
+        'SPORT': ['Fisioterapeuta', 'Fisioterapia', 'Medicina del Deporte', 'Acupuntorista', 'Alfabiotismo', 'Angiólogo', 'Angiología', 'Quiropráctica', 'Ortopedista', 'Homeópata', 'Homeopatía'],
         'PET': ['Veterinario'],
-        'DENTAL': ['Cirujano Dentista', 'Dentista', 'Odontólogo'],
-        'PODOLOGICO': ['Podólogo'],
-        'BEAUTY': ['Cirujano Plástico', 'Cosmetóloga', 'Dermatólogo'],
+        'DENTAL': ['Cirujano Dentista', 'Dentista', 'Odontólogo', 'Odontología', 'Ortodoncista'],
+        'PODOLOGICO': ['Podólogo', 'Podología'],
+        'BEAUTY': ['Cirujano Plástico', 'Cirujia plástica', 'Cosmetóloga', 'Cosmetología', 'Dermatólogo', 'Dermatología'],
     }
     especialidades_defecto = MAP_LINEA_DATOS.get(linea_producto, [])
     
