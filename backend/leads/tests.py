@@ -616,4 +616,44 @@ class DashboardFidelizacionTestCase(TestCase):
         self.assertIn(opt1, compras)
         self.assertNotIn(opt2, compras)
 
+    def test_ficha_trabajo_360_y_nota_contacto(self):
+        from leads.models import VentaTransaccional, Evento, LeadEvento
+        from users.models import UserProfile
+        import json
+        UserProfile.objects.get_or_create(user=self.vendedor_user, defaults={'rol': 'VENDEDOR'})
+
+        LeadEvento.objects.create(lead=self.cliente_campana, evento=self.taller)
+
+        self.client.login(username='vendedor', password='password123')
+
+        # 1. Verificar acceso a la Ficha de Trabajo 360
+        url = reverse('ficha_trabajo_360', kwargs={'pk': self.cliente_campana.id})
+        response = self.client.get(url, {'evento_id': self.taller.id})
+        self.assertEqual(response.status_code, 200)
+
+        # 2. Registrar una venta extra y verificar que la nota sea tipo "contacto" y no "sistema"
+        url_api = reverse('registrar_venta_extra')
+        payload = {
+            'lead_id': str(self.cliente_campana.id),
+            'producto_id': self.prod_acc.id,
+            'estatus': 'EN_GESTION',
+            'notas': 'Test nota de vendedor',
+            'evento_id': self.taller.id
+        }
+        res_post = self.client.post(
+            url_api,
+            data=json.dumps(payload),
+            content_type='application/json'
+        )
+        self.assertEqual(res_post.status_code, 200)
+
+        # Recargar lead y verificar nota
+        from leads.models import CoreLead
+        self.cliente_campana = CoreLead.objects.get(id=self.cliente_campana.id)
+        notas = self.cliente_campana.notas_variadas.get('notas', [])
+        self.assertTrue(len(notas) > 0)
+        ultima_nota = notas[-1]
+        self.assertEqual(ultima_nota['tipo'], 'contacto')
+        self.assertIn('Test nota de vendedor', ultima_nota['contenido'])
+
 

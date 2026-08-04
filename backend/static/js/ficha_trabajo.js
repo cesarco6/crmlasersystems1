@@ -398,6 +398,20 @@ function filtrarProductos360() {
 
     // Resetear el selector de productos
     selectProducto.value = "";
+
+    // Controlar visibilidad del selector de evento
+    const divEvento = document.getElementById('div-extra-evento');
+    const selectEvento = document.getElementById('extra-evento');
+    if (familiaSeleccionada === 'EVENTO') {
+        if (divEvento) divEvento.classList.remove('d-none');
+        if (selectEvento) selectEvento.required = true;
+    } else {
+        if (divEvento) divEvento.classList.add('d-none');
+        if (selectEvento) {
+            selectEvento.required = false;
+            selectEvento.value = "";
+        }
+    }
     
     if (!familiaSeleccionada) {
         selectProducto.disabled = true;
@@ -433,6 +447,7 @@ function guardarOportunidad360(btn = null) {
     const leadId = getLeadId();
     const csrfToken = getCsrfToken();
     
+    const familiaSeleccionada = document.getElementById('select-tipo-extra').value;
     const productoId = document.getElementById('extra-producto').value;
     const estatus = document.getElementById('extra-estatus').value;
     const notas = document.getElementById('extra-notas').value.trim();
@@ -446,8 +461,20 @@ function guardarOportunidad360(btn = null) {
         return;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const eventoId = urlParams.get('evento_id');
+    let eventoId = null;
+    if (familiaSeleccionada === 'EVENTO') {
+        const selectEvento = document.getElementById('extra-evento');
+        eventoId = selectEvento ? selectEvento.value : null;
+        if (!eventoId) {
+            // Fallback a url param
+            const urlParams = new URLSearchParams(window.location.search);
+            eventoId = urlParams.get('evento_id');
+        }
+        if (!eventoId) {
+            Swal.fire('Atención', '⚠️ Debes asociar esta oportunidad a un Evento o Taller.', 'warning');
+            return;
+        }
+    }
 
     const origText = disableButton(btn, 'Guardando...');
 

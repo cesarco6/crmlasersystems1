@@ -243,7 +243,7 @@
                                 <tr>
                                     <td class="small text-muted ps-3">{{ op.fecha_venta|date:"d M Y" }}</td>
                                     <td>
-                                        <a href="{% url 'ficha_trabajo' op.lead.id %}" class="text-decoration-none fw-bold text-info">
+                                        <a href="{% url 'ficha_trabajo_360' op.lead.id %}" class="text-decoration-none fw-bold text-info">
                                             {% if op.lead.clinica and not op.lead.apellido_paterno %}<i title="Clínica Corporativa">🏥</i>{% elif op.lead.clinica %}<i title="Médico de Clínica: {{ op.lead.clinica.nombre }}">👩‍⚕️</i>{% else %}<i title="Médico Independiente">👩‍⚕️</i>{% endif %}
                                             {{ op.lead.nombre_completo_mdm|truncatechars:25 }}
                                         </a>

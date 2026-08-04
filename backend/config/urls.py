@@ -20,7 +20,7 @@ from django.views.generic import RedirectView
 from leads import views as leads_views
 
 # 1. Agregamos "procesar_alta_manual" a la lista de importaciones
-from leads.views import DashboardAgenteView, Ventas360View, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra, AgenteStagingListView, AgenteStagingProcesarView
+from leads.views import DashboardAgenteView, Ventas360View, IngestaMasivaView, procesar_ingesta_masiva, AltaIndividualView, FichaTrabajoView, FichaTrabajo360View, procesar_alta_manual, actualizar_lead_fsm, IngestaHistoricaView, director_dashboard_view, registrar_venta_extra, ListaStagingView, ProcesarStagingView, IngestaHistoricaExpressView, actualizar_estatus_venta_extra, AgenteStagingListView, AgenteStagingProcesarView
 from users.views import panel_territorios, custom_login_view, custom_logout_view, api_territorios_vendedor, api_set_global_font
 from django.shortcuts import render
 
@@ -89,6 +89,7 @@ urlpatterns = [
     
     path('alta/', AltaIndividualView.as_view(), name='alta_individual'),
     path('trabajo/<uuid:pk>/', FichaTrabajoView.as_view(), name='ficha_trabajo'),
+    path('trabajo-360/<uuid:pk>/', FichaTrabajo360View.as_view(), name='ficha_trabajo_360'),
     path('agente/expo/<int:evento_id>/', leads_views.AgenteExpoCapturaView.as_view(), name='agente_expo_captura'),
     path('api/lead/<uuid:pk>/actualizar/', actualizar_lead_fsm, name='api_actualizar_lead'),
     path('', RedirectView.as_view(pattern_name='dashboard_agente'), name='root'),

@@ -55,6 +55,23 @@
                 </div>
             </div>
 
+            {# --- Fila Opcional: Evento/Campaña (Solo si tipo es EVENTO) --- #}
+            <div class="row mb-3 d-none" id="div-extra-evento">
+                <div class="col-12">
+                    <label class="form-label text-secondary mb-2 d-block small">
+                        Asociar a Evento/Taller *
+                    </label>
+                    <select id="extra-evento" class="form-select form-select-sm">
+                        <option value="">-- Selecciona el Evento/Taller --</option>
+                        {% for ev in campanas_todas %}
+                            <option value="{{ ev.id }}" {% if ev.id|stringformat:"i" == evento_id or ev.id == evento_id %}selected{% endif %}>
+                                {{ ev.nombre }} ({% if ev.fecha_inicio %}{{ ev.fecha_inicio|date:"d/m/Y" }}{% else %}Sin fecha{% endif %})
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
             {# --- Fila 3: Estatus --- #}
             <div class="row mb-3">
                 <div class="col-12">

@@ -389,13 +389,16 @@ def agente_exportar_talleres_view(request):
             evento=evento_seleccionado
         ).first()
         
-        if not oportunidad and keyword_producto:
-            # Fallback a oportunidad general de la misma línea (sin evento asociado)
+        if not oportunidad:
+            # Fallback a oportunidad general (sin evento asociado)
+            q_fallback = Q(evento__isnull=True)
+            if keyword_producto:
+                q_fallback &= Q(producto__nombre__icontains=keyword_producto)
+            else:
+                q_fallback &= Q(producto__familia='EVENTO')
             oportunidad = lead.compras_extra.filter(
-                vendedor=user,
-                evento__isnull=True,
-                producto__nombre__icontains=keyword_producto
-            ).order_by('-fecha_venta').first()
+                vendedor=user
+            ).filter(q_fallback).order_by('-fecha_venta').first()
         
         if oportunidad:
             estatus_raw = oportunidad.estatus
@@ -569,20 +572,25 @@ class Ventas360View(LoginRequiredMixin, TemplateView):
                         evento=evento_seleccionado
                     ).first()
                     
-                    if not oportunidad and keyword_producto:
-                        # Fallback a oportunidad general de la misma línea (sin evento asociado)
+                    if not oportunidad:
+                        # Fallback a oportunidad general (sin evento asociado)
+                        q_fallback = Q(evento__isnull=True)
+                        if keyword_producto:
+                            q_fallback &= Q(producto__nombre__icontains=keyword_producto)
+                        else:
+                            q_fallback &= Q(producto__familia='EVENTO')
                         oportunidad = lead.compras_extra.filter(
-                            vendedor=self.request.user,
-                            evento__isnull=True,
-                            producto__nombre__icontains=keyword_producto
-                        ).order_by('-fecha_venta').first()
+                            vendedor=self.request.user
+                        ).filter(q_fallback).order_by('-fecha_venta').first()
                     
                     if oportunidad:
                         lead.oportunidad_estatus_raw = oportunidad.estatus
                         lead.oportunidad_estatus_display = oportunidad.get_estatus_display()
+                        lead.oportunidad_nota = oportunidad.notas
                     else:
                         lead.oportunidad_estatus_raw = "PENDIENTE"
                         lead.oportunidad_estatus_display = "🟡 Pendiente (Por contactar)"
+                        lead.oportunidad_nota = ""
                         
                 context['prospectos_campana'] = prospectos_page
 
@@ -1135,7 +1143,8 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         # Filtrar compras transaccionales (Oportunidades 360)
         compras_extra = lead.compras_extra.all()
         if evento_id:
-            compras_extra = compras_extra.filter(evento_id=evento_id)
+            from django.db.models import Q
+            compras_extra = compras_extra.filter(Q(evento_id=evento_id) | Q(evento_id__isnull=True))
         context['compras_extra_filtradas'] = compras_extra
 
         # Mandamos el objeto completo
@@ -1157,6 +1166,54 @@ class FichaTrabajoView(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
         context['es_cliente'] = (estatus_limpio == 'CLIENTE')
 
         # --- Auto-crear TrackingPostVenta si el lead es CLIENTE ---
+        if estatus_limpio == 'CLIENTE':
+            from .models import TrackingPostVenta
+            TrackingPostVenta.objects.get_or_create(lead=lead)
+        
+        return context
+
+@method_decorator(role_required(['VENDEDOR', 'DIRECTOR', 'ADMIN']), name='dispatch')
+class FichaTrabajo360View(LoginRequiredMixin, LeadOwnershipMixin, TemplateView):
+    template_name = 'ficha_trabajo_360.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        lead_id = self.kwargs.get('pk') or self.kwargs.get('id')
+        lead = get_object_or_404(CoreLead, id=lead_id)
+        
+        evento_id = self.request.GET.get('evento_id')
+        context['evento_id'] = evento_id
+        
+        # Filtrar campañas activas del cliente
+        campanas = lead.campanas_activas
+        if evento_id:
+            campanas = campanas.filter(id=evento_id)
+        context['campanas_filtradas'] = campanas
+
+        # Guardar todas las campañas activas del cliente para el modal sin filtrar por el de la URL
+        context['campanas_todas'] = lead.campanas_activas
+
+        # Filtrar compras transaccionales (Oportunidades 360)
+        compras_extra = lead.compras_extra.all()
+        if evento_id:
+            from django.db.models import Q
+            compras_extra = compras_extra.filter(Q(evento_id=evento_id) | Q(evento_id__isnull=True))
+        context['compras_extra_filtradas'] = compras_extra
+
+        # Mandamos el objeto completo
+        context['lead'] = lead
+        context['especialidades_list'] = CatEspecialidad.objects.filter(is_active=True).values_list('nombre', flat=True).order_by('nombre')
+        context['productos_list'] = CatProducto.objects.filter(is_active=True).order_by('nombre')
+        context['titulos_list'] = CatTitulo.objects.filter(is_active=True).order_by('nombre')
+        context['ubicaciones_list'] = CatUbicacion.objects.filter(is_active=True).values_list('ciudad', flat=True).order_by('ciudad')
+        context['celular_seguro'] = lead.celular if lead.celular else "No registrado"
+        context['especialidad_segura'] = lead.especialidad_cat.nombre if lead.especialidad_cat else "No especificada"
+        context['producto_seguro'] = lead.producto_cat.nombre if lead.producto_cat else "No especificado"
+
+        estatus_limpio = (lead.estatus or '').strip().upper()
+        context['estatus_limpio'] = estatus_limpio
+        context['es_cliente'] = (estatus_limpio == 'CLIENTE')
+
         if estatus_limpio == 'CLIENTE':
             from .models import TrackingPostVenta
             TrackingPostVenta.objects.get_or_create(lead=lead)
@@ -1542,7 +1599,7 @@ def registrar_venta_extra(request):
 
         nueva_nota = {
             "fecha": timestamp,
-            "tipo": "sistema",  # Lo marcamos como sistema para que resalte
+            "tipo": "contacto",  # Lo marcamos como contacto para que aparezca como elaborado por el Vendedor
             "contenido": contenido_nota
         }
 
